@@ -1,0 +1,25 @@
+.dev-share-buttons{
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+
+  a{
+    display: inline-block;
+    padding: 10px;
+    margin: 0 5px;
+  }
+
+  .link-input-wrap{
+    display: flex;
+    justify-content: center;
+    left: 0;
+    position: absolute;
+    width: 100%;
+    top: 40%;
+
+    input{
+      width: 50%;
+    }
+  }
+}

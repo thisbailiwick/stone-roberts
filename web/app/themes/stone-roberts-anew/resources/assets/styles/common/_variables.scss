@@ -1,0 +1,72 @@
+// Grid settings
+$main-sm-columns: 12;
+$sidebar-sm-columns: 4;
+
+$spacer: 1rem;
+
+// Colors
+$brand-primary: #27ae60;
+
+// Widths
+$mobile-max-width: 767px;
+$desktop-min-width: 768px;
+$main-content-max-width: 600px;
+
+$theme-path: '/wordpress/wp-content/themes/sheldontapley-anew/dist/';
+$image-path: $theme-path + 'images/';
+
+/*********************
+BREAKPOINTS
+*********************/
+
+$xs: (max: 767px);
+$sm: (min: 768px);
+$md: (min: 992px);
+$lg: (min: 1200px);
+$sm-only: (min: map-get($sm, min), max: map-get($md, min) - 1);
+$md-only: (min: map-get($md, min), max: map-get($lg, min) - 1);
+$lg-only: (min: map-get($lg, min), max: 100000px);
+
+@mixin breakpoint($map) {
+  $query: "";
+  @if map-has-key($map, min) {
+    $query: append($query, "(min-width: #{map-get($map, min)})")
+  }
+  @if map-has-key($map, min) and map-has-key($map, max) {
+    $query: append($query, "and")
+  }
+  @if map-has-key($map, max) {
+    $query: append($query, "(max-width: #{map-get($map, max)})")
+  }
+  @media screen and #{$query} {
+    @content;
+  }
+}
+
+// Mixins
+@mixin nonAnimatingMobile {
+  .artwork_piece {
+    .main-img {
+      max-width: none;
+      max-height: none !important;
+      position: static !important;
+    }
+    .artwork-meta{
+      padding: 1.2em;
+    }
+    &.width {
+      .main-img {
+        height: auto;
+        width: 100vw;
+      }
+    }
+
+    &.height {
+      .main-img {
+        height: 100vh;
+        width: auto;
+      }
+    }
+
+  }
+}

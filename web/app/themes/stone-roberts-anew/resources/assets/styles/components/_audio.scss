@@ -1,0 +1,72 @@
+.audio {
+  margin-top: 73px;
+  padding: 0 23px;
+  position: relative;
+
+  .audio-piece {
+    .duration, .timer{
+      background: rgba(0,0,0,.5);
+      bottom: 0;
+      color: #fff;
+      padding: .5em;
+      position: absolute;
+      
+      &.timer{
+        left: -2em;
+      }
+
+      &.duration{
+        right: -2em;
+      }
+    }
+    
+    button{
+      background-color: gray;
+      border: 0 solid;
+      border-radius: .1em;
+      padding: 1.2em;
+      color: #fff;
+      // position: absolute;
+
+    }
+    .play{
+      
+    }
+
+    .pause{
+
+    }
+
+    .span-value-wrap{
+      height: 50px;
+      position: relative;
+      width: 100%;
+
+      .span-value{
+        background-color:#646464;
+        border-radius: 0;
+        display: block;
+        height: 100%;
+        overflow: visible;
+        width: 0;
+
+        .span-value-jump{
+          box-sizing: content-box;
+          height: 100%;
+          width: 0;
+
+          div{
+            height: 100%;
+            width: 100%;
+
+          }
+          
+        }
+      }
+      &:hover .span-value-jump div{
+        background-color: rgba(79, 105, 61, 0.5);
+        
+      }
+    }
+  }
+}

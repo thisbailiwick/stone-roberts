@@ -1,0 +1,38 @@
+.video {
+  position: relative;
+  width: 100%;
+
+  .video-play-screenshot {
+    overflow: hidden;
+    position: relative;
+  }
+
+  .play-button {
+    background: url($image-path + 'play.svg') no-repeat 50%/28% transparent;
+    border: none;
+    display: block;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+  }
+
+  @media screen and (max-width: $mobile-max-width) {
+    background-size: 22%;
+  }
+
+  @media screen and (min-width: $desktop-min-width) {
+    .play-button {
+      background-size: 20%;
+
+      &:hover {
+        cursor: pointer;
+      }
+    }
+
+    .video-play-screenshot {
+
+    }
+  }
+}

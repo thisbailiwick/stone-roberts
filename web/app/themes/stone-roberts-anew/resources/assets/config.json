@@ -1,0 +1,27 @@
+{
+  "entry": {
+    "main": [
+      "./scripts/utilities.js",
+      "./scripts/artwork-info.js",
+      "./scripts/st-audio.js",
+      "./scripts/more-info.js",
+      "./scripts/mousePosition.js",
+      "./scripts/zoomy.js",
+      "./scripts/centered.js",
+      "./scripts/main.js",
+      "./styles/main.scss"
+    ],
+    "customizer": [
+      "./scripts/customizer.js"
+    ]
+  },
+  "publicPath": "/app/themes/stone-roberts-anew",
+  "devUrl": "http://stoneroberts.localhost",
+  "proxyUrl": "http://localhost:3000",
+  "cacheBusting": "[name]_[hash:8]",
+  "watch": [
+    "app/**/*.php",
+    "config/**/*.php",
+    "resources/views/**/*.php"
+  ]
+}
