@@ -47,7 +47,7 @@ $lg-only: (min: map-get($lg, min), max: 100000px);
 @mixin nonAnimatingMobile {
   .artwork_piece {
     .main-img {
-      max-width: none;
+      max-width: 100vw;
       max-height: none !important;
       position: static !important;
     }

@@ -1474,7 +1474,7 @@ body.centered-image .main > *.centered {
 }
 
 body.is-touch .artwork_piece .main-img {
-  max-width: none;
+  max-width: 100vw;
   max-height: none !important;
   position: static !important;
 }
@@ -1507,7 +1507,7 @@ body.orientation-landscape.zoomed .artwork-meta {
 
 @media screen and (max-width: 630px) {
   body .artwork_piece .main-img {
-    max-width: none;
+    max-width: 100vw;
     max-height: none !important;
     position: static !important;
   }
