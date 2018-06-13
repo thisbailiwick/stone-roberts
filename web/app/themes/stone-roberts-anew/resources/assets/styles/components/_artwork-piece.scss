@@ -60,7 +60,8 @@
     .caption {
       display: inline-block;
       margin-right: 1%;
-      width: calc(100% - 131px);
+      //width: calc(100% - 131px);
+      width: 100%;
     }
     .artwork-meta {
       display: flex; // position: absolute;

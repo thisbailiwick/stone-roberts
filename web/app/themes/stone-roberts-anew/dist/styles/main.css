@@ -1174,7 +1174,7 @@ body.front.page-template-template-projects .main p {
 .artwork_piece .image-wrap .caption {
   display: inline-block;
   margin-right: 1%;
-  width: calc(100% - 131px);
+  width: 100%;
 }
 
 .artwork_piece .image-wrap .artwork-meta {
