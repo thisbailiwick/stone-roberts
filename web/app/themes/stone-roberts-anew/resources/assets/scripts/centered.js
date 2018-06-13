@@ -93,8 +93,7 @@ export let nakasentro = {
 			});
 		}, this);
 	},
-	fullScreenOnChangeEvent: function (e) {
-		console.log(e);
+	fullScreenOnChangeEvent: function () {
 		// if in fullscreen we want to add remved events which handle scroll when centered and scroll events is not triggered due to fixed elements
 		/* eslint-disable */
 		if (Barba.FullScreen.isFullScreen === false) {
@@ -208,7 +207,7 @@ export let nakasentro = {
 			var imageVwValue = artworkElements.artworkImage.clientWidth / utilities.windowWidth * 100;
 			if (imageVhValue === 0) {
 				// debugger;
-				console.log("———————————image values are zero on init!!!!");
+				// console.log("———————————image values are zero on init!!!!");
 			}
 			var imageVhValueToFull = 100 - imageVhValue;
 

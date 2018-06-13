@@ -63,23 +63,6 @@ var info = {
 		// return value - 1;
 		return value * .997531;
 	},
-	logDimensionInfo: function (dimensionValues, originalHeightRatio, originalWidthRatio) {
-		console.log('piece forscale height ratio: ' + dimensionValues.pieceHeightPixels / dimensionValues.forScaleHeightPixels);
-		console.log('piece forscale width ratio: ' + dimensionValues.pieceWidthPixels / dimensionValues.forScaleWidthPixels);
-		console.log('original height ratio: ' + originalHeightRatio);
-		console.log('original width ratio: ' + originalWidthRatio);
-		console.log('piece forscale height ratio % change: ' + (100 - (originalHeightRatio / (dimensionValues.pieceHeightPixels / dimensionValues.forScaleHeightPixels) * 100)) + '%');
-		console.log('piece forscale width ratio % change: ' + (100 - (originalWidthRatio / (dimensionValues.pieceWidthPixels / dimensionValues.forScaleWidthPixels) * 100)) + '%');
-		console.log("pieceComparisonWrapHeightPixels: " + dimensionValues.pieceComparisonWrapHeightPixels);
-		console.log('pieceWidthPixels--: ' + dimensionValues.pieceWidthPixels);
-		console.log("pieceHeightPixels--: " + dimensionValues.pieceHeightPixels);
-		console.log('pieceRatio: ' + dimensionValues.pieceWidthPixels / dimensionValues.pieceHeightPixels);
-		console.log('forScaleWidthPixels--: ' + dimensionValues.forScaleWidthPixels);
-		console.log("forScaleHeightPixels-- " + dimensionValues.forScaleHeightPixels);
-		console.log('forscale ratio: ' + dimensionValues.forScaleWidthPixels / dimensionValues.forScaleHeightPixels);
-		console.log('');
-		console.log('');
-	},
 	recalculateNewDimensions: function (dimensionValues) {
 		// var originalHeightRatio = dimensionValues.pieceHeightPixels / dimensionValues.forScaleHeightPixels;
 		// var originalWidthRatio = dimensionValues.pieceWidthPixels / dimensionValues.forScaleWidthPixels;
@@ -100,8 +83,6 @@ var info = {
 
 			// get forsacle height value based on newly found forscale width value
 			dimensionValues.forScaleHeightPixels = this.getImageHeightPixels(dimensionValues.forScaleWidthPixels, dimensionValues.forScaleHeightImageRatio);
-
-			// this.logDimensionInfo(dimensionValues, originalHeightRatio, originalWidthRatio);
 		} while (
 			//make sure piece height is shorter than piece comparison wrap height
 		dimensionValues.pieceHeightPixels > dimensionValues.pieceComparisonWrapHeightPixels ||

@@ -24,14 +24,12 @@ let audio = {
   },
 
   setSeek: function(player, percent) {
-    console.log(player.duration());
     player.seek(player.duration() * percent);
   },
 
   seekClick: function(e) {
     // e = Mouse click event.
     var rect = e.currentTarget.getBoundingClientRect();
-    console.log(rect);
     var x = e.clientX - rect.left; //x position within the element.
     var percent = x / rect.width;
     stAudio.setSeek(this, percent);
