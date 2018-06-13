@@ -71,8 +71,7 @@ body.front {
           margin: 0;
 
           .main {
-            //margin: 0 auto;
-            //width: 50%;
+
           }
         }
       }
@@ -88,11 +87,6 @@ body.front {
     top: 0;
     z-index: -300
   }
-  //&.show-body-overlay, &.viewport-resizing{
-  //  #body-overlay{
-  //    z-index: 10000;
-  //  }
-  //}
 
   &.page-template-template-projects {
     .main {
@@ -115,6 +109,10 @@ body.front {
 
       &.centered-image > *:not(.centered-image-transition-duration) {
         opacity: 0;
+      }
+
+      p{
+        margin-top: 0;
       }
     }
   }

@@ -4,10 +4,16 @@ import {stAudio} from '../st-audio';
 import {zoomy} from '../zoomy';
 import {nakasentro} from '../centered';
 import {artworkInfo} from '../artwork-info';
+import * as initMenuVerticalPush from '../../../../../../mu-plugins/menu-vertical-push/menu-vertical-push';
 
 export default {
 	init() {
 		// JavaScript to be fired on all pages
+
+		window.onload = function () {
+			// init menu-vertical-push
+			initMenuVerticalPush.init();
+		};
 
 		var playVideo = function () {
 			var iframeCode = this.getAttribute("data-embed");

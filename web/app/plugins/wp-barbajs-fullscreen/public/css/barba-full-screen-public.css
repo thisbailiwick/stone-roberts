@@ -1,0 +1,25 @@
+/**
+ * All of the CSS for your public-facing functionality should be
+ * included in this file.
+ */
+
+.fullscreen{
+    background: #faf9f9;
+    height: 100%;
+	width: 100%;
+	overflow: scroll;
+}
+
+.fullscreen-toggle{
+	background: url('../images/fullscreen.png') no-repeat center/contain transparent;
+	height: 25px;
+	width: 25px;
+	position: fixed;
+	right: 25px;
+	top: 25px;
+	z-index: 100;
+}
+
+.fullscreen-toggle:hover{
+	cursor: pointer;
+}

@@ -1,2 +1,28 @@
 // TODO: .banner .nav li {}
 // TODO: .banner .nav a {}
+header.banner {
+  margin-bottom: 70px;
+
+  .container {
+    overflow: auto;
+
+    .brand {
+      display: block;
+      line-height: 1em;
+      text-align: center;
+      margin-top: 1em;
+      font-size: 30px;
+      font-weight: bold;
+    }
+    .nav-primary {
+      .nav {
+        padding: 0;
+        li {
+          display: inline-block;
+          list-style-type: none;
+          margin: 0 .3em;
+        }
+      }
+    }
+  }
+}

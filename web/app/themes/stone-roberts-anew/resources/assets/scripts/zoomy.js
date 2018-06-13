@@ -1,5 +1,5 @@
 import utilities from './utilities';
-import bodyScrollLock from 'body-scroll-lock';
+import {disableBodyScroll, clearAllBodyScrollLocks} from 'body-scroll-lock';
 import {mousePosition} from './mousePosition';
 import {nakasentro} from './centered';
 
@@ -60,9 +60,9 @@ export let zoomy = {
 		this.isZoomed = !this.isZoomed;
 		if (zoomy.isTouchDevice) {
 			if (this.isZoomed === true) {
-				bodyScrollLock.disableBodyScroll(this.mouseMapImage);
+				disableBodyScroll(this.mouseMapImage);
 			} else {
-				bodyScrollLock.clearAllBodyScrollLocks(this.mouseMapImage);
+				clearAllBodyScrollLocks(this.mouseMapImage);
 			}
 		}
 

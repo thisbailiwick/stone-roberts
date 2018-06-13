@@ -39,11 +39,16 @@
         flex-shrink: 0;
         //left: 0;
         max-height: 100vh;
+        //max-width: 100vw;
         position: static;
         //top: 0;
         transition-duration: 1s;
         //transition-duration: $zoom-transition-duration;
         //transition-property: width, height, opacity;
+      }
+
+      .artwork-image-wrap{
+        margin: 0 auto;
       }
 
     }
@@ -62,10 +67,11 @@
       position: static;
       text-align: left; // top: 100%;
       width: 100%;
+
       .caption p {
         margin: 0;
-        text-align: justify;
       }
+
       .actions {
         display: none;
         position: absolute;
@@ -244,14 +250,14 @@
     }
 
     .artwork-meta {
-      background: gray;
       $width-displayed: 40px;
+      background-color: hsla(0, 0%, 10%, 1);
       align-items: flex-start;
       bottom: 0;
       display: flex;
       justify-content: space-between;
       left: calc(100vw - #{$width-displayed});
-      padding: 1.2em 1.2em 1.2em $width-displayed;
+      padding: 0;
       position: fixed;
       transition-duration: .25s;
       transition-property: left;
@@ -264,8 +270,16 @@
 
       &:before {
         content: '';
-        height: $width-displayed;
-        width: $width-displayed;
+        height: 30px;
+        width: 30px;
+        border: solid white;
+        border-width: 0 3px 3px 0;
+        display: inline-block;
+        padding: 3px;
+        transform: rotate(135deg);
+        position: absolute;
+        left: 12px;
+        bottom: 14px;
       }
 
       &:hover {
@@ -275,7 +289,12 @@
       }
 
       .caption {
-        width: auto;
+        padding: 20px 20px 20px 41px;
+        width: 100%;
+
+        p{
+          text-align: center;
+        }
       }
 
       .actions {

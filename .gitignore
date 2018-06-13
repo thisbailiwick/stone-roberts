@@ -1,7 +1,7 @@
 # Application
-web/app/plugins/*
+#web/app/plugins/*
 !web/app/plugins/.gitkeep
-web/app/mu-plugins/*/
+#web/app/mu-plugins/*/
 web/app/upgrade
 web/app/uploads/*
 !web/app/uploads/.gitkeep
@@ -18,3 +18,7 @@ web/.htaccess
 # Composer
 vendor/*
 !vendor/.gitkeep
+
+web/thetrick
+
+menu-vertical-push-github

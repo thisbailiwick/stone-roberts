@@ -13,7 +13,7 @@ export let nakasentro = {
 	isTouchDevice: false,
 	// helps us not process items in the midst of resizing
 	isResizing: false,
-	consideredCenteredPercentage: 3,
+	consideredCenteredPercentage: 10,
 	recentlyAddedCenteredClasses: false,
 	recentlyRemovedCenteredClasses: false,
 	fixedImageScrollReleaseCount: 0,
@@ -221,6 +221,14 @@ export let nakasentro = {
 			var imageRatioWidth = artworkElements.artworkImage.clientWidth / artworkElements.artworkImage.clientHeight;
 			var imageRatioHeight = artworkElements.artworkImage.clientHeight / artworkElements.artworkImage.clientWidth;
 
+			if (artworkElements.artworkImage.clientHeight >= utilities.windowHeight) {
+				artworkElements.imageRatioHolder.style.height = artworkElements.artworkImage.clientHeight + "px";
+				artworkElements.imageRatioHolder.style.width = artworkElements.artworkImage.clientWidth + "px";
+			} else {
+				artworkElements.imageRatioHolder.style.paddingBottom = 100 * imageRatioHeight + '%';
+			}
+
+
 			var imageViewportWidthRatio = utilities.windowWidth / artworkElements.artworkImage.clientWidth;
 			var imageViewportHeightRatio = utilities.windowHeight / artworkElements.artworkImage.clientHeight;
 
@@ -309,7 +317,6 @@ export let nakasentro = {
 			artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.width .main-img, #' + artworkElements.artworkUniqueId + '.centered.width .mouse-map {transform: scale(' + imageViewportWidthRatio + ', ' + imageViewportWidthRatio + ')}';
 			artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.width .main-img, #' + artworkElements.artworkUniqueId + '.centered.width .mouse-map {transform: scale(' + imageViewportWidthRatio + ', ' + imageViewportWidthRatio + ')}';
 
-			artworkElements.imageRatioHolder.style.paddingBottom = 100 * imageRatioHeight + '%';
 
 			artworkElements.artworkImage.style.position = 'static';
 			artworkElements.centerImageWrap.style.height = 0;
@@ -382,10 +389,9 @@ export let nakasentro = {
 		var toCenterPercentage = nakasentro.getPercentageToCenter(toCenterPixelsAbsolute);
 
 		// if we're close to the centerpoint of an image, we trigger a scroll to
-		console.log(toCenterPercentage < nakasentro.consideredCenteredPercentage, artwork);
 		if (toCenterPercentage < nakasentro.consideredCenteredPercentage) {
 			// image is centered
-			console.log('turning on');
+			// console.log('turning on');
 			if (this.imageCentered === false && artwork.fullscreenImageCentered === false/* && this.recentlyAddedCenteredClasses === false*/) {
 				// if in fullscreen we want to add these events to handle scroll when centered and scroll events is not triggered due to fixed elements
 
@@ -420,9 +426,9 @@ export let nakasentro = {
 			// }
 
 		} else if (artwork.imageCentered === true) {
-			console.log(artwork);
+			// console.log(artwork);
 			if (toCenterPercentage > nakasentro.consideredCenteredPercentage) {
-				console.log('turning off');
+				// console.log('turning off');
 
 				// image is not centered
 				artwork.fullscreenImageCentered = false;

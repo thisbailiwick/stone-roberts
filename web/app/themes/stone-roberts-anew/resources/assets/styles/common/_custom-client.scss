@@ -1,0 +1,54 @@
+$whitney-regular: "Whitney SSm A", "Whitney SSm B";
+body.front {
+  color: #fff;
+  font-family: $whitney-regular;
+  font-weight: 400;
+  font-style: normal;
+  line-height: 23px;
+
+  a{
+    color: #fff;
+    text-decoration: none;
+  }
+
+  .fullscreen {
+    background: rgba(38, 38, 38, 1.0);
+
+    .main {
+      > * {
+        margin-bottom: 33px;
+      }
+
+      .page-header {
+        margin-top: 40px;
+        margin-bottom: 60px;
+
+        h1 {
+          font-size: 18px;
+          letter-spacing: 3.7px;
+        }
+      }
+
+      h1, h2, h3, h4, h5 {
+        font-weight: 100;
+        font-size: 14px;
+        letter-spacing: 0.21em;
+        text-transform: uppercase;
+      }
+
+      .artwork_piece {
+        .artwork-meta {
+          margin-top: 10px;
+
+          .caption {
+            p {
+              color: rgba(188, 188, 188, 1.0);
+              font-size: 15px;
+              line-height: 19px;
+            }
+          }
+        }
+      }
+    }
+  }
+}

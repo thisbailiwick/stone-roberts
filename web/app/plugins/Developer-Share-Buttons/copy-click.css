@@ -1,0 +1,23 @@
+.dev-share-buttons {
+    align-items: center;
+    background: rgba(0, 0, 0, 0.8);
+    bottom: 0;
+    display: none;
+    flex-direction: column;
+    justify-content: space-evenly;
+    left: 0;
+    position: fixed;
+    right: 0;
+    top: 0;
+    z-index: 150;
+}
+
+.dev-share-buttons.show {
+    display: flex;
+}
+
+.dev-share-buttons__item--copy input {
+    display: block;
+    width: 400px;
+    max-width: 100%;
+}

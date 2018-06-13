@@ -1,0 +1,36 @@
+@import "node_modules/hamburgers/_sass/hamburgers/hamburgers";
+.menu-vertical-push {
+  overflow: hidden;
+  transition-duration: .25s;
+  transition-property: margin-top;
+
+  &.open{
+    margin-top: 0 !important;
+  }
+
+  .nav-primary {
+    .nav {
+      padding: 0;
+      text-align: center;
+
+      li {
+        display: inline-block;
+        list-style-type: none;
+        margin: 0 .3em;
+      }
+    }
+  }
+
+  .hamburger{
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 20;
+
+    .hamburger-inner, .hamburger-inner::before, .hamburger-inner::after{
+      background-color: #fff;
+      height: 2px;
+      width: 30px;
+    }
+  }
+}

@@ -5,6 +5,16 @@
   .video-play-screenshot {
     overflow: hidden;
     position: relative;
+
+    .caption {
+      margin-top: 10px;
+
+      p {
+        color: #bcbcbc;
+        font-size: 15px;
+        line-height: 19px;
+      }
+    }
   }
 
   .play-button {

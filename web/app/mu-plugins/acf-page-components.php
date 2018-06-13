@@ -203,7 +203,7 @@ HTML;
  function html_video($content, $id_tag = false) {
 	$id_tag = $id_tag ?: 'video-' . random_int(100, 100000000);
 	$image = get_image($content['image_file']);
-	$embed = get_video_embed_html($content['acf_fc_layout'], $content['video_iframe'], $image, $content['caption'], $id_tag);
+	$embed = get_video_embed_html($content['acf_fc_layout'], $content['video_iframe'], $image, $content['caption_text'], $id_tag);
 
 	$html = <<<HTML
 				{$embed}
@@ -279,7 +279,7 @@ HTML;
 			<div class="{$layout_type}" id="{$id_tag}">
 				<div class="video-play-screenshot">
 					{$image}
-					{$caption}
+					<div class="caption">{$caption}</div>
 					<button class="play-button" data-toggle="modal" data-embed="{$embed}" data-target="#video-modal"></button>
 				</div>
 			</div>
