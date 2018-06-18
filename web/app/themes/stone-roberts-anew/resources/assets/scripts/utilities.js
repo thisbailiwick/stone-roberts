@@ -104,14 +104,13 @@ let utilities = {
 		var containerRatioWidth = null;
 		var containerRatioHeight = null;
 		if (container != null) {
-			// console.log('container not null');
 			containerRatioWidth = (container.clientWidth - xPadding) / (container.clientHeight - yPadding);
 		} else {
-			// console.log('container null');
 			containerRatioWidth = this.windowRatioWidth;
 			containerRatioHeight = this.windowRatioHeight;
 
 		}
+
 		// figure out which way to change image size
 		var imageRatioWidth = image.naturalWidth / image.naturalHeight;
 		var imageRatioHeight = image.naturalHeight / image.naturalWidth;
@@ -147,8 +146,8 @@ let utilities = {
 		style.setAttribute('id', id);
 		document.getElementsByTagName('head')[0].appendChild(style);
 	},
-	removeCssFromPage: function(ids){
-		ids.forEach(function(id){
+	removeCssFromPage: function (ids) {
+		ids.forEach(function (id) {
 			let el = document.getElementById(id);
 			el.parentNode.removeChild(el);
 		});

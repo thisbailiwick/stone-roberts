@@ -123,9 +123,6 @@ var utilities = {
 	},
 	isElementInViewport: function (el) {
 		var rect = el.getBoundingClientRect();
-		console.log('rect: ' + rect.top, rect.bottom);
-		console.log('window.innerHeight: ' + window.innerHeight);
-		console.log('document.documentElement.clientHeight: ' + document.documentElement.clientHeight);
 		return (
 			rect.top >= 0 &&
 			rect.bottom <= (window.innerHeight || document.documentElement.clientHeight)
@@ -536,6 +533,7 @@ var nakasentro = {
 				imageSpacePlaceholder: artworkElements.imageSpacePlaceholder,
 				artworkUniqueId: artworkElements.artworkUniqueId,
 				imageCentered: false,
+				// this allows us to track centered image when in fullscreen and we use the counted scroll events or keyboard events to trigger the image out of full width
 				fullscreenImageCentered: false,
 				// mouseMapImage: artworkElements.mouseMapImage,
 				originalDimensions: {
@@ -614,7 +612,6 @@ var nakasentro = {
 
 	debounceWindowResize: __WEBPACK_IMPORTED_MODULE_1_underscore___default.a.debounce(function () {
 		var currentViewportDimenstions = __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.getViewportDimensions();
-		console.log(__WEBPACK_IMPORTED_MODULE_0__utilities___default.a.windowHeight, currentViewportDimenstions.height, __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.windowWidth, currentViewportDimenstions.width);
 		if (__WEBPACK_IMPORTED_MODULE_0__utilities___default.a.windowHeight !== currentViewportDimenstions.height || __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.windowWidth !== currentViewportDimenstions.width) {
 			nakasentro.artworks = Array();
 			__WEBPACK_IMPORTED_MODULE_0__utilities___default.a.setViewportDimensions();
@@ -663,7 +660,6 @@ var nakasentro = {
 		// if we're close to the centerpoint of an image, we trigger a scroll to
 		if (toCenterPercentage < nakasentro.consideredCenteredPercentage) {
 			// image is centered
-			// console.log('turning on');
 			if (this.imageCentered === false && artwork.fullscreenImageCentered === false/* && this.recentlyAddedCenteredClasses === false*/) {
 				// if in fullscreen we want to add these events to handle scroll when centered and scroll events is not triggered due to fixed elements
 
@@ -697,13 +693,15 @@ var nakasentro = {
 			// 	this.resizeLandscape(artwork, 100);
 			// }
 
+		} else if(artwork.fullscreenImageCentered === true){
+			// set false variable tracking fullwidth centered image when in fullscreen.
+			artwork.fullscreenImageCentered = false;
 		} else if (artwork.imageCentered === true) {
 			// console.log(artwork);
 			if (toCenterPercentage > nakasentro.consideredCenteredPercentage) {
 				// console.log('turning off');
 
 				// image is not centered
-				artwork.fullscreenImageCentered = false;
 
 				if (this.imageCentered === true /*&& this.recentlyRemovedCenteredClasses === false*/) {
 
@@ -839,13 +837,10 @@ var nakasentro = {
 	checkArtworks: function () {
 		nakasentro.artworks.forEach(function (artwork) {
 			if (__WEBPACK_IMPORTED_MODULE_0__utilities___default.a.isElementInViewport(artwork.artworkImage)) {
-				console.log('true');
 				nakasentro.possiblyCenterUncenterImage(artwork);
 			} else {
 				// this.resetImageValues(artwork.artworkImage, artwork.artworkImageWrap);
 			}
-			console.log(artwork.artworkImage.getAttribute('src'));
-				console.log('');
 		}, this);
 	},
 };
@@ -6669,33 +6664,42 @@ function reframe(target, cName) {
 
 
 var menuWrap = document.querySelector('header.banner');
+var hamburger = null;
 var menuWrapHeight = null;
-console.log(menuWrap);
 
 function init() {
 	menuWrap.classList.add('menu-vertical-push');
 	menuWrapHeight = outerHeight(menuWrap);
 	menuWrap.style.marginTop = -menuWrapHeight + 'px';
+	var menuLinks = menuWrap.querySelectorAll('a');
+	console.log(menuLinks);
+	menuLinks.forEach(function(link){
+		link.addEventListener('click', menuLinkClick);
+	});
 	var hamburgerHtml = getHamburgerHtml();
-	console.log(hamburgerHtml);
 	menuWrap.insertBefore(hamburgerHtml, menuWrap.firstChild);
+	hamburger = document.querySelector('header.banner .hamburger');
 	window.setTimeout(function () {
 		menuWrap.classList.add();
 	}, 100);
 
-	var hamburger = document.querySelector('header.banner .hamburger');
+
 	hamburger.addEventListener('click', function () {
 		toggleMenu();
 		this.classList.toggle('is-active');
 	}, false);
 }
 
+var menuLinkClick = function () {
+	toggleMenu();
+	hamburger.classList.remove('is-active');
+};
+
 var getHamburgerHtml = function () {
 	var hamburgerHtmlString = "\n\t\t<button class=\"hamburger hamburger--collapse\" type=\"button\">\n\t\t  <span class=\"hamburger-box\">\n\t\t    <span class=\"hamburger-inner\"></span>\n\t\t  </span>\n\t\t</button>  \n\t";
 
 	var div = document.createElement('div');
 	div.innerHTML = hamburgerHtmlString;
-	console.log(div);
 	return div.firstElementChild;
 };
 
@@ -6711,9 +6715,6 @@ var toggleMenu = function () {
 var outerHeight = function (el) {
 		var height = el.offsetHeight;
 		var style = getComputedStyle(el);
-		console.log(el);
-		console.log(style);
-		console.log(style.marginBottom);
 		height += parseInt(style.marginTop) + parseInt(style.marginBottom);
 		return height;
 };

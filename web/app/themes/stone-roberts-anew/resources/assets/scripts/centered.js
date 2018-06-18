@@ -74,8 +74,10 @@ export let nakasentro = {
 			if (isInit === false) {
 				this.resetImageValues(artworkElements);
 			}
-
+			utilities.setViewportDimensions();
 			let imageSizeChangeTechnique = this.setArtworkSizeChangeTechnique(artworkElements.artworkImage, artworkElements.artworkWrap);
+
+			window.addEventListener('resize', this.mobileResize.bind(artworkElements));
 
 			nakasentro.artworks.push({
 				artworksIndex: nakasentro.artworks.length,
@@ -93,7 +95,14 @@ export let nakasentro = {
 				fullscreenImageCentered: false,
 			});
 		}, this);
+
 	},
+	mobileResize: _.debounce(function () {
+		// utilities.setViewportDimensions();
+		// nakasentro.setArtworkSizeChangeTechnique(this.artworkImage, this.artworkWrap);
+		nakasentro.artworks = [];
+		nakasentro.mobileSetup(false);
+	}, 250),
 	fullScreenOnChangeEvent: function () {
 		// if in fullscreen we want to add remved events which handle scroll when centered and scroll events is not triggered due to fixed elements
 		/* eslint-disable */
@@ -365,7 +374,6 @@ export let nakasentro = {
 
 	debounceWindowResize: _.debounce(function () {
 		let currentViewportDimenstions = utilities.getViewportDimensions();
-		console.log(utilities.windowHeight, currentViewportDimenstions.height, utilities.windowWidth, currentViewportDimenstions.width);
 		if (utilities.windowHeight !== currentViewportDimenstions.height || utilities.windowWidth !== currentViewportDimenstions.width) {
 			nakasentro.artworks = Array();
 			utilities.setViewportDimensions();

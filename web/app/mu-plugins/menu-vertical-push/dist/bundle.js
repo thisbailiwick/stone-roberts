@@ -118,26 +118,35 @@ __webpack_require__.r(__webpack_exports__);
 
 
 const menuWrap = document.querySelector('header.banner');
+let hamburger = null;
 let menuWrapHeight = null;
-console.log(menuWrap);
 
 function init() {
 	menuWrap.classList.add('menu-vertical-push');
 	menuWrapHeight = outerHeight(menuWrap);
 	menuWrap.style.marginTop = -menuWrapHeight + 'px';
+	const menuLinks = menuWrap.querySelectorAll('a');
+	menuLinks.forEach(function(link){
+		link.addEventListener('click', menuLinkClick);
+	});
 	const hamburgerHtml = getHamburgerHtml();
-	console.log(hamburgerHtml);
 	menuWrap.insertBefore(hamburgerHtml, menuWrap.firstChild);
+	hamburger = document.querySelector('header.banner .hamburger');
 	window.setTimeout(function () {
 		menuWrap.classList.add();
 	}, 100);
 
-	const hamburger = document.querySelector('header.banner .hamburger');
+
 	hamburger.addEventListener('click', function () {
 		toggleMenu();
 		this.classList.toggle('is-active');
 	}, false);
 }
+
+const menuLinkClick = () => {
+	toggleMenu();
+	hamburger.classList.remove('is-active');
+};
 
 const getHamburgerHtml = () => {
 	const hamburgerHtmlString = `
@@ -150,7 +159,6 @@ const getHamburgerHtml = () => {
 
 	let div = document.createElement('div');
 	div.innerHTML = hamburgerHtmlString;
-	console.log(div);
 	return div.firstElementChild;
 };
 
@@ -166,9 +174,6 @@ const toggleMenu = () => {
 const outerHeight = (el) => {
 		let height = el.offsetHeight;
 		const style = getComputedStyle(el);
-		console.log(el);
-		console.log(style);
-		console.log(style.marginBottom);
 		height += parseInt(style.marginTop) + parseInt(style.marginBottom);
 		return height;
 };
