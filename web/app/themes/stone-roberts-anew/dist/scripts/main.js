@@ -216,6 +216,12 @@ var utilities = {
 		style.setAttribute('id', id);
 		document.getElementsByTagName('head')[0].appendChild(style);
 	},
+	removeCssFromPage: function(ids){
+		ids.forEach(function(id){
+			var el = document.getElementById(id);
+			el.parentNode.removeChild(el);
+		});
+	},
 };
 
 utilities.init();
@@ -312,7 +318,7 @@ var nakasentro = {
 		nakasentro.artworks_elements.forEach(function (artwork, index) {
 			var artworkElements = this.getArtworkElements(artwork, index);
 			if (isInit === false) {
-				this.resetImageValues(artwork);
+				this.resetImageValues(artworkElements);
 			}
 
 			var imageSizeChangeTechnique = this.setArtworkSizeChangeTechnique(artworkElements.artworkImage, artworkElements.artworkWrap);
@@ -376,7 +382,7 @@ var nakasentro = {
 		}, 400, this);
 	},
 	// setViewportDimensions: function() {
-	//   var viewportDimensions = this.getViewportDimensions();
+	//   let viewportDimensions = this.getViewportDimensions();
 	//   this.windowHeight = viewportDimensions.height;
 	//   this.windowWidth = viewportDimensions.width;
 	//   this.windowRatioWidth = this.windowWidth / this.windowHeight;
@@ -431,19 +437,29 @@ var nakasentro = {
 		this.setBodyClasses("orientation-" + __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.browserOrientation);
 
 		nakasentro.artworks_elements.forEach(function (artwork, index) {
-			// var zoomWrap = artwork.querySelector('.zoom-wrap');
+			// let zoomWrap = artwork.querySelector('.zoom-wrap');
 			var artworkElements = this.getArtworkElements(artwork, index);
 
+			var styleBlockId = artworkElements.artworkUniqueId + '-artwork-centered-style';
+			
 			if (isInit === false) {
-				this.resetImageValues(artwork);
+				this.resetImageValues(artworkElements);
+				__WEBPACK_IMPORTED_MODULE_0__utilities___default.a.removeCssFromPage([styleBlockId]);
 			}
+
+
 			// document.body.classLifst.remove('artworks-processed');
 
 			// we need to compare the ratio of the viewport to the ratio of the image.
 			// debugger;
 			// console.log(artworkElements.artworkImage.clientWidth, artworkElements.artworkImage.clientHeight);
+
+			// temporarily set maxHeight for processing
+			artworkElements.artworkImage.style.maxHeight = '100vh';
+
 			artworkElements.artworkImage.style.minHeight = artworkElements.artworkImage.clientHeight + "px";
 			artworkElements.artworkImage.style.minWidth = artworkElements.artworkImage.clientWidth + "px";
+
 			var imageVhValue = artworkElements.artworkImage.clientHeight / __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.windowHeight * 100;
 			var imageVwValue = artworkElements.artworkImage.clientWidth / __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.windowWidth * 100;
 			if (imageVhValue === 0) {
@@ -452,7 +468,7 @@ var nakasentro = {
 			}
 			var imageVhValueToFull = 100 - imageVhValue;
 
-			// var imageSizeChangeTechnique = this.setArtworkSizeChangeTechnique(artworkElements.artworkImage, artworkWrap);
+			// let imageSizeChangeTechnique = this.setArtworkSizeChangeTechnique(artworkElements.artworkImage, artworkWrap);
 			var imageSizeChangeTechnique = __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.getImageSizeChangeTechnique(artworkElements.artworkImage);
 			artworkElements.artworkWrap.classList.remove('width', 'height');
 			artworkElements.artworkWrap.classList.add(imageSizeChangeTechnique);
@@ -537,25 +553,33 @@ var nakasentro = {
 			nakasentro.artworks[index].wheelEvent = nakasentro.fullscreenHandleZoomyDivScroll.bind(nakasentro.artworks[index]);
 			nakasentro.artworks[index].keydownEvent = nakasentro.handlePossibleScrollTrigger.bind(nakasentro.artworks[index]);
 
-			// var artworkStyles = '';
+			// let artworkStyles = '';
 			// if (utilities.browserOrientation === 'portrait') {
 			// 	artworkStyles = '#' + artworkElements.artworkUniqueId + ' .main-img, #' + artworkElements.artworkUniqueId + ' .zoomy-wrap, #' + artworkElements.artworkUniqueId + ' .image-space-placeholder, #' + artworkElements.artworkUniqueId + ' .image-center-wrap {width: ' + artworkImage.clientWidth + 'px; height: ' + artworkImage.clientHeight + 'px; }';
 
-			// var artworkStyles = '#' + artworkElements.artworkUniqueId + '.centered.height .main-img, #' + artworkElements.artworkUniqueId + '.centered.height .zoomy-wrap {transform: scale(' + imageViewportHeightRatio + ', ' + imageViewportHeightRatio + ')}';
+			// let artworkStyles = '#' + artworkElements.artworkUniqueId + '.centered.height .main-img, #' + artworkElements.artworkUniqueId + '.centered.height .zoomy-wrap {transform: scale(' + imageViewportHeightRatio + ', ' + imageViewportHeightRatio + ')}';
 			// artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.width .main-img, #' + artworkElements.artworkUniqueId + '.centered.width .zoomy-wrap {transform: scale(' + imageViewportWidthRatio + ', ' + imageViewportWidthRatio + ')}';
-			var styleBlockId = artworkElements.artworkUniqueId + '-artwork-centered-style';
+
 			var styleBlock = document.getElementById(styleBlockId);
 			if (styleBlock !== null) {
 				styleBlock.remove();
 			}
 			// console.log(artworkElements.artworkUniqueId, imageViewportHeightRatio, imageViewportWidthRatio);
-			// var artworkStyles = '#' + artworkElements.artworkUniqueId + '.centered.height .main-img, #' + artworkElements.artworkUniqueId + '.centered.height .zoomy-wrap {transform: scale(' + imageViewportHeightRatio + ', ' + imageViewportHeightRatio + ')}';
+			// let artworkStyles = '#' + artworkElements.artworkUniqueId + '.centered.height .main-img, #' + artworkElements.artworkUniqueId + '.centered.height .zoomy-wrap {transform: scale(' + imageViewportHeightRatio + ', ' + imageViewportHeightRatio + ')}';
 			// artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.width .main-img, #' + artworkElements.artworkUniqueId + '.centered.width .zoomy-wrap {transform: scale(' + imageViewportWidthRatio + ', ' + imageViewportWidthRatio + ')}';
 
+			// create styles for .main-img and .mouse-map width and height
 			var artworkStyles = '#' + artworkElements.artworkUniqueId + ' .main-img, #' + artworkElements.artworkUniqueId + ' .mouse-map {width: ' + artworkElements.artworkImage.clientWidth + 'px; height: ' + artworkElements.artworkImage.clientHeight + 'px;}';
+
+			// create styles for .main-img and .mouse-map scale amount when image dimension change is height
 			artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.height .main-img, #' + artworkElements.artworkUniqueId + '.centered.height .mouse-map {transform: scale(' + imageViewportHeightRatio + ', ' + imageViewportHeightRatio + ')}';
+
+			// create styles for .main-img and .mouse-map scale amount when image dimension change is width
 			artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.width .main-img, #' + artworkElements.artworkUniqueId + '.centered.width .mouse-map {transform: scale(' + imageViewportWidthRatio + ', ' + imageViewportWidthRatio + ')}';
-			artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.width .main-img, #' + artworkElements.artworkUniqueId + '.centered.width .mouse-map {transform: scale(' + imageViewportWidthRatio + ', ' + imageViewportWidthRatio + ')}';
+
+
+			// remove temporary max height for image after processing
+			artworkElements.artworkImage.style.maxHeight = 'none';
 
 
 			artworkElements.artworkImage.style.position = 'static';
@@ -563,7 +587,7 @@ var nakasentro = {
 			// artworkElements.imageRatioHolder.style.paddingleft = imageRatioWidth / 100 + '%';
 
 			// take mousemap backgrond size and scale it down by the ratio of the imageviewportratio
-			// var mousemapImageCenteredHeight = artworkElements.mouseMapImage.
+			// let mousemapImageCenteredHeight = artworkElements.mouseMapImage.
 			// }else{
 			// 	artworkStyles = '#' + artworkUniqueId + ' .main-img, #' + artworkUniqueId + ' .zoomy-wrap {width: ' + artworkElements.artworkImage.clientWidth + 'px;height: ' + artworkElements.artworkImage.clientHeight + 'px;}';
 			// }
@@ -582,11 +606,11 @@ var nakasentro = {
 
 	debounceWindowResize: __WEBPACK_IMPORTED_MODULE_1_underscore___default.a.debounce(function () {
 		var currentViewportDimenstions = __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.getViewportDimensions();
-		// console.log(utilities.windowHeight, currentViewportDimenstions.height, utilities.windowWidth, currentViewportDimenstions.width);
+		console.log(__WEBPACK_IMPORTED_MODULE_0__utilities___default.a.windowHeight, currentViewportDimenstions.height, __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.windowWidth, currentViewportDimenstions.width);
 		if (__WEBPACK_IMPORTED_MODULE_0__utilities___default.a.windowHeight !== currentViewportDimenstions.height || __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.windowWidth !== currentViewportDimenstions.width) {
 			nakasentro.artworks = Array();
 			__WEBPACK_IMPORTED_MODULE_0__utilities___default.a.setViewportDimensions();
-			nakasentro.setupValues(true);
+			nakasentro.setupValues();
 		}
 		document.body.classList.remove("viewport-resizing");
 		nakasentro.isResizing = false;
@@ -597,7 +621,7 @@ var nakasentro = {
 		if (__WEBPACK_IMPORTED_MODULE_0__utilities___default.a.windowHeight !== currentViewportDimenstions.height || __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.windowWidth !== currentViewportDimenstions.width) {
 			nakasentro.artworks = Array();
 			__WEBPACK_IMPORTED_MODULE_0__utilities___default.a.setViewportDimensions();
-			nakasentro.setupValues(true);
+			nakasentro.setupValues();
 		}
 	},
 
@@ -740,17 +764,17 @@ var nakasentro = {
 		// @c is the change between the beginning and destination value of the property.
 		// @d is the total time of the tween.
 		// TODO: Figure out a better name for lengthValue
-		// var lengthValue = this.browserOrientation === "portrait" ? artwork.originalDimensions.imageVwValue : artwork.originalDimensions.imageVhValue;
+		// let lengthValue = this.browserOrientation === "portrait" ? artwork.originalDimensions.imageVwValue : artwork.originalDimensions.imageVhValue;
 		// lengthValue = lengthValue * .45;
 
-		// var w = window,
+		// let w = window,
 		//   doc = document,
 		//   e = doc.documentElement,
 		//   g = doc.getElementsByTagName("body")[0],
 		//   x = w.innerWidth || e.clientWidth || g.clientWidth,
 		//   y = w.innerHeight || e.clientHeight || g.clientHeight;
 
-		// var result = x * lengthValue / 100;
+		// let result = x * lengthValue / 100;
 		// console.log("result: " + result);
 		// console.log('toCenterPercentage: ' + toCenterPercentage);
 		var toCenterPercentagePassed = 100 - toCenterPercentage;

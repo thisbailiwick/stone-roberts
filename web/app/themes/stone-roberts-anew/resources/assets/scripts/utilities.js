@@ -147,6 +147,12 @@ let utilities = {
 		style.setAttribute('id', id);
 		document.getElementsByTagName('head')[0].appendChild(style);
 	},
+	removeCssFromPage: function(ids){
+		ids.forEach(function(id){
+			let el = document.getElementById(id);
+			el.parentNode.removeChild(el);
+		});
+	},
 };
 
 utilities.init();

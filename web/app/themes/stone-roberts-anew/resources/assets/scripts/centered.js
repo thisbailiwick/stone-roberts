@@ -17,6 +17,7 @@ export let nakasentro = {
 	recentlyAddedCenteredClasses: false,
 	recentlyRemovedCenteredClasses: false,
 	fixedImageScrollReleaseCount: 0,
+	imagesProcessed: false,
 
 	init: function () {
 		//reset values
@@ -33,7 +34,7 @@ export let nakasentro = {
 			window.addEventListener(
 				"scroll",
 				function () {
-					if (!this.isResizing) {
+					if (!this.isResizing && nakasentro.imagesProcessed === true) {
 						nakasentro.checkArtworks();
 					}
 				}.bind(this)
@@ -42,7 +43,7 @@ export let nakasentro = {
 				"scroll",
 				// _.debounce(function () {
 				function () {
-					if (!nakasentro.isResizing) {
+					if (!nakasentro.isResizing && nakasentro.imagesProcessed === true) {
 						nakasentro.checkArtworks();
 					}
 				}
@@ -51,7 +52,7 @@ export let nakasentro = {
 
 			// for when in fullscreen
 			nakasentro.fullscreen.addEventListener("scroll", function () {
-				if (!this.isResizing) {
+				if (!this.isResizing && nakasentro.imagesProcessed === true) {
 					nakasentro.checkArtworks();
 				}
 				// console.log('scrolling');=
@@ -69,12 +70,12 @@ export let nakasentro = {
 
 		this.setBodyClasses("orientation-" + utilities.browserOrientation);
 		nakasentro.artworks_elements.forEach(function (artwork, index) {
-			var artworkElements = this.getArtworkElements(artwork, index);
+			let artworkElements = this.getArtworkElements(artwork, index);
 			if (isInit === false) {
-				this.resetImageValues(artwork);
+				this.resetImageValues(artworkElements);
 			}
 
-			var imageSizeChangeTechnique = this.setArtworkSizeChangeTechnique(artworkElements.artworkImage, artworkElements.artworkWrap);
+			let imageSizeChangeTechnique = this.setArtworkSizeChangeTechnique(artworkElements.artworkImage, artworkElements.artworkWrap);
 
 			nakasentro.artworks.push({
 				artworksIndex: nakasentro.artworks.length,
@@ -117,7 +118,7 @@ export let nakasentro = {
 		this.mainContentWrap = document.querySelector(".content>.main");
 		this.imageCentered = false;
 		this.scrollBeingThrottled = false;
-		document.body.classList.remove("orientation-portrait", "orientation-landscape", "artworks-processed", "centered-image");
+		document.body.classList.remove("orientation-portrait", "orientation-landscape", "centered-image");
 		document.querySelectorAll('.artwork_piece').forEach(function (artworkPiece) {
 			this.removeArtworkPieceCentered(artworkPiece);
 		}, this);
@@ -135,7 +136,7 @@ export let nakasentro = {
 		}, 400, this);
 	},
 	// setViewportDimensions: function() {
-	//   var viewportDimensions = this.getViewportDimensions();
+	//   let viewportDimensions = this.getViewportDimensions();
 	//   this.windowHeight = viewportDimensions.height;
 	//   this.windowWidth = viewportDimensions.width;
 	//   this.windowRatioWidth = this.windowWidth / this.windowHeight;
@@ -146,20 +147,21 @@ export let nakasentro = {
 	resetImageValues: function (artwork) {
 		artwork.artworkImage.setAttribute("style", "");
 		artwork.zoomyWrap.setAttribute("style", "");
+		artwork.imageRatioHolder.setAttribute('style', '');
 	},
 	getArtworkElements: function (artwork, index) {
-		var artworkWrap = artwork;
+		let artworkWrap = artwork;
 		artworkWrap.setAttribute('artworks-index', index);
-		var artworkUniqueId = artwork.getAttribute('id');
-		var artworkImageWrap = artwork.querySelector(".image-wrap");
-		var centerImageWrap = artworkImageWrap.querySelector('.center-image-wrap');
-		var artworkImage = artworkImageWrap.querySelector(".main-img");
-		var zoomyWrap = artworkImageWrap.querySelector(".zoomy-wrap");
-		var imageSpacePlaceholder = artworkImageWrap.querySelector('.image-space-placeholder');
-		var imageRatioHolder = artworkImageWrap.querySelector('.image-ratio-holder');
-		var mouseMapImage = artworkImageWrap.querySelector(".mouse-map");
+		let artworkUniqueId = artwork.getAttribute('id');
+		let artworkImageWrap = artwork.querySelector(".image-wrap");
+		let centerImageWrap = artworkImageWrap.querySelector('.center-image-wrap');
+		let artworkImage = artworkImageWrap.querySelector(".main-img");
+		let zoomyWrap = artworkImageWrap.querySelector(".zoomy-wrap");
+		let imageSpacePlaceholder = artworkImageWrap.querySelector('.image-space-placeholder');
+		let imageRatioHolder = artworkImageWrap.querySelector('.image-ratio-holder');
+		let mouseMapImage = artworkImageWrap.querySelector(".mouse-map");
 
-		var artworkMetaWrap = artworkImageWrap.querySelector(".artwork-meta");
+		let artworkMetaWrap = artworkImageWrap.querySelector(".artwork-meta");
 		return {
 			artworkWrap: artworkWrap,
 			artworkUniqueId: artworkUniqueId,
@@ -174,12 +176,13 @@ export let nakasentro = {
 		};
 	},
 	setArtworkSizeChangeTechnique: function (artworkImage, artworkWrap) {
-		var imageSizeChangeTechnique = utilities.getImageSizeChangeTechnique(artworkImage);
+		let imageSizeChangeTechnique = utilities.getImageSizeChangeTechnique(artworkImage);
 		artworkWrap.classList.remove('width', 'height');
 		artworkWrap.classList.add(imageSizeChangeTechnique);
 		return imageSizeChangeTechnique;
 	},
 	setupValues: function (isInit) {
+		nakasentro.imagesProcessed = false;
 		isInit = typeof isInit === "boolean"
 			? isInit
 			: false;
@@ -190,35 +193,45 @@ export let nakasentro = {
 		this.setBodyClasses("orientation-" + utilities.browserOrientation);
 
 		nakasentro.artworks_elements.forEach(function (artwork, index) {
-			// var zoomWrap = artwork.querySelector('.zoom-wrap');
-			var artworkElements = this.getArtworkElements(artwork, index);
+			// let zoomWrap = artwork.querySelector('.zoom-wrap');
+			let artworkElements = this.getArtworkElements(artwork, index);
+
+			let styleBlockId = artworkElements.artworkUniqueId + '-artwork-centered-style';
 
 			if (isInit === false) {
-				this.resetImageValues(artwork);
+				this.resetImageValues(artworkElements);
+				utilities.removeCssFromPage([styleBlockId]);
 			}
+
+
 			// document.body.classLifst.remove('artworks-processed');
 
 			// we need to compare the ratio of the viewport to the ratio of the image.
 			// debugger;
 			// console.log(artworkElements.artworkImage.clientWidth, artworkElements.artworkImage.clientHeight);
+
+			// temporarily set maxHeight for processing
+			artworkElements.artworkImage.style.maxHeight = '100vh';
+
 			artworkElements.artworkImage.style.minHeight = artworkElements.artworkImage.clientHeight + "px";
 			artworkElements.artworkImage.style.minWidth = artworkElements.artworkImage.clientWidth + "px";
-			var imageVhValue = artworkElements.artworkImage.clientHeight / utilities.windowHeight * 100;
-			var imageVwValue = artworkElements.artworkImage.clientWidth / utilities.windowWidth * 100;
+
+			let imageVhValue = artworkElements.artworkImage.clientHeight / utilities.windowHeight * 100;
+			let imageVwValue = artworkElements.artworkImage.clientWidth / utilities.windowWidth * 100;
 			if (imageVhValue === 0) {
 				// debugger;
 				// console.log("———————————image values are zero on init!!!!");
 			}
-			var imageVhValueToFull = 100 - imageVhValue;
+			let imageVhValueToFull = 100 - imageVhValue;
 
-			// var imageSizeChangeTechnique = this.setArtworkSizeChangeTechnique(artworkElements.artworkImage, artworkWrap);
-			var imageSizeChangeTechnique = utilities.getImageSizeChangeTechnique(artworkElements.artworkImage);
+			// let imageSizeChangeTechnique = this.setArtworkSizeChangeTechnique(artworkElements.artworkImage, artworkWrap);
+			let imageSizeChangeTechnique = utilities.getImageSizeChangeTechnique(artworkElements.artworkImage);
 			artworkElements.artworkWrap.classList.remove('width', 'height');
 			artworkElements.artworkWrap.classList.add(imageSizeChangeTechnique);
 
 
-			var imageRatioWidth = artworkElements.artworkImage.clientWidth / artworkElements.artworkImage.clientHeight;
-			var imageRatioHeight = artworkElements.artworkImage.clientHeight / artworkElements.artworkImage.clientWidth;
+			let imageRatioWidth = artworkElements.artworkImage.clientWidth / artworkElements.artworkImage.clientHeight;
+			let imageRatioHeight = artworkElements.artworkImage.clientHeight / artworkElements.artworkImage.clientWidth;
 
 			if (artworkElements.artworkImage.clientHeight >= utilities.windowHeight) {
 				artworkElements.imageRatioHolder.style.height = artworkElements.artworkImage.clientHeight + "px";
@@ -228,14 +241,14 @@ export let nakasentro = {
 			}
 
 
-			var imageViewportWidthRatio = utilities.windowWidth / artworkElements.artworkImage.clientWidth;
-			var imageViewportHeightRatio = utilities.windowHeight / artworkElements.artworkImage.clientHeight;
+			let imageViewportWidthRatio = utilities.windowWidth / artworkElements.artworkImage.clientWidth;
+			let imageViewportHeightRatio = utilities.windowHeight / artworkElements.artworkImage.clientHeight;
 
 			artworkElements.mouseMapImage.setAttribute('scaleWidth', imageViewportWidthRatio);
 			artworkElements.mouseMapImage.setAttribute('scaleHeight', imageViewportHeightRatio);
 
 
-			var imageMaxHeight = null;
+			let imageMaxHeight = null;
 			// get image max height
 			if (imageSizeChangeTechnique === "width") {
 				// if imageSizeChangeTechnique is width we want to multiply the viewport width in px by the height/width ratio of the image
@@ -253,8 +266,8 @@ export let nakasentro = {
 			// 	// if imageSizeChangeTechnique is height we want to just use the viewport height amount.
 			// 	const imageMaxWidth = utilities.windowWidth;
 			// }
-			var imageOffsetFromDocTop = utilities.getElementOffsetFromDoc(artworkElements.artworkImage).top;
-			var imageMaxHeightCenterPointFromDocTop = imageMaxHeight / 2 + imageOffsetFromDocTop;
+			let imageOffsetFromDocTop = utilities.getElementOffsetFromDoc(artworkElements.artworkImage).top;
+			let imageMaxHeightCenterPointFromDocTop = imageMaxHeight / 2 + imageOffsetFromDocTop;
 
 			nakasentro.artworks.push({
 				artworksIndex: nakasentro.artworks.length,
@@ -264,6 +277,7 @@ export let nakasentro = {
 				imageOffsetFromDocTop: imageOffsetFromDocTop,
 				imageMaxHeight: imageMaxHeight,
 				imageMaxHeightCenterPointFromDocTop: imageMaxHeightCenterPointFromDocTop,
+				imageRatioHolder: artworkElements.imageRatioHolder,
 				artworkWrap: artworkElements.artworkWrap,
 				artworkImageWrap: artworkElements.artworkImageWrap,
 				centerImageWrap: artworkElements.centerImageWrap,
@@ -296,25 +310,33 @@ export let nakasentro = {
 			nakasentro.artworks[index].wheelEvent = nakasentro.fullscreenHandleZoomyDivScroll.bind(nakasentro.artworks[index]);
 			nakasentro.artworks[index].keydownEvent = nakasentro.handlePossibleScrollTrigger.bind(nakasentro.artworks[index]);
 
-			// var artworkStyles = '';
+			// let artworkStyles = '';
 			// if (utilities.browserOrientation === 'portrait') {
 			// 	artworkStyles = '#' + artworkElements.artworkUniqueId + ' .main-img, #' + artworkElements.artworkUniqueId + ' .zoomy-wrap, #' + artworkElements.artworkUniqueId + ' .image-space-placeholder, #' + artworkElements.artworkUniqueId + ' .image-center-wrap {width: ' + artworkImage.clientWidth + 'px; height: ' + artworkImage.clientHeight + 'px; }';
 
-			// var artworkStyles = '#' + artworkElements.artworkUniqueId + '.centered.height .main-img, #' + artworkElements.artworkUniqueId + '.centered.height .zoomy-wrap {transform: scale(' + imageViewportHeightRatio + ', ' + imageViewportHeightRatio + ')}';
+			// let artworkStyles = '#' + artworkElements.artworkUniqueId + '.centered.height .main-img, #' + artworkElements.artworkUniqueId + '.centered.height .zoomy-wrap {transform: scale(' + imageViewportHeightRatio + ', ' + imageViewportHeightRatio + ')}';
 			// artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.width .main-img, #' + artworkElements.artworkUniqueId + '.centered.width .zoomy-wrap {transform: scale(' + imageViewportWidthRatio + ', ' + imageViewportWidthRatio + ')}';
-			var styleBlockId = artworkElements.artworkUniqueId + '-artwork-centered-style';
-			var styleBlock = document.getElementById(styleBlockId);
+
+			let styleBlock = document.getElementById(styleBlockId);
 			if (styleBlock !== null) {
 				styleBlock.remove();
 			}
 			// console.log(artworkElements.artworkUniqueId, imageViewportHeightRatio, imageViewportWidthRatio);
-			// var artworkStyles = '#' + artworkElements.artworkUniqueId + '.centered.height .main-img, #' + artworkElements.artworkUniqueId + '.centered.height .zoomy-wrap {transform: scale(' + imageViewportHeightRatio + ', ' + imageViewportHeightRatio + ')}';
+			// let artworkStyles = '#' + artworkElements.artworkUniqueId + '.centered.height .main-img, #' + artworkElements.artworkUniqueId + '.centered.height .zoomy-wrap {transform: scale(' + imageViewportHeightRatio + ', ' + imageViewportHeightRatio + ')}';
 			// artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.width .main-img, #' + artworkElements.artworkUniqueId + '.centered.width .zoomy-wrap {transform: scale(' + imageViewportWidthRatio + ', ' + imageViewportWidthRatio + ')}';
 
-			var artworkStyles = '#' + artworkElements.artworkUniqueId + ' .main-img, #' + artworkElements.artworkUniqueId + ' .mouse-map {width: ' + artworkElements.artworkImage.clientWidth + 'px; height: ' + artworkElements.artworkImage.clientHeight + 'px;}';
+			// create styles for .main-img and .mouse-map width and height
+			let artworkStyles = '#' + artworkElements.artworkUniqueId + ' .main-img, #' + artworkElements.artworkUniqueId + ' .mouse-map {width: ' + artworkElements.artworkImage.clientWidth + 'px; height: ' + artworkElements.artworkImage.clientHeight + 'px;}';
+
+			// create styles for .main-img and .mouse-map scale amount when image dimension change is height
 			artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.height .main-img, #' + artworkElements.artworkUniqueId + '.centered.height .mouse-map {transform: scale(' + imageViewportHeightRatio + ', ' + imageViewportHeightRatio + ')}';
+
+			// create styles for .main-img and .mouse-map scale amount when image dimension change is width
 			artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.width .main-img, #' + artworkElements.artworkUniqueId + '.centered.width .mouse-map {transform: scale(' + imageViewportWidthRatio + ', ' + imageViewportWidthRatio + ')}';
-			artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.width .main-img, #' + artworkElements.artworkUniqueId + '.centered.width .mouse-map {transform: scale(' + imageViewportWidthRatio + ', ' + imageViewportWidthRatio + ')}';
+
+
+			// remove temporary max height for image after processing
+			artworkElements.artworkImage.style.maxHeight = 'none';
 
 
 			artworkElements.artworkImage.style.position = 'static';
@@ -322,12 +344,13 @@ export let nakasentro = {
 			// artworkElements.imageRatioHolder.style.paddingleft = imageRatioWidth / 100 + '%';
 
 			// take mousemap backgrond size and scale it down by the ratio of the imageviewportratio
-			// var mousemapImageCenteredHeight = artworkElements.mouseMapImage.
+			// let mousemapImageCenteredHeight = artworkElements.mouseMapImage.
 			// }else{
 			// 	artworkStyles = '#' + artworkUniqueId + ' .main-img, #' + artworkUniqueId + ' .zoomy-wrap {width: ' + artworkElements.artworkImage.clientWidth + 'px;height: ' + artworkElements.artworkImage.clientHeight + 'px;}';
 			// }
 			utilities.addCssToPage(artworkStyles, styleBlockId);
 		}, this);
+		nakasentro.imagesProcessed = true;
 
 		// document.body.classList.add("artworks-processed");
 		window.addEventListener("resize", this.debounceWindowResize);
@@ -340,23 +363,23 @@ export let nakasentro = {
 	},
 
 	debounceWindowResize: _.debounce(function () {
-		var currentViewportDimenstions = utilities.getViewportDimensions();
-		// console.log(utilities.windowHeight, currentViewportDimenstions.height, utilities.windowWidth, currentViewportDimenstions.width);
+		let currentViewportDimenstions = utilities.getViewportDimensions();
+		console.log(utilities.windowHeight, currentViewportDimenstions.height, utilities.windowWidth, currentViewportDimenstions.width);
 		if (utilities.windowHeight !== currentViewportDimenstions.height || utilities.windowWidth !== currentViewportDimenstions.width) {
 			nakasentro.artworks = Array();
 			utilities.setViewportDimensions();
-			nakasentro.setupValues(true);
+			nakasentro.setupValues();
 		}
 		document.body.classList.remove("viewport-resizing");
 		nakasentro.isResizing = false;
 	}, 250),
 
 	windowResize: function () {
-		var currentViewportDimenstions = utilities.getViewportDimensions();
+		let currentViewportDimenstions = utilities.getViewportDimensions();
 		if (utilities.windowHeight !== currentViewportDimenstions.height || utilities.windowWidth !== currentViewportDimenstions.width) {
 			nakasentro.artworks = Array();
 			utilities.setViewportDimensions();
-			nakasentro.setupValues(true);
+			nakasentro.setupValues();
 		}
 	},
 
@@ -365,7 +388,7 @@ export let nakasentro = {
 	},
 
 	getPixelsToCenter: function (distanceFromTopOfViewport) {
-		var viewport_center = utilities.windowHalfHeight;
+		let viewport_center = utilities.windowHalfHeight;
 		return viewport_center - distanceFromTopOfViewport;
 	},
 
@@ -378,14 +401,14 @@ export let nakasentro = {
 	},
 
 	possiblyCenterUncenterImage: function (artwork) {
-		var rect = artwork.imageSpacePlaceholder.getBoundingClientRect();
-		var distanceFromTopOfViewport = rect.top + rect.height / 2;
-		var toCenterPixels = nakasentro.getPixelsToCenter(distanceFromTopOfViewport);
+		let rect = artwork.imageSpacePlaceholder.getBoundingClientRect();
+		let distanceFromTopOfViewport = rect.top + rect.height / 2;
+		let toCenterPixels = nakasentro.getPixelsToCenter(distanceFromTopOfViewport);
 
 		// TODO: this is about 51 pixels off, why?!
-		var toCenterPixelsAbsolute = Math.abs(toCenterPixels);
+		let toCenterPixelsAbsolute = Math.abs(toCenterPixels);
 
-		var toCenterPercentage = nakasentro.getPercentageToCenter(toCenterPixelsAbsolute);
+		let toCenterPercentage = nakasentro.getPercentageToCenter(toCenterPixelsAbsolute);
 
 		// if we're close to the centerpoint of an image, we trigger a scroll to
 		if (toCenterPercentage < nakasentro.consideredCenteredPercentage) {
@@ -400,7 +423,7 @@ export let nakasentro = {
 					artwork.fullscreenImageCentered = true;
 				}
 				window.addEventListener('keydown', artwork.keydownEvent);
-				artwork.zoomyWrap.addEventListener('wheel', artwork.wheelEvent);
+				artwork.zoomyWrap.addEventListener('wheel', artwork.wheelEvent, {passive: true});
 				// this.recentlyAddedCenteredClasses = true;
 				// window.setTimeout(function () {
 				// 	nakasentro.recentlyAddedCenteredClasses = false;
@@ -443,7 +466,9 @@ export let nakasentro = {
 					artwork.imageCentered = false;
 					document.body.classList.remove("centered-image");
 					artwork.artworkWrap.classList.remove("centered");
-					this.resetImageValues(artwork);
+
+					// TODO: is this needed here?
+					// this.resetImageValues(artwork);
 
 					window.setTimeout(function () {
 						// here we delay removing a class to allow some css transitions to happen
@@ -474,7 +499,7 @@ export let nakasentro = {
 	},
 
 	setNewWidthValues: function (toCenterPercentage, artwork) {
-		var newWidthLength = this.getNewLength(toCenterPercentage, artwork.originalDimensions.imageVwValue);
+		let newWidthLength = this.getNewLength(toCenterPercentage, artwork.originalDimensions.imageVwValue);
 		this.artworks[artwork.artworksIndex].dynamicImageValues.toCenterPercentage = toCenterPercentage;
 		this.artworks[artwork.artworksIndex].dynamicImageValues.imageCurrentWidth = newWidthLength;
 		this.artworks[artwork.artworksIndex].dynamicImageValues.imageVhValueToFull = this.artworks[artwork.artworksIndex].dynamicImageValues.imageVhValueToFull - newWidthLength;
@@ -482,7 +507,7 @@ export let nakasentro = {
 		this.resizePortrait(artwork, newWidthLength);
 	},
 	setNewHeightValues: function (toCenterPercentage, artwork) {
-		var newLength = this.getNewLength(toCenterPercentage, artwork.originalDimensions.imageVhValue);
+		let newLength = this.getNewLength(toCenterPercentage, artwork.originalDimensions.imageVhValue);
 		this.artworks[artwork.artworksIndex].dynamicImageValues.toCenterPercentage = toCenterPercentage;
 
 		this.artworks[artwork.artworksIndex].dynamicImageValues.imageCurrentHeight = newLength;
@@ -499,27 +524,27 @@ export let nakasentro = {
 		// @c is the change between the beginning and destination value of the property.
 		// @d is the total time of the tween.
 		// TODO: Figure out a better name for lengthValue
-		// var lengthValue = this.browserOrientation === "portrait" ? artwork.originalDimensions.imageVwValue : artwork.originalDimensions.imageVhValue;
+		// let lengthValue = this.browserOrientation === "portrait" ? artwork.originalDimensions.imageVwValue : artwork.originalDimensions.imageVhValue;
 		// lengthValue = lengthValue * .45;
 
-		// var w = window,
+		// let w = window,
 		//   doc = document,
 		//   e = doc.documentElement,
 		//   g = doc.getElementsByTagName("body")[0],
 		//   x = w.innerWidth || e.clientWidth || g.clientWidth,
 		//   y = w.innerHeight || e.clientHeight || g.clientHeight;
 
-		// var result = x * lengthValue / 100;
+		// let result = x * lengthValue / 100;
 		// console.log("result: " + result);
 		// console.log('toCenterPercentage: ' + toCenterPercentage);
-		var toCenterPercentagePassed = 100 - toCenterPercentage;
+		let toCenterPercentagePassed = 100 - toCenterPercentage;
 		// console.log('toCenterPercentagePassed: ' + toCenterPercentagePassed);
-		var t = toCenterPercentagePassed;
-		var b = originalDimensionValue;
-		var c = 100 - originalDimensionValue;
-		var d = 100;
+		let t = toCenterPercentagePassed;
+		let b = originalDimensionValue;
+		let c = 100 - originalDimensionValue;
+		let d = 100;
 		// console.log(t, b, c, d);
-		var newLength = c * t / d + b;
+		let newLength = c * t / d + b;
 		// console.log('newLength: ' + newLength);
 		// if (newLength > 100) {
 		//   newLength = 100;
@@ -534,9 +559,9 @@ export let nakasentro = {
 
 	resizePortrait: function (artwork, imageNewWidth) {
 		if (artwork.artworkImage.clientWidth >= artwork.originalDimensions.width) {
-			var width = imageNewWidth + "vw";
-			var imageWidth = artwork.artworkImage.clientWidth;
-			var imageHeight = artwork.artworkImage.clientHeight + "px";
+			let width = imageNewWidth + "vw";
+			let imageWidth = artwork.artworkImage.clientWidth;
+			let imageHeight = artwork.artworkImage.clientHeight + "px";
 			artwork.artworkImage.style.width = width;
 			artwork.zoomyWrap.style.height = imageHeight;
 			artwork.zoomyWrap.style.width = width;
@@ -549,8 +574,8 @@ export let nakasentro = {
 
 	resizeLandscape: function (artwork, imageNewHeight) {
 		if (artwork.artworkImage.clientHeight >= artwork.originalDimensions.height) {
-			var height = imageNewHeight + "vh";
-			var imageWidth = artwork.artworkImage.clientWidth + "px";
+			let height = imageNewHeight + "vh";
+			let imageWidth = artwork.artworkImage.clientWidth + "px";
 			artwork.artworkImage.style.height = height;
 			artwork.zoomyWrap.style.height = height;
 			artwork.zoomyWrap.style.width = imageWidth;
