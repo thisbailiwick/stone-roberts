@@ -55,7 +55,7 @@ let utilities = {
 	isElementInViewport: function (el) {
 		var rect = el.getBoundingClientRect();
 		return (
-			rect.top >= 0 ||
+			rect.top >= 0 &&
 			rect.bottom <= (window.innerHeight || document.documentElement.clientHeight)
 		);
 	},

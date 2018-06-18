@@ -286,6 +286,7 @@ export let nakasentro = {
 				imageSpacePlaceholder: artworkElements.imageSpacePlaceholder,
 				artworkUniqueId: artworkElements.artworkUniqueId,
 				imageCentered: false,
+				// this allows us to track centered image when in fullscreen and we use the counted scroll events or keyboard events to trigger the image out of full width
 				fullscreenImageCentered: false,
 				// mouseMapImage: artworkElements.mouseMapImage,
 				originalDimensions: {
@@ -413,7 +414,6 @@ export let nakasentro = {
 		// if we're close to the centerpoint of an image, we trigger a scroll to
 		if (toCenterPercentage < nakasentro.consideredCenteredPercentage) {
 			// image is centered
-			// console.log('turning on');
 			if (this.imageCentered === false && artwork.fullscreenImageCentered === false/* && this.recentlyAddedCenteredClasses === false*/) {
 				// if in fullscreen we want to add these events to handle scroll when centered and scroll events is not triggered due to fixed elements
 
@@ -447,13 +447,15 @@ export let nakasentro = {
 			// 	this.resizeLandscape(artwork, 100);
 			// }
 
+		} else if(artwork.fullscreenImageCentered === true){
+			// set false variable tracking fullwidth centered image when in fullscreen.
+			artwork.fullscreenImageCentered = false;
 		} else if (artwork.imageCentered === true) {
 			// console.log(artwork);
 			if (toCenterPercentage > nakasentro.consideredCenteredPercentage) {
 				// console.log('turning off');
 
 				// image is not centered
-				artwork.fullscreenImageCentered = false;
 
 				if (this.imageCentered === true /*&& this.recentlyRemovedCenteredClasses === false*/) {
 

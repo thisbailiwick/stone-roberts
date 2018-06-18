@@ -123,8 +123,11 @@ var utilities = {
 	},
 	isElementInViewport: function (el) {
 		var rect = el.getBoundingClientRect();
+		console.log('rect: ' + rect.top, rect.bottom);
+		console.log('window.innerHeight: ' + window.innerHeight);
+		console.log('document.documentElement.clientHeight: ' + document.documentElement.clientHeight);
 		return (
-			rect.top >= 0 ||
+			rect.top >= 0 &&
 			rect.bottom <= (window.innerHeight || document.documentElement.clientHeight)
 		);
 	},
@@ -264,6 +267,7 @@ var nakasentro = {
 	recentlyAddedCenteredClasses: false,
 	recentlyRemovedCenteredClasses: false,
 	fixedImageScrollReleaseCount: 0,
+	imagesProcessed: false,
 
 	init: function () {
 		//reset values
@@ -280,7 +284,7 @@ var nakasentro = {
 			window.addEventListener(
 				"scroll",
 				function () {
-					if (!this.isResizing) {
+					if (!this.isResizing && nakasentro.imagesProcessed === true) {
 						nakasentro.checkArtworks();
 					}
 				}.bind(this)
@@ -289,7 +293,7 @@ var nakasentro = {
 				"scroll",
 				// _.debounce(function () {
 				function () {
-					if (!nakasentro.isResizing) {
+					if (!nakasentro.isResizing && nakasentro.imagesProcessed === true) {
 						nakasentro.checkArtworks();
 					}
 				}
@@ -298,7 +302,7 @@ var nakasentro = {
 
 			// for when in fullscreen
 			nakasentro.fullscreen.addEventListener("scroll", function () {
-				if (!this.isResizing) {
+				if (!this.isResizing && nakasentro.imagesProcessed === true) {
 					nakasentro.checkArtworks();
 				}
 				// console.log('scrolling');=
@@ -364,7 +368,7 @@ var nakasentro = {
 		this.mainContentWrap = document.querySelector(".content>.main");
 		this.imageCentered = false;
 		this.scrollBeingThrottled = false;
-		document.body.classList.remove("orientation-portrait", "orientation-landscape", "artworks-processed", "centered-image");
+		document.body.classList.remove("orientation-portrait", "orientation-landscape", "centered-image");
 		document.querySelectorAll('.artwork_piece').forEach(function (artworkPiece) {
 			this.removeArtworkPieceCentered(artworkPiece);
 		}, this);
@@ -393,6 +397,7 @@ var nakasentro = {
 	resetImageValues: function (artwork) {
 		artwork.artworkImage.setAttribute("style", "");
 		artwork.zoomyWrap.setAttribute("style", "");
+		artwork.imageRatioHolder.setAttribute('style', '');
 	},
 	getArtworkElements: function (artwork, index) {
 		var artworkWrap = artwork;
@@ -427,6 +432,7 @@ var nakasentro = {
 		return imageSizeChangeTechnique;
 	},
 	setupValues: function (isInit) {
+		nakasentro.imagesProcessed = false;
 		isInit = typeof isInit === "boolean"
 			? isInit
 			: false;
@@ -441,7 +447,7 @@ var nakasentro = {
 			var artworkElements = this.getArtworkElements(artwork, index);
 
 			var styleBlockId = artworkElements.artworkUniqueId + '-artwork-centered-style';
-			
+
 			if (isInit === false) {
 				this.resetImageValues(artworkElements);
 				__WEBPACK_IMPORTED_MODULE_0__utilities___default.a.removeCssFromPage([styleBlockId]);
@@ -521,6 +527,7 @@ var nakasentro = {
 				imageOffsetFromDocTop: imageOffsetFromDocTop,
 				imageMaxHeight: imageMaxHeight,
 				imageMaxHeightCenterPointFromDocTop: imageMaxHeightCenterPointFromDocTop,
+				imageRatioHolder: artworkElements.imageRatioHolder,
 				artworkWrap: artworkElements.artworkWrap,
 				artworkImageWrap: artworkElements.artworkImageWrap,
 				centerImageWrap: artworkElements.centerImageWrap,
@@ -593,6 +600,7 @@ var nakasentro = {
 			// }
 			__WEBPACK_IMPORTED_MODULE_0__utilities___default.a.addCssToPage(artworkStyles, styleBlockId);
 		}, this);
+		nakasentro.imagesProcessed = true;
 
 		// document.body.classList.add("artworks-processed");
 		window.addEventListener("resize", this.debounceWindowResize);
@@ -665,7 +673,7 @@ var nakasentro = {
 					artwork.fullscreenImageCentered = true;
 				}
 				window.addEventListener('keydown', artwork.keydownEvent);
-				artwork.zoomyWrap.addEventListener('wheel', artwork.wheelEvent);
+				artwork.zoomyWrap.addEventListener('wheel', artwork.wheelEvent, {passive: true});
 				// this.recentlyAddedCenteredClasses = true;
 				// window.setTimeout(function () {
 				// 	nakasentro.recentlyAddedCenteredClasses = false;
@@ -708,7 +716,9 @@ var nakasentro = {
 					artwork.imageCentered = false;
 					document.body.classList.remove("centered-image");
 					artwork.artworkWrap.classList.remove("centered");
-					this.resetImageValues(artwork);
+
+					// TODO: is this needed here?
+					// this.resetImageValues(artwork);
 
 					window.setTimeout(function () {
 						// here we delay removing a class to allow some css transitions to happen
@@ -829,10 +839,13 @@ var nakasentro = {
 	checkArtworks: function () {
 		nakasentro.artworks.forEach(function (artwork) {
 			if (__WEBPACK_IMPORTED_MODULE_0__utilities___default.a.isElementInViewport(artwork.artworkImage)) {
+				console.log('true');
 				nakasentro.possiblyCenterUncenterImage(artwork);
 			} else {
 				// this.resetImageValues(artwork.artworkImage, artwork.artworkImageWrap);
 			}
+			console.log(artwork.artworkImage.getAttribute('src'));
+				console.log('');
 		}, this);
 	},
 };
