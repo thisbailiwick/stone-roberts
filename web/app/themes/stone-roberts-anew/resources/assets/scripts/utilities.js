@@ -71,7 +71,7 @@ let utilities = {
 			left: rect.left + window.pageXOffset,
 		};
 	},
-	getChildren: function (child, skipMe, elementClass) {
+	getSiblingsWithClass: function (child, skipMe, elementClass) {
 		var r = [];
 		for (; child; child = child.nextSibling) {
 			if (child.nodeType == 1 && child != skipMe && child.classList.contains(elementClass)) {
@@ -81,8 +81,9 @@ let utilities = {
 		return r;
 	},
 
+	// return the first element which has class
 	getSiblingByClass: function (element, elementClass) {
-		return this.getChildren(element.parentNode.firstChild, element, elementClass);
+		return this.getSiblingsWithClass(element.parentNode.firstChild, element, elementClass)[0];
 	},
 
 	getImageSizeChangeTechnique: function (image, container, xPadding, yPadding) {

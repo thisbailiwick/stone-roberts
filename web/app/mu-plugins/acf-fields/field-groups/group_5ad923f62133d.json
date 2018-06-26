@@ -1,25 +1,6 @@
 {
     "key": "group_5ad923f62133d",
     "title": "Page Content",
-    "location": [
-        [
-            {
-                "param": "post_type",
-                "operator": "==",
-                "value": "projects"
-            }
-        ]
-    ],
-    "menu_order": 0,
-    "position": "normal",
-    "style": "seamless",
-    "label_placement": "top",
-    "instruction_placement": "label",
-    "hide_on_screen": [
-        "the_content"
-    ],
-    "active": 1,
-    "description": "",
     "fields": [
         {
             "key": "field_5ad92400012d8",
@@ -42,6 +23,33 @@
                     "display": "block",
                     "sub_fields": [
                         {
+                            "key": "field_5b2bd6fd610be",
+                            "label": "Video Host",
+                            "name": "video_host",
+                            "type": "select",
+                            "instructions": "",
+                            "required": 0,
+                            "conditional_logic": 0,
+                            "wrapper": {
+                                "width": "25",
+                                "class": "",
+                                "id": ""
+                            },
+                            "choices": {
+                                "youtube": "YouTube",
+                                "vimeo": "Vimeo"
+                            },
+                            "default_value": [
+                                "youtube"
+                            ],
+                            "allow_null": 1,
+                            "multiple": 0,
+                            "ui": 0,
+                            "ajax": 0,
+                            "return_format": "value",
+                            "placeholder": ""
+                        },
+                        {
                             "key": "field_5ad92638012d9",
                             "label": "Video Iframe",
                             "name": "video_iframe",
@@ -50,7 +58,7 @@
                             "required": 0,
                             "conditional_logic": 0,
                             "wrapper": {
-                                "width": "",
+                                "width": "75",
                                 "class": "",
                                 "id": ""
                             },
@@ -423,5 +431,24 @@
             "max": ""
         }
     ],
-    "modified": 1528401731
+    "location": [
+        [
+            {
+                "param": "post_type",
+                "operator": "==",
+                "value": "projects"
+            }
+        ]
+    ],
+    "menu_order": 0,
+    "position": "normal",
+    "style": "seamless",
+    "label_placement": "top",
+    "instruction_placement": "label",
+    "hide_on_screen": [
+        "the_content"
+    ],
+    "active": 1,
+    "description": "",
+    "modified": 1529621765
 }

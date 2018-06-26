@@ -1,18 +1,20 @@
 import utilities from './utilities';
 import {disableBodyScroll, clearAllBodyScrollLocks} from 'body-scroll-lock';
 import {mousePosition} from './mousePosition';
-import {nakasentro} from './centered';
+import {nakasentro} from './nakasentro';
 
 export let zoomy = {
 	pictures: Array(),
 	isTouchDevice: utilities.isTouchDevice(),
 	mouseMapEventsAdded: false,
+	mouseMapLessPixelsHalf: nakasentro.mouse_map_less_pixels / 2,
 	init: function () {
 		this.reset();
 		document.querySelectorAll(".artwork_piece .actions .zoom").forEach(function (value, index) {
 			var artworkPieceWrap = value.parentNode.parentNode.parentNode.parentNode;
 			var zoomyWrap = artworkPieceWrap.querySelector(".zoomy-wrap");
-			var mouseMapImage = artworkPieceWrap.querySelector(".mouse-map");
+			var mouseMapWrap = zoomyWrap.querySelector('.mouse-map-wrap');
+			var mouseMapImage = zoomyWrap.querySelector(".mouse-map");
 			var img = artworkPieceWrap.firstElementChild;
 			this.pictures.push({
 				button: value,
@@ -24,6 +26,7 @@ export let zoomy = {
 				imageRotation: artworkPieceWrap.classList.contains('width')
 					? 'width'
 					: 'height',
+				mouseMapWrap: mouseMapWrap,
 				mouseMapImage: mouseMapImage,
 				mouseMapImageHeight: mouseMapImage.clientHeight,
 				mouseMapImageWidth: mouseMapImage.clientWidth,
@@ -40,7 +43,7 @@ export let zoomy = {
 
 			// set up the click event to toggle the magnifier for both button and image itself
 			value.addEventListener("click", this.toggleZoom.bind(this.pictures[index]));
-			mouseMapImage.addEventListener("click", this.toggleZoom.bind(this.pictures[index]));
+			mouseMapWrap.addEventListener("click", this.toggleZoom.bind(this.pictures[index]));
 			if (this.isTouchDevice) {
 				document.body.classList.add("is-touch");
 			}
@@ -52,7 +55,7 @@ export let zoomy = {
 	},
 
 	toggleZoom: function (e) {
-		if (e.currentTarget.classList.contains('mouse-map')) {
+		if (e.currentTarget.classList.contains('mouse-map') || e.currentTarget.classList.contains('mouse-map-wrap')) {
 			zoomy.mapMouseToImage.call(this, e);
 		}
 		this.artworkPieceWrap.classList.toggle("zoomed");
@@ -68,8 +71,8 @@ export let zoomy = {
 
 		if (this.isZoomed === true && zoomy.mouseMapEventsAdded === false) {
 			zoomy.mouseMapEventsAdded = true;
-			this.mouseMapImage.addEventListener("mousemove", this.mouseMoveHandler, false);
-			this.mouseMapImage.addEventListener("touchmove", this.touchMoveHandler, false);
+			this.mouseMapImage.addEventListener("mousemove", this.mouseMoveHandler, {passive: true});
+			this.mouseMapImage.addEventListener("touchmove", this.touchMoveHandler, {passive: true});
 		} else if (zoomy.mouseMapEventsAdded) {
 			zoomy.mouseMapEventsAdded = false;
 			this.mouseMapImage.removeEventListener("mousemove", this.mouseMoveHandler, false);
@@ -79,6 +82,7 @@ export let zoomy = {
 	mapMouseToImage: function (e) {
 		var mouseMap = this.mouseMapImage;
 		var position = mousePosition.mousePositionElement(e);
+
 		if (position.x > 0) {
 			var leftPercentage = 0;
 			var topPercentage = 0;
@@ -87,7 +91,7 @@ export let zoomy = {
 				// image centered
 				// adjust the percentage based on the scale amount (the transfoorm: scale() messes with the sizes somehow
 				if (this.imageRotation === 'width') {
-					leftPercentage = (position.x / (mouseMap.clientWidth * this.scaleWidth)) * 100;
+						leftPercentage = (position.x / (mouseMap.clientWidth * this.scaleWidth)) * 100;
 					topPercentage = (position.y / ((mouseMap.clientWidth * this.scaleWidth) * nakasentro.artworks[this.artworksIndex].originalDimensions.imageRatioHeight)) * 100;
 				} else {
 					topPercentage = (position.y / (mouseMap.clientHeight * this.scaleHeight)) * 100;
@@ -95,11 +99,10 @@ export let zoomy = {
 				}
 			} else {
 				// image not centered
-				leftPercentage = position.x / mouseMap.clientWidth * 101;
-				topPercentage = position.y / mouseMap.clientHeight * 101;
+				leftPercentage = (position.x / mouseMap.clientWidth) * 100;
+				topPercentage = (position.y / mouseMap.clientHeight) * 100;
 			}
 
-			// console.log('leftPercentage, topPercentage: ' + leftPercentage, topPercentage);
 			// set max and min values
 			topPercentage = topPercentage < 0
 				? 0
@@ -114,7 +117,7 @@ export let zoomy = {
 				? 100
 				: leftPercentage;
 
-			this.mouseMapImage.style.backgroundPosition = leftPercentage + "% " + topPercentage + "%";
+			this.mouseMapWrap.style.backgroundPosition = leftPercentage + "% " + topPercentage + "%";
 		}
 	},
 };

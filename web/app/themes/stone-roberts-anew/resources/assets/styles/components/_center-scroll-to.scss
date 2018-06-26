@@ -1,0 +1,29 @@
+.center-scroll-arrows {
+  position: fixed;
+  left: 0;
+  top: 50%;
+  z-index: 50;
+
+  div {
+    background: rgba(0, 0, 0, .8);
+    height: 20px;
+    width: 20px;
+
+    &.next {
+      transform: rotate(180deg);
+    }
+  }
+
+  &.hide-next {
+    .next {
+      visibility: hidden;
+    }
+  }
+
+  &.hide-previous {
+    .prev {
+      visibility: hidden;
+    }
+  }
+
+}

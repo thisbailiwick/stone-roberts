@@ -64,13 +64,13 @@ return /******/ (function(modules) { // webpackBootstrap
 	  version: '1.0.0',
 	  BaseTransition: __webpack_require__(5),
 	  BaseView: __webpack_require__(7),
-	  BaseCache: __webpack_require__(24),
+	  BaseCache: __webpack_require__(25),
 	  Dispatcher: __webpack_require__(8),
 	  Fscreen: __webpack_require__(12),
 	  FullScreen: __webpack_require__(11),
 	  HistoryManager: __webpack_require__(9),
-	  Pjax: __webpack_require__(14),
-	  Prefetch: __webpack_require__(25),
+	  Pjax: __webpack_require__(15),
+	  Prefetch: __webpack_require__(26),
 	  Utils: __webpack_require__(6)
 	};
 	
@@ -793,11 +793,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	   * @type {Promise}
 	   */
 	  newContainerLoading: undefined,
-		/**
-	   * @memberOf Barba.BaseTransition
-	   * @type {variable}
-	   */
-	  barbaConatinerDisplayType: undefined,
 	
 	  /**
 	   * Helper to extend the object
@@ -1013,7 +1008,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var Dispatcher = __webpack_require__(8);
 	var Utils = __webpack_require__(6);
 	var HistoryManager = __webpack_require__(9);
-	var Pjax = __webpack_require__(14);
+	var Pjax = __webpack_require__(15);
 	
 	/**
 	 * BaseView to be extended
@@ -1621,6 +1616,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	var Fscreen = __webpack_require__(12);
 	var Dom = __webpack_require__(10);
 	var Cookies = __webpack_require__(13);
+	var CustomEvent = __webpack_require__(14);
 	
 	/**
 	 * Implements fscreen for fullscreen functionalities
@@ -1634,18 +1630,26 @@ return /******/ (function(modules) { // webpackBootstrap
 		preference: false,
 	  modal: null,
 	  isFullscreen: false,
-	  fullscreenElement:       function() {
+		fullScreenChangeEvent: new CustomEvent('fullscreenChange'),
+	  fullscreenElement: function() {
 	    return Fscreen.default.fullscreenElement !== null;
 	  },
 	  fullScreenOnChangeEvent: function() {
 	    this.isFullscreen = !this.isFullscreen;
+	
+	    document.dispatchEvent(
+	    	new CustomEvent('barbaFullscreenOnChange', {
+	    		bubbles: false,
+			    cancelable: false
+		    })
+	    )
 	  },
 		initFullScreen: function(options){
 			//dom should already be loaded here
 			if(Fscreen.default.fullscreenEnabled){
 				document.querySelector('body').classList.add('fullscreen-capable');
 				this.setFullScreenToggle();
-				this.preference = options.showFullscreenModal
+				this.preference = options.showFullscreenModal;
 				this.initFullscreenModal();
 			}else{
 				//browser is not capable
@@ -2018,12 +2022,67 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ }),
 /* 14 */
+/***/ (function(module, exports) {
+
+	/* WEBPACK VAR INJECTION */(function(global) {
+	var NativeCustomEvent = global.CustomEvent;
+	
+	function useNative () {
+	  try {
+	    var p = new NativeCustomEvent('cat', { detail: { foo: 'bar' } });
+	    return  'cat' === p.type && 'bar' === p.detail.foo;
+	  } catch (e) {
+	  }
+	  return false;
+	}
+	
+	/**
+	 * Cross-browser `CustomEvent` constructor.
+	 *
+	 * https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent.CustomEvent
+	 *
+	 * @public
+	 */
+	
+	module.exports = useNative() ? NativeCustomEvent :
+	
+	// IE >= 9
+	'undefined' !== typeof document && 'function' === typeof document.createEvent ? function CustomEvent (type, params) {
+	  var e = document.createEvent('CustomEvent');
+	  if (params) {
+	    e.initCustomEvent(type, params.bubbles, params.cancelable, params.detail);
+	  } else {
+	    e.initCustomEvent(type, false, false, void 0);
+	  }
+	  return e;
+	} :
+	
+	// IE <= 8
+	function CustomEvent (type, params) {
+	  var e = document.createEventObject();
+	  e.type = type;
+	  if (params) {
+	    e.bubbles = Boolean(params.bubbles);
+	    e.cancelable = Boolean(params.cancelable);
+	    e.detail = params.detail;
+	  } else {
+	    e.bubbles = false;
+	    e.cancelable = false;
+	    e.detail = void 0;
+	  }
+	  return e;
+	}
+	
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
+
+/***/ }),
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	var Utils = __webpack_require__(6);
 	var Dispatcher = __webpack_require__(8);
-	var HideShowTransition = __webpack_require__(15);
-	var BaseCache = __webpack_require__(24);
+	var HideShowTransition = __webpack_require__(16);
+	var BaseCache = __webpack_require__(25);
 	
 	var HistoryManager = __webpack_require__(9);
 	var Dom = __webpack_require__(10);
@@ -2455,11 +2514,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	var BaseTransition = __webpack_require__(5);
-	var ScrollToElement = __webpack_require__(16);
+	var ScrollToElement = __webpack_require__(17);
 	var HistoryManager = __webpack_require__(9);
 	var Promise = __webpack_require__(1);
 	
@@ -2587,10 +2646,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var scroll = __webpack_require__(17);
+	var scroll = __webpack_require__(18);
 	
 	function calculateScrollOffset(elem, additionalOffset, alignment) {
 	  var body = document.body,
@@ -2625,15 +2684,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
 	 * Module dependencies.
 	 */
 	
-	var Tween = __webpack_require__(18);
-	var raf = __webpack_require__(23);
+	var Tween = __webpack_require__(19);
+	var raf = __webpack_require__(24);
 	
 	/**
 	 * Expose `scrollTo`.
@@ -2697,7 +2756,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	
@@ -2705,10 +2764,10 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * Module dependencies.
 	 */
 	
-	var Emitter = __webpack_require__(19);
-	var clone = __webpack_require__(20);
-	var type = __webpack_require__(21);
-	var ease = __webpack_require__(22);
+	var Emitter = __webpack_require__(20);
+	var clone = __webpack_require__(21);
+	var type = __webpack_require__(22);
+	var ease = __webpack_require__(23);
 	
 	/**
 	 * Expose `Tween`.
@@ -2880,7 +2939,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, exports) {
 
 	
@@ -3047,7 +3106,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -3056,9 +3115,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var type;
 	try {
-	  type = __webpack_require__(21);
+	  type = __webpack_require__(22);
 	} catch (_) {
-	  type = __webpack_require__(21);
+	  type = __webpack_require__(22);
 	}
 	
 	/**
@@ -3110,7 +3169,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, exports) {
 
 	/**
@@ -3150,7 +3209,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ }),
-/* 22 */
+/* 23 */
 /***/ (function(module, exports) {
 
 	
@@ -3326,7 +3385,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ }),
-/* 23 */
+/* 24 */
 /***/ (function(module, exports) {
 
 	/**
@@ -3366,7 +3425,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ }),
-/* 24 */
+/* 25 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	var Utils = __webpack_require__(6);
@@ -3434,11 +3493,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ }),
-/* 25 */
+/* 26 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	var Utils = __webpack_require__(6);
-	var Pjax = __webpack_require__(14);
+	var Pjax = __webpack_require__(15);
 	
 	/**
 	 * Prefetch

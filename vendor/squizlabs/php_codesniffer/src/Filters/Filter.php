@@ -144,7 +144,7 @@ class Filter extends \RecursiveFilterIterator
         $children->acceptedPaths      = $this->acceptedPaths;
         return $children;
 
-    }//end getChildren()
+    }//end getSiblingsWithClass()
 
 
     /**

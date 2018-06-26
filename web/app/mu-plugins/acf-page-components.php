@@ -13,7 +13,7 @@
 
  function get_sections($post, $sections) {
 	$sections_html = '';
-	if(isset($sections['acf_fc_layout'])){
+	if (isset($sections['acf_fc_layout'])) {
 	 $sections = [$sections];
 	}
 	foreach ($sections as $index => $section) {
@@ -112,7 +112,9 @@ HTML;
           		<img class="main-img" src="{$image['url']}" alt="{$image['alt']}" data-width="{$image['width']}" data-height="{$image['height']}"/>
           	</div>
           	<div class="zoomy-wrap">
-							<div class="mouse-map" style="background-image: url('{$image['url']}');"></div>
+          		<div class="mouse-map-wrap" style="background-image: url('{$image['url']}');">
+								<div class="mouse-map"></div>
+							</div>
             	{$dev_share_buttons}
           	</div>
             <div class="image-ratio-holder"></div>
@@ -201,9 +203,10 @@ HTML;
  }
 
  function html_video($content, $id_tag = false) {
+
 	$id_tag = $id_tag ?: 'video-' . random_int(100, 100000000);
-	$image = get_image($content['image_file']);
-	$embed = get_video_embed_html($content['acf_fc_layout'], $content['video_iframe'], $image, $content['caption_text'], $id_tag);
+
+	$embed = get_video_embed_html($content['acf_fc_layout'], $content['video_iframe'], $content['video_host'], $content['image_file']['url'], $content['caption_text'], $id_tag);
 
 	$html = <<<HTML
 				{$embed}
@@ -272,17 +275,89 @@ HTML;
 	return array($new_text, $found);
  }
 
- function get_video_embed_html($layout_type, $embed, $image, $caption, $id_tag) {
-	$embed = htmlentities(preg_replace('/\n/', '', $embed));
-
+ function get_video_embed_html($layout_type, $video_iframe, $video_host, $image_url, $caption, $id_tag) {
 	return <<<HTML
-			<div class="{$layout_type}" id="{$id_tag}">
-				<div class="video-play-screenshot">
-					{$image}
-					<div class="caption">{$caption}</div>
-					<button class="play-button" data-toggle="modal" data-embed="{$embed}" data-target="#video-modal"></button>
+			<div class="{$layout_type}" id="{$id_tag}" video-host="{$video_host}">
+				<div class="wrap">
+					<div class="video-play-screenshot" style="background-image: url({$image_url})">
+					</div>
+					<div class="iframe-wrap" id="{$id_tag}-iframe-wrap">
+						{$video_iframe}
+					</div>
+					<button class="play-button" data-toggle="modal" data-target="#video-modal"></button>
 				</div>
+				<div class="caption">{$caption}</div>
 			</div>
 HTML;
 
+ }
+
+ function filter_iframe_input($iframe, $background_style = true, $unique_id) {
+	// remove and replace any url queries with the background query
+	$background_style = $background_style ? '?background=1' : '';
+
+	if ($background_style === '') {
+//		  $to_replace = array(
+//        '/\?.*?\"/',
+//        '/(src=\\?\s*".*?)(")/'
+//      );
+//		  $replace_with = array(
+//		    '',
+//        '$1?autoplay=1$2'
+//      );
+//			$iframe = preg_replace($to_replace, $replace_with, $iframe);
+
+	 // remove any query variables
+	 $iframe = preg_replace('/\?.*?\"/', '"', $iframe);
+
+	 // add query question mark and query variables we want
+	 $iframe = preg_replace('/(src=\\\\?\s*".*?)(")/', '$1?enablejsapi=1&amp;rel=0&amp;showinfo=0$2', $iframe);
+
+	 // remove slashes
+//	 $iframe = stripslashes($iframe);
+
+	 // remove any current id's
+	 $iframe = preg_replace('/id=\\\\\\"([^"]*)\\\\\\"\s/mi', '', $iframe);
+	 // add unique id to iframe
+	 $iframe = preg_replace('/(<iframe)/', '$1 id="' . $unique_id . '-iframe"', $iframe);
+
+	 // remove any stray p tags
+	 $settings_to_remove = array(
+		 '/(<p[^>]*>.*?<\/p>)/',
+	 );
+	} else {
+	 $iframe = preg_replace('/\?.*?\"/', $background_style . '"', $iframe);
+	 // we remove settings appropriate for the home/work page
+	 $settings_to_remove = array(
+		 '/webkitallowfullscreen/',
+		 '/mozallowfullscreen/',
+		 '/allowfullscreen/',
+		 '/(<p[^>]*>.*?<\/p>)/'
+	 );
+	}
+
+	// remove any attribute settings
+	return preg_replace($settings_to_remove, '', $iframe);
+ }
+
+ add_action('acf/save_post', __NAMESPACE__ . '\\acf_save_post', 1);
+
+ function acf_save_post($post_id) {
+
+	// bail early if no ACF data
+	if (empty($_POST['acf'])) {
+
+	 return;
+
+	}
+
+	if ($_POST['post_type'] === 'projects') {
+	 foreach ($_POST['acf']['field_5ad92400012d8'] as $index => $project_section) {
+		if ($project_section['acf_fc_layout'] === 'video') {
+		 // save iframe to hidden field
+		 $unique_id = 'video-' . $post_id . '-' . $index;
+		 $_POST['acf']['field_5ad92400012d8'][$index]['field_5ad92638012d9_field_5ad9230360669'] = filter_iframe_input($project_section['field_5ad92638012d9_field_5ad9230360669'], false, $unique_id);
+		}
+	 }
+	}
  }

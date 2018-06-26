@@ -86,7 +86,7 @@ abstract class ExactMatch extends Filter
         $children->whitelist = $this->whitelist;
         return $children;
 
-    }//end getChildren()
+    }//end getSiblingsWithClass()
 
 
     /**
