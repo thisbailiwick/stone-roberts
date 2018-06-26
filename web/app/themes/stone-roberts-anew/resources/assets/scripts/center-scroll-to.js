@@ -4,6 +4,7 @@ import _ from 'underscore';
 
 
 let centerScrollDiv = null;
+const fullscreen = document.querySelector('.fullscreen');
 
 const scrollCheck = _.debounce(function () {
 	const currentCentered = getCurrentCentered();
@@ -44,6 +45,10 @@ export default function init() {
 		});
 
 		window.addEventListener('scroll', scrollCheck);
+		fullscreen.addEventListener('scroll', scrollCheck);
+
+		const currentCentered = getCurrentCentered();
+		checkButtonNavigationDisplay(currentCentered, 'scroll');
 	}
 
 	// find the most centered image
@@ -83,6 +88,16 @@ function checkForNext(startingArtwork) {
 	return startingArtwork;
 }
 
+function scrollToByPixels(scrollAmount) {
+	/* eslint-disable */
+	if (Barba.FullScreen.isFullscreen) {
+		/* eslint-enable */
+		fullscreen.scrollTo({top: scrollAmount, left: 0, behavior: 'smooth'});
+	} else {
+		window.scrollTo({top: scrollAmount, left: 0, behavior: 'smooth'});
+	}
+}
+
 function goPrevious() {
 	if (nakasentro.imageCentered === true) {
 		// trigger centered removal
@@ -92,15 +107,8 @@ function goPrevious() {
 
 
 	if (artworkToCenter !== null) {
-		artworkToCenter.scrollIntoView({behavior: 'smooth'});
-		setNextVisibility('show');
-		// now check to see if there is one more
-		const prevElement = checkForPrevious(artworkToCenter.previousElementSibling);
-		if (prevElement === null || Object.is(artworkToCenter, prevElement)) {
-			setPreviousVisibility('hide');
-		}
-	} else {
-		setPreviousVisibility('hide');
+		const scrollAmount = getElementMiddle(artworkToCenter);
+		scrollToByPixels(scrollAmount);
 	}
 }
 
@@ -110,12 +118,12 @@ function goNext() {
 		nakasentro.resetAllCenteredSettings();
 	}
 	let artworkToCenter = getCurrentCentered().nextElementSibling;
-	while (artworkToCenter !== null && !artworkToCenter.classList.contains('artwork_piece')) {
-		artworkToCenter = artworkToCenter.nextElementSibling;
-	}
+
+	artworkToCenter = checkForNext(artworkToCenter);
 
 	if (artworkToCenter !== null) {
-		artworkToCenter.scrollIntoView({behavior: 'smooth'});
+		const scrollAmount = getElementMiddle(artworkToCenter);
+		scrollToByPixels(scrollAmount);
 	}
 
 	checkButtonNavigationDisplay(artworkToCenter, 'next');
@@ -154,6 +162,35 @@ function processNextCheck(artworkToCenter, direction) {
 	} else {
 		setNextVisibility('hide');
 	}
+}
+
+function getElementTop(element) {
+	let top = 0;
+	do {
+		top += element.offsetTop || 0;
+		element = element.offsetParent;
+	} while (element);
+	return top;
+}
+
+function getElementMiddle(element) {
+
+	const elementHeight = element.clientHeight;
+	const top = getElementTop(element);
+
+	let scrollingWrapHeight = null;
+	/* eslint-disable */
+	if(Barba.FullScreen.isFullscreen){
+		/* eslint-enable */
+		// use fullscreen
+		scrollingWrapHeight = fullscreen.clientHeight;
+	}else{
+		// use window
+		scrollingWrapHeight = window.innerHeight;
+	}
+
+	return top - ((scrollingWrapHeight - elementHeight) / 2);
+
 }
 
 function checkButtonNavigationDisplay(artworkToCenter, direction = 'scroll') {

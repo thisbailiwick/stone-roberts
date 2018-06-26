@@ -547,6 +547,8 @@ export let nakasentro = {
 			nakasentro.removeArtworkPieceCentered(this.artworkWrap);
 			this.imageCentered = false;
 			nakasentro.removeFullscreenCenteredImageScrollEvents.call(this);
+		}else{
+			e.preventDefault();
 		}
 	},
 
