@@ -198,14 +198,15 @@
       transition-property: transform;
       width: 100%;
       &:hover {
-        cursor: default;
+        cursor: zoom-in;
       }
 
       .mouse-map{
         opacity: .4;
         //background: repeating-linear-gradient(#e66465, #9198e5 25%, #20e61a 50%, #9198e5 75%);
         //background: repeating-linear-gradient(#e66465 25%, #e66465 40%, #9198e5 50%);
-
+        height: 100%;
+        width: 100%;
         margin: 0 auto;
       }
     }
@@ -214,7 +215,7 @@
     .mouse-map-wrap {
       opacity: 1 !important;
       &:hover {
-        cursor: default;
+        cursor: zoom-out;
       }
     }
     .main-img {
