@@ -60,8 +60,19 @@
   }
 }
 
-//.fullscreen-wrapper.showing-thumbnails{
-//  #thumbnail-trigger{
-//    left: 2px;
-//  }
-//}
+
+.fullscreen-wrapper.showing-thumbnails{
+  .page-header{
+    position: fixed;
+    top: 1vh;
+    left: 0;
+    z-index: 300;
+    width: 100%;
+    text-align: center;
+    margin: 0 !important;
+    height: 8vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}

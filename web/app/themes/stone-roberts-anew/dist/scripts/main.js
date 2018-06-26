@@ -292,13 +292,11 @@ var nakasentro = {
 			);
 			window.addEventListener(
 				"scroll",
-				// _.debounce(function () {
 				function () {
 					if (!nakasentro.isResizing && nakasentro.imagesProcessed === true) {
 						nakasentro.checkArtworks();
 					}
 				}
-				// }, 0)
 			);
 
 			// for when in fullscreen

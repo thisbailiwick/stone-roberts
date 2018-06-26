@@ -1225,6 +1225,26 @@ body.front.page-template-template-projects .main p {
   width: 10px;
 }
 
+.fullscreen-wrapper.showing-thumbnails .page-header {
+  position: fixed;
+  top: 1vh;
+  left: 0;
+  z-index: 300;
+  width: 100%;
+  text-align: center;
+  margin: 0 !important;
+  height: 8vw;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  -webkit-box-align: center;
+      -ms-flex-align: center;
+          align-items: center;
+}
+
 .artwork_piece {
   display: -webkit-box;
   display: -ms-flexbox;
