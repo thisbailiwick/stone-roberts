@@ -1150,6 +1150,80 @@ body.front.page-template-template-projects .main p {
   visibility: hidden;
 }
 
+#thumbnails-nav {
+  -ms-flex-line-pack: start;
+      align-content: flex-start;
+  background-color: rgba(0, 0, 0, 0.9);
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-wrap: wrap;
+      flex-wrap: wrap;
+  height: 100vh;
+  left: 0;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
+  opacity: 1;
+  padding: 8vw 4vw;
+  position: fixed;
+  top: 0;
+  -webkit-transition-duration: .1s;
+       -o-transition-duration: .1s;
+          transition-duration: .1s;
+  -webkit-transition-property: -webkit-transform;
+  transition-property: -webkit-transform;
+  -o-transition-property: -o-transform;
+  transition-property: transform;
+  transition-property: transform, -webkit-transform, -o-transform;
+  width: 100vw;
+  z-index: 300;
+}
+
+#thumbnails-nav .thumbnail-wrap {
+  height: 21vw;
+  padding: 1vh;
+  width: auto;
+}
+
+#thumbnails-nav .thumbnail {
+  height: 100%;
+  width: auto;
+}
+
+#thumbnails-nav .thumbnail:hover {
+  cursor: pointer;
+}
+
+#thumbnails-nav.hide {
+  -webkit-transform: translateX(-100vw);
+       -o-transform: translateX(-100vw);
+          transform: translateX(-100vw);
+}
+
+#thumbnail-trigger {
+  height: 32px;
+  left: 10px;
+  position: fixed;
+  bottom: 10px;
+  -webkit-transition-duration: .1s;
+       -o-transition-duration: .1s;
+          transition-duration: .1s;
+  -webkit-transition-property: top;
+  -o-transition-property: top;
+  transition-property: top;
+  width: 48px;
+  z-index: 301;
+}
+
+#thumbnail-trigger > div {
+  background-color: #fff;
+  float: left;
+  height: 10px;
+  margin: 0 3px 3px 0;
+  width: 10px;
+}
+
 .artwork_piece {
   display: -webkit-box;
   display: -ms-flexbox;

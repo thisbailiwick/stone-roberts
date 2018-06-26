@@ -1,6 +1,7 @@
 import utilities from './utilities';
 import _ from 'underscore';
-import centerScrollToInit from './center-scroll-to';
+import {init as centerScrollToInit} from './center-scroll-to';
+import { init as thumbnailInit, addThumbnail } from './thumbnail-nav';
 
 export let nakasentro = {
 	fullscreen: document.querySelector(".fullscreen"),
@@ -27,6 +28,8 @@ export let nakasentro = {
 		this.reset();
 
 		this.isTouchDevice = utilities.isTouchDevice();
+		// init thumbnails
+		thumbnailInit(document.querySelector('.main'));
 		if (this.isTouchDevice === false) {
 
 			// setup values
@@ -99,8 +102,13 @@ export let nakasentro = {
 				imageCentered: false,
 				fullscreenImageCentered: false,
 				isInViewport: false,
+				imgSrc: artworkElements.imgSrc,
 			});
+
+			addThumbnail(artworkElements.imgSrc, artworkElements.artworkImageWrap);
 		}, this);
+
+		// add to thumbnails
 	},
 	mobileResize: _.debounce(function () {
 		// utilities.setViewportDimensions();
@@ -194,8 +202,8 @@ export let nakasentro = {
 		let imageSpacePlaceholder = artworkImageWrap.querySelector('.image-space-placeholder');
 		let imageRatioHolder = artworkImageWrap.querySelector('.image-ratio-holder');
 		let mouseMapImage = artworkImageWrap.querySelector(".mouse-map");
-
 		let artworkMetaWrap = artworkImageWrap.querySelector(".artwork-meta");
+		let imgSrc = artworkImage.getAttribute('src');
 		return {
 			artworkWrap: artworkWrap,
 			artworkUniqueId: artworkUniqueId,
@@ -207,6 +215,7 @@ export let nakasentro = {
 			imageRatioHolder: imageRatioHolder,
 			mouseMapImage: mouseMapImage,
 			artworkMetaWrap: artworkMetaWrap,
+			imgSrc: imgSrc,
 		};
 	},
 	setArtworkSizeChangeTechnique: function (artworkImage, artworkWrap) {
@@ -322,6 +331,7 @@ export let nakasentro = {
 				imageCentered: false,
 				isInViewport: false,
 				toCenterPixels: 0,
+				imgSrc: artworkElements.imgSrc,
 				// this allows us to track centered image when in fullscreen and we use the counted scroll events or keyboard events to trigger the image out of full width
 				fullscreenImageCentered: false,
 				// mouseMapImage: artworkElements.mouseMapImage,
@@ -385,8 +395,11 @@ export let nakasentro = {
 
 			artworkElements.artworkImage.style.position = 'static';
 			artworkElements.centerImageWrap.style.height = 0;
-			
+
 			utilities.addCssToPage(artworkStyles, styleBlockId);
+
+			// add to thumbnails
+			addThumbnail(artworkElements.imgSrc, artworkElements.artworkImageWrap);
 		}, this);
 
 		// init button scroll to script

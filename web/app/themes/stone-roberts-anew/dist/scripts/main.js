@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "/app/themes/stone-roberts-anew/dist/";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 12);
+/******/ 	return __webpack_require__(__webpack_require__.s = 13);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -237,9 +237,11 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "nakasentro", function() { return nakasentro; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utilities__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utilities___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__utilities__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_underscore__ = __webpack_require__(10);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_underscore__ = __webpack_require__(11);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_underscore___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_underscore__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__center_scroll_to__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__center_scroll_to__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__thumbnail_nav__ = __webpack_require__(12);
+
 
 
 
@@ -269,6 +271,8 @@ var nakasentro = {
 		this.reset();
 
 		this.isTouchDevice = __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.isTouchDevice();
+		// init thumbnails
+		Object(__WEBPACK_IMPORTED_MODULE_3__thumbnail_nav__["init"])(document.querySelector('.main'));
 		if (this.isTouchDevice === false) {
 
 			// setup values
@@ -341,8 +345,13 @@ var nakasentro = {
 				imageCentered: false,
 				fullscreenImageCentered: false,
 				isInViewport: false,
+				imgSrc: artworkElements.imgSrc,
 			});
+
+			Object(__WEBPACK_IMPORTED_MODULE_3__thumbnail_nav__["addThumbnail"])(artworkElements.imgSrc, artworkElements.artworkImageWrap);
 		}, this);
+
+		// add to thumbnails
 	},
 	mobileResize: __WEBPACK_IMPORTED_MODULE_1_underscore___default.a.debounce(function () {
 		// utilities.setViewportDimensions();
@@ -436,8 +445,8 @@ var nakasentro = {
 		var imageSpacePlaceholder = artworkImageWrap.querySelector('.image-space-placeholder');
 		var imageRatioHolder = artworkImageWrap.querySelector('.image-ratio-holder');
 		var mouseMapImage = artworkImageWrap.querySelector(".mouse-map");
-
 		var artworkMetaWrap = artworkImageWrap.querySelector(".artwork-meta");
+		var imgSrc = artworkImage.getAttribute('src');
 		return {
 			artworkWrap: artworkWrap,
 			artworkUniqueId: artworkUniqueId,
@@ -449,6 +458,7 @@ var nakasentro = {
 			imageRatioHolder: imageRatioHolder,
 			mouseMapImage: mouseMapImage,
 			artworkMetaWrap: artworkMetaWrap,
+			imgSrc: imgSrc,
 		};
 	},
 	setArtworkSizeChangeTechnique: function (artworkImage, artworkWrap) {
@@ -564,6 +574,7 @@ var nakasentro = {
 				imageCentered: false,
 				isInViewport: false,
 				toCenterPixels: 0,
+				imgSrc: artworkElements.imgSrc,
 				// this allows us to track centered image when in fullscreen and we use the counted scroll events or keyboard events to trigger the image out of full width
 				fullscreenImageCentered: false,
 				// mouseMapImage: artworkElements.mouseMapImage,
@@ -627,12 +638,15 @@ var nakasentro = {
 
 			artworkElements.artworkImage.style.position = 'static';
 			artworkElements.centerImageWrap.style.height = 0;
-			
+
 			__WEBPACK_IMPORTED_MODULE_0__utilities___default.a.addCssToPage(artworkStyles, styleBlockId);
+
+			// add to thumbnails
+			Object(__WEBPACK_IMPORTED_MODULE_3__thumbnail_nav__["addThumbnail"])(artworkElements.imgSrc, artworkElements.artworkImageWrap);
 		}, this);
 
 		// init button scroll to script
-		Object(__WEBPACK_IMPORTED_MODULE_2__center_scroll_to__["default"])();
+		Object(__WEBPACK_IMPORTED_MODULE_2__center_scroll_to__["init"])();
 
 		nakasentro.imagesProcessed = true;
 
@@ -914,8 +928,242 @@ module.exports = jQuery;
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "init", function() { return init; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "scrollToElement", function() { return scrollToElement; });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__nakasentro__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_smoothscroll_polyfill__ = __webpack_require__(18);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_smoothscroll_polyfill___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_smoothscroll_polyfill__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_underscore__ = __webpack_require__(11);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_underscore___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_underscore__);
+
+
+
+
+
+var centerScrollDiv = null;
+var fullscreen = document.querySelector('.fullscreen');
+
+var scrollCheck = __WEBPACK_IMPORTED_MODULE_2_underscore___default.a.debounce(function () {
+	var currentCentered = getCurrentCentered();
+	checkButtonNavigationDisplay(currentCentered, 'scroll');
+}, 100);
+
+function init() {
+	centerScrollDiv = document.querySelector('.center-scroll-arrows');
+
+	if (centerScrollDiv === null) {
+
+
+		__WEBPACK_IMPORTED_MODULE_1_smoothscroll_polyfill___default.a.polyfill();
+
+		// add arrows
+		var arrows = "\n\t\t<div class=\"center-scroll-arrows\"><div class=\"prev\"><svg viewBox=\"0 0 24 24\"><path d=\"M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z\"></path></svg></div><div class=\"next\"><svg viewBox=\"0 0 24 24\"><path d=\"M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z\"></path></svg></div>\n\t";
+		document.querySelector('.fullscreen').insertAdjacentHTML('beforeend', arrows);
+
+		centerScrollDiv = document.querySelector('.center-scroll-arrows');
+
+		var prevButton = centerScrollDiv.querySelector('.center-scroll-arrows .prev');
+		var nextButton = centerScrollDiv.querySelector('.center-scroll-arrows .next');
+
+		prevButton.addEventListener('click', goPrevious);
+		nextButton.addEventListener('click', goNext);
+
+		// add keydown events
+		document.addEventListener('keyup', function (e) {
+			if (e.code === 'ArrowLeft') {
+				e.preventDefault();
+				goPrevious();
+			} else if (e.code === 'ArrowRight') {
+				e.preventDefault();
+				goNext();
+			}
+		});
+
+		window.addEventListener('scroll', scrollCheck);
+		fullscreen.addEventListener('scroll', scrollCheck);
+
+		var currentCentered = getCurrentCentered();
+		checkButtonNavigationDisplay(currentCentered, 'scroll');
+	}
+}
+
+function getCurrentCentered() {
+	var closestToZero = 100000000;
+	var currentCentered = null;
+	Array.from(__WEBPACK_IMPORTED_MODULE_0__nakasentro__["nakasentro"].artworks).filter(function (artwork) {
+		if (Math.abs(artwork.toCenterPixels) < closestToZero) {
+			closestToZero = artwork.toCenterPixels;
+			currentCentered = artwork.element;
+			// console.log(artwork.element);
+		}
+	});
+
+	return currentCentered;
+}
+
+function checkForPrevious(startingArtwork) {
+	while (startingArtwork !== null && !startingArtwork.classList.contains('artwork_piece')) {
+		startingArtwork = startingArtwork.previousElementSibling;
+	}
+	return startingArtwork;
+}
+
+function checkForNext(startingArtwork) {
+	while (startingArtwork !== null && !startingArtwork.classList.contains('artwork_piece')) {
+		startingArtwork = startingArtwork.nextElementSibling;
+	}
+	return startingArtwork;
+}
+
+function scrollToByPixels(scrollAmount) {
+	/* eslint-disable */
+	if (Barba.FullScreen.isFullscreen) {
+		/* eslint-enable */
+		fullscreen.scrollTo({top: scrollAmount, left: 0, behavior: 'smooth'});
+	} else {
+		window.scrollTo({top: scrollAmount, left: 0, behavior: 'smooth'});
+	}
+}
+
+function goPrevious() {
+	if (__WEBPACK_IMPORTED_MODULE_0__nakasentro__["nakasentro"].imageCentered === true) {
+		// trigger centered removal
+		__WEBPACK_IMPORTED_MODULE_0__nakasentro__["nakasentro"].resetAllCenteredSettings();
+	}
+	var artworkToCenter = checkForPrevious(getCurrentCentered().previousElementSibling);
+
+	if (artworkToCenter !== null) {
+		scrollToElement(artworkToCenter);
+	}
+}
+
+
+function goNext() {
+	if (__WEBPACK_IMPORTED_MODULE_0__nakasentro__["nakasentro"].imageCentered === true) {
+		// trigger centered removal
+		__WEBPACK_IMPORTED_MODULE_0__nakasentro__["nakasentro"].resetAllCenteredSettings();
+	}
+	var artworkToCenter = getCurrentCentered().nextElementSibling;
+
+	artworkToCenter = checkForNext(artworkToCenter);
+
+	if (artworkToCenter !== null) {
+		scrollToElement(artworkToCenter);
+	}
+
+	checkButtonNavigationDisplay(artworkToCenter, 'next');
+}
+
+function processPrevCheck(artworkToCenter, direction) {
+	if (artworkToCenter !== null) {
+		if (direction !== 'scroll') {
+			setNextVisibility('show');
+		}
+		// now check to see if there is one more
+		var prevElement = checkForPrevious(artworkToCenter.previousElementSibling);
+		if (prevElement === null || Object.is(artworkToCenter, prevElement)) {
+			setPreviousVisibility('hide');
+		} else {
+			setPreviousVisibility('show');
+		}
+	} else {
+		setPreviousVisibility('hide');
+	}
+}
+
+function processNextCheck(artworkToCenter, direction) {
+	if (artworkToCenter !== null) {
+		// artworkToCenter.scrollIntoView({behavior: 'smooth'});
+		if (direction !== 'scroll') {
+			setPreviousVisibility('show');
+		}
+		// now check to see if there is one more
+		var nextElement = checkForNext(artworkToCenter.nextElementSibling);
+		if (nextElement === null || Object.is(artworkToCenter, nextElement)) {
+			setNextVisibility('hide');
+		} else {
+			setNextVisibility('show');
+		}
+	} else {
+		setNextVisibility('hide');
+	}
+}
+
+function getElementTop(element) {
+	var top = 0;
+	do {
+		top += element.offsetTop || 0;
+		element = element.offsetParent;
+	} while (element);
+	return top;
+}
+
+function getElementMiddle(element) {
+
+	var elementHeight = element.clientHeight;
+	var top = getElementTop(element);
+
+	var scrollingWrapHeight = null;
+	/* eslint-disable */
+	if(Barba.FullScreen.isFullscreen){
+		/* eslint-enable */
+		// use fullscreen
+		scrollingWrapHeight = fullscreen.clientHeight;
+	}else{
+		// use window
+		scrollingWrapHeight = window.innerHeight;
+	}
+
+	return top - ((scrollingWrapHeight - elementHeight) / 2);
+
+}
+
+function scrollToElement(artworkToCenter) {
+	var scrollAmount = getElementMiddle(artworkToCenter);
+	scrollToByPixels(scrollAmount);
+}
+
+function checkButtonNavigationDisplay(artworkToCenter, direction) {
+	if ( direction === void 0 ) direction = 'scroll';
+
+	if (direction === 'next') {
+		processNextCheck(artworkToCenter, direction);
+	} else if (direction === 'prev') {
+		processPrevCheck(artworkToCenter, direction);
+	} else if (direction === 'scroll') {
+		processNextCheck(artworkToCenter, direction);
+		processPrevCheck(artworkToCenter, direction);
+	}
+}
+
+
+function setPreviousVisibility(value) {
+	if (value === 'show') {
+		centerScrollDiv.classList.remove('hide-previous');
+	} else {
+		centerScrollDiv.classList.add('hide-previous');
+	}
+}
+
+function setNextVisibility(value) {
+	if (value === 'show') {
+		centerScrollDiv.classList.remove('hide-next');
+	} else {
+		centerScrollDiv.classList.add('hide-next');
+	}
+}
+
+
+
+
+/***/ }),
+/* 4 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "artworkInfo", function() { return artworkInfo; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_body_scroll_lock__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_body_scroll_lock__ = __webpack_require__(5);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_body_scroll_lock___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_body_scroll_lock__);
 
 var artworkInfo = {
@@ -970,7 +1218,7 @@ var artworkInfo = {
 };
 
 /***/ }),
-/* 4 */
+/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1127,13 +1375,13 @@ var enableBodyScroll = exports.enableBodyScroll = function enableBodyScroll(targ
 };
 
 /***/ }),
-/* 5 */
+/* 6 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "stAudio", function() { return stAudio; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_howler__ = __webpack_require__(15);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_howler__ = __webpack_require__(16);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_howler___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_howler__);
 
 
@@ -1265,7 +1513,7 @@ var audio = {
 var stAudio = audio;
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ (function(module, exports) {
 
 var g;
@@ -1292,7 +1540,7 @@ module.exports = g;
 
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1480,7 +1728,7 @@ var info = {
 var moreInfo = info;
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1551,7 +1799,7 @@ var mousePosition = {
 };
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1559,9 +1807,9 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "zoomy", function() { return zoomy; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utilities__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utilities___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__utilities__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__ = __webpack_require__(5);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_body_scroll_lock___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__mousePosition__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__mousePosition__ = __webpack_require__(9);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__nakasentro__ = __webpack_require__(1);
 
 
@@ -1688,7 +1936,7 @@ var zoomy = {
 };
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global, module) {var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;//     Underscore.js 1.9.1
@@ -3385,269 +3633,105 @@ var zoomy = {
   }
 }());
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6), __webpack_require__(16)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7), __webpack_require__(17)(module)))
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony export (immutable) */ __webpack_exports__["default"] = init;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__nakasentro__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_smoothscroll_polyfill__ = __webpack_require__(17);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_smoothscroll_polyfill___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_smoothscroll_polyfill__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_underscore__ = __webpack_require__(10);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_underscore___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_underscore__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "init", function() { return init; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "addThumbnail", function() { return addThumbnail; });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__center_scroll_to__ = __webpack_require__(3);
 
 
+var thumbnails = [];
+var thumbnailCount = 0;
+var thumbnailsTrigger = null;
+var thumbnailsNav = null;
+var initSetup = false;
+var fullscreenWrapper = document.querySelector('.fullscreen-wrapper');
+
+function init(parentElement) {
+	if (initSetup === false) {
+		initSetup = true;
+
+		// add thumbnails div
+		var thumbnailsWrap = "\n\t\t<div id=\"thumbnails-nav\" class=\"hide\">\n\t\t\t\n\t\t</div>\n\t";
+		parentElement.insertAdjacentHTML('afterbegin', thumbnailsWrap);
+		thumbnailsNav = document.getElementById('thumbnails-nav');
 
 
+		// add trigger divs
+		var thumbnailTriggerHtml = "\n\t\t\t<div id=\"thumbnail-trigger\">\n\t\t\t\t<div></div>\n\t\t\t\t<div></div>\n\t\t\t\t<div></div>\n\t\t\t\t<div></div>\n\t\t\t\t<div></div>\n\t\t\t\t<div></div>\n\t\t\t</div>\n\t\t";
 
-var centerScrollDiv = null;
-var fullscreen = document.querySelector('.fullscreen');
+		document.querySelector('.fullscreen-wrapper').insertAdjacentHTML('afterbegin', thumbnailTriggerHtml);
+		thumbnailsTrigger = document.getElementById('thumbnail-trigger');
 
-var scrollCheck = __WEBPACK_IMPORTED_MODULE_2_underscore___default.a.debounce(function () {
-	var currentCentered = getCurrentCentered();
-	checkButtonNavigationDisplay(currentCentered, 'scroll');
-}, 100);
+		thumbnailsTrigger.addEventListener('click', function (e) {
+			thumbnailsNav.classList.toggle('hide');
+			e.currentTarget.classList.toggle('showing');
+			fullscreenWrapper.classList.toggle('showing-thumbnails');
+		});
+	}
+}
 
-function init() {
-	centerScrollDiv = document.querySelector('.center-scroll-arrows');
+function elementAdded(associatedDomElement) {
+	return this === associatedDomElement;
+}
 
-	if (centerScrollDiv === null) {
+function addThumbnail(imgSrc, associatedDomElement) {
+	// don't add thumbnail if we already have
+	if (!thumbnails.find(elementAdded, associatedDomElement)) {
+		var thumbnailHtml = "\n\t\t\t<div class=\"thumbnail-wrap\" id=\"thumbnail-" + thumbnailCount + "\"><img class=\"thumbnail\" src=\"" + imgSrc + "\" /></div>\n\t\t";
+		thumbnailsNav.insertAdjacentHTML('beforeend', thumbnailHtml);
 
+		document.getElementById(("thumbnail-" + thumbnailCount)).addEventListener('click', function () {
+			thumbnailsNav.classList.add('hide');
+			fullscreenWrapper.classList.remove('showing-thumbnails');
 
-		__WEBPACK_IMPORTED_MODULE_1_smoothscroll_polyfill___default.a.polyfill();
-
-		// add arrows
-		var arrows = "\n\t\t<div class=\"center-scroll-arrows\"><div class=\"prev\"><svg viewBox=\"0 0 24 24\"><path d=\"M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z\"></path></svg></div><div class=\"next\"><svg viewBox=\"0 0 24 24\"><path d=\"M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z\"></path></svg></div>\n\t";
-		document.querySelector('.fullscreen').insertAdjacentHTML('beforeend', arrows);
-
-		centerScrollDiv = document.querySelector('.center-scroll-arrows');
-
-		var prevButton = centerScrollDiv.querySelector('.center-scroll-arrows .prev');
-		var nextButton = centerScrollDiv.querySelector('.center-scroll-arrows .next');
-
-		prevButton.addEventListener('click', goPrevious);
-		nextButton.addEventListener('click', goNext);
-
-		// add keydown events
-		document.addEventListener('keyup', function (e) {
-			if (e.code === 'ArrowLeft') {
-				e.preventDefault();
-				goPrevious();
-			} else if (e.code === 'ArrowRight') {
-				e.preventDefault();
-				goNext();
-			}
+			// timeout time set to same amount of thumbnails-nav transition-duration
+			window.setTimeout(function () {
+				Object(__WEBPACK_IMPORTED_MODULE_0__center_scroll_to__["scrollToElement"])(associatedDomElement);
+			}, 100);
 		});
 
-		window.addEventListener('scroll', scrollCheck);
-		fullscreen.addEventListener('scroll', scrollCheck);
-
-		var currentCentered = getCurrentCentered();
-		checkButtonNavigationDisplay(currentCentered, 'scroll');
+		thumbnailCount++;
+		thumbnails.push(associatedDomElement);
 	}
-
-	// find the most centered image
-
-	// if body has class centered-image
-	// get the centered image
-	// set it current centered
-
-	// else get
-}
-
-function getCurrentCentered() {
-	var closestToZero = 100000000;
-	var currentCentered = null;
-	Array.from(__WEBPACK_IMPORTED_MODULE_0__nakasentro__["nakasentro"].artworks).filter(function (artwork) {
-		if (Math.abs(artwork.toCenterPixels) < closestToZero) {
-			closestToZero = artwork.toCenterPixels;
-			currentCentered = artwork.element;
-			// console.log(artwork.element);
-		}
-	});
-
-	return currentCentered;
-}
-
-function checkForPrevious(startingArtwork) {
-	while (startingArtwork !== null && !startingArtwork.classList.contains('artwork_piece')) {
-		startingArtwork = startingArtwork.previousElementSibling;
-	}
-	return startingArtwork;
-}
-
-function checkForNext(startingArtwork) {
-	while (startingArtwork !== null && !startingArtwork.classList.contains('artwork_piece')) {
-		startingArtwork = startingArtwork.nextElementSibling;
-	}
-	return startingArtwork;
-}
-
-function scrollToByPixels(scrollAmount) {
-	/* eslint-disable */
-	if (Barba.FullScreen.isFullscreen) {
-		/* eslint-enable */
-		fullscreen.scrollTo({top: scrollAmount, left: 0, behavior: 'smooth'});
-	} else {
-		window.scrollTo({top: scrollAmount, left: 0, behavior: 'smooth'});
-	}
-}
-
-function goPrevious() {
-	if (__WEBPACK_IMPORTED_MODULE_0__nakasentro__["nakasentro"].imageCentered === true) {
-		// trigger centered removal
-		__WEBPACK_IMPORTED_MODULE_0__nakasentro__["nakasentro"].resetAllCenteredSettings();
-	}
-	var artworkToCenter = checkForPrevious(getCurrentCentered().previousElementSibling);
-
-
-	if (artworkToCenter !== null) {
-		var scrollAmount = getElementMiddle(artworkToCenter);
-		scrollToByPixels(scrollAmount);
-	}
-}
-
-function goNext() {
-	if (__WEBPACK_IMPORTED_MODULE_0__nakasentro__["nakasentro"].imageCentered === true) {
-		// trigger centered removal
-		__WEBPACK_IMPORTED_MODULE_0__nakasentro__["nakasentro"].resetAllCenteredSettings();
-	}
-	var artworkToCenter = getCurrentCentered().nextElementSibling;
-
-	artworkToCenter = checkForNext(artworkToCenter);
-
-	if (artworkToCenter !== null) {
-		var scrollAmount = getElementMiddle(artworkToCenter);
-		scrollToByPixels(scrollAmount);
-	}
-
-	checkButtonNavigationDisplay(artworkToCenter, 'next');
-}
-
-function processPrevCheck(artworkToCenter, direction) {
-	if (artworkToCenter !== null) {
-		if (direction !== 'scroll') {
-			setNextVisibility('show');
-		}
-		// now check to see if there is one more
-		var prevElement = checkForPrevious(artworkToCenter.previousElementSibling);
-		if (prevElement === null || Object.is(artworkToCenter, prevElement)) {
-			setPreviousVisibility('hide');
-		} else {
-			setPreviousVisibility('show');
-		}
-	} else {
-		setPreviousVisibility('hide');
-	}
-}
-
-function processNextCheck(artworkToCenter, direction) {
-	if (artworkToCenter !== null) {
-		// artworkToCenter.scrollIntoView({behavior: 'smooth'});
-		if (direction !== 'scroll') {
-			setPreviousVisibility('show');
-		}
-		// now check to see if there is one more
-		var nextElement = checkForNext(artworkToCenter.nextElementSibling);
-		if (nextElement === null || Object.is(artworkToCenter, nextElement)) {
-			setNextVisibility('hide');
-		} else {
-			setNextVisibility('show');
-		}
-	} else {
-		setNextVisibility('hide');
-	}
-}
-
-function getElementTop(element) {
-	var top = 0;
-	do {
-		top += element.offsetTop || 0;
-		element = element.offsetParent;
-	} while (element);
-	return top;
-}
-
-function getElementMiddle(element) {
-
-	var elementHeight = element.clientHeight;
-	var top = getElementTop(element);
-
-	var scrollingWrapHeight = null;
-	/* eslint-disable */
-	if(Barba.FullScreen.isFullscreen){
-		/* eslint-enable */
-		// use fullscreen
-		scrollingWrapHeight = fullscreen.clientHeight;
-	}else{
-		// use window
-		scrollingWrapHeight = window.innerHeight;
-	}
-
-	return top - ((scrollingWrapHeight - elementHeight) / 2);
 
 }
 
-function checkButtonNavigationDisplay(artworkToCenter, direction) {
-	if ( direction === void 0 ) direction = 'scroll';
-
-	if (direction === 'next') {
-		processNextCheck(artworkToCenter, direction);
-	} else if (direction === 'prev') {
-		processPrevCheck(artworkToCenter, direction);
-	} else if (direction === 'scroll') {
-		processNextCheck(artworkToCenter, direction);
-		processPrevCheck(artworkToCenter, direction);
-	}
-}
-
-
-function setPreviousVisibility(value) {
-	if (value === 'show') {
-		centerScrollDiv.classList.remove('hide-previous');
-	} else {
-		centerScrollDiv.classList.add('hide-previous');
-	}
-}
-
-function setNextVisibility(value) {
-	if (value === 'show') {
-		centerScrollDiv.classList.remove('hide-next');
-	} else {
-		centerScrollDiv.classList.add('hide-next');
-	}
-}
-
-/***/ }),
-/* 12 */
-/***/ (function(module, exports, __webpack_require__) {
-
-__webpack_require__(0);
-__webpack_require__(13);
-__webpack_require__(3);
-__webpack_require__(5);
-__webpack_require__(7);
-__webpack_require__(8);
-__webpack_require__(9);
-__webpack_require__(1);
-__webpack_require__(11);
-__webpack_require__(18);
-module.exports = __webpack_require__(29);
 
 
 /***/ }),
 /* 13 */
+/***/ (function(module, exports, __webpack_require__) {
+
+__webpack_require__(0);
+__webpack_require__(14);
+__webpack_require__(4);
+__webpack_require__(6);
+__webpack_require__(8);
+__webpack_require__(9);
+__webpack_require__(10);
+__webpack_require__(12);
+__webpack_require__(1);
+__webpack_require__(3);
+__webpack_require__(19);
+module.exports = __webpack_require__(30);
+
+
+/***/ }),
+/* 14 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utilities__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utilities___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__utilities__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_reframe_js__ = __webpack_require__(14);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_reframe_js__ = __webpack_require__(15);
 
 
 
@@ -3682,7 +3766,7 @@ window.onYouTubeIframeAPIReady = function () {
 /* eslint-enable */
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -3722,7 +3806,7 @@ function reframe(target, cName) {
 
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -6678,10 +6762,10 @@ function reframe(target, cName) {
   };
 })();
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)))
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, exports) {
 
 module.exports = function(module) {
@@ -6709,7 +6793,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* smoothscroll v0.4.0 - 2018 - Dustan Kasten, Jeremias Menichelli - MIT License */
@@ -7154,15 +7238,15 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* WEBPACK VAR INJECTION */(function(jQuery) {/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__util_Router__ = __webpack_require__(19);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__routes_common__ = __webpack_require__(21);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__routes_home__ = __webpack_require__(27);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__routes_about__ = __webpack_require__(28);
+/* WEBPACK VAR INJECTION */(function(jQuery) {/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__util_Router__ = __webpack_require__(20);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__routes_common__ = __webpack_require__(22);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__routes_home__ = __webpack_require__(28);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__routes_about__ = __webpack_require__(29);
 // import external dependencies
 // import 'jquery';
 
@@ -7191,11 +7275,11 @@ jQuery(document).ready(function () { return routes.loadEvents(); });
 /* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(2)))
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__camelCase__ = __webpack_require__(20);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__camelCase__ = __webpack_require__(21);
 
 
 /**
@@ -7259,7 +7343,7 @@ Router.prototype.loadEvents = function loadEvents () {
 
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -7275,17 +7359,17 @@ Router.prototype.loadEvents = function loadEvents () {
 
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* WEBPACK VAR INJECTION */(function($) {/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__more_info__ = __webpack_require__(7);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__st_audio__ = __webpack_require__(5);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__zoomy__ = __webpack_require__(9);
+/* WEBPACK VAR INJECTION */(function($) {/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__more_info__ = __webpack_require__(8);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__st_audio__ = __webpack_require__(6);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__zoomy__ = __webpack_require__(10);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__nakasentro__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__artwork_info__ = __webpack_require__(3);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__mu_plugins_menu_vertical_push_menu_vertical_push__ = __webpack_require__(22);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6_vanilla_back_to_top__ = __webpack_require__(26);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__artwork_info__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__mu_plugins_menu_vertical_push_menu_vertical_push__ = __webpack_require__(23);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6_vanilla_back_to_top__ = __webpack_require__(27);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_6_vanilla_back_to_top___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_6_vanilla_back_to_top__);
 
 
@@ -7456,12 +7540,12 @@ Router.prototype.loadEvents = function loadEvents () {
 /* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(2)))
 
 /***/ }),
-/* 22 */
+/* 23 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = init;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_hamburgers__ = __webpack_require__(23);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_hamburgers__ = __webpack_require__(24);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_hamburgers___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_hamburgers__);
 
 
@@ -7521,10 +7605,10 @@ var outerHeight = function (el) {
 };
 
 /***/ }),
-/* 23 */
+/* 24 */
 /***/ (function(module, exports, __webpack_require__) {
 
-/* WEBPACK VAR INJECTION */(function(__dirname) {var path = __webpack_require__(24);
+/* WEBPACK VAR INJECTION */(function(__dirname) {var path = __webpack_require__(25);
 
 module.exports = {
   includePaths: [
@@ -7535,7 +7619,7 @@ module.exports = {
 /* WEBPACK VAR INJECTION */}.call(exports, "/"))
 
 /***/ }),
-/* 24 */
+/* 25 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(process) {// Copyright Joyent, Inc. and other Node contributors.
@@ -7763,10 +7847,10 @@ var substr = 'ab'.substr(-1) === 'b'
     }
 ;
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(25)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(26)))
 
 /***/ }),
-/* 25 */
+/* 26 */
 /***/ (function(module, exports) {
 
 // shim for using process in browser
@@ -7956,7 +8040,7 @@ process.umask = function() { return 0; };
 
 
 /***/ }),
-/* 26 */
+/* 27 */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
@@ -8092,7 +8176,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 });
 
 /***/ }),
-/* 27 */
+/* 28 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -8107,7 +8191,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
 
 /***/ }),
-/* 28 */
+/* 29 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -8119,7 +8203,7 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
 
 /***/ }),
-/* 29 */
+/* 30 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin

@@ -8,6 +8,7 @@
       "./scripts/more-info.js",
       "./scripts/mousePosition.js",
       "./scripts/zoomy.js",
+      "./scripts/thumbnail-nav.js",
       "./scripts/nakasentro.js",
       "./scripts/center-scroll-to.js",
       "./scripts/main.js",
