@@ -627,13 +627,7 @@ var nakasentro = {
 
 			artworkElements.artworkImage.style.position = 'static';
 			artworkElements.centerImageWrap.style.height = 0;
-			// artworkElements.imageRatioHolder.style.paddingleft = imageRatioWidth / 100 + '%';
-
-			// take mousemap backgrond size and scale it down by the ratio of the imageviewportratio
-			// let mousemapImageCenteredHeight = artworkElements.mouseMapImage.
-			// }else{
-			// 	artworkStyles = '#' + artworkUniqueId + ' .main-img, #' + artworkUniqueId + ' .zoomy-wrap {width: ' + artworkElements.artworkImage.clientWidth + 'px;height: ' + artworkElements.artworkImage.clientHeight + 'px;}';
-			// }
+			
 			__WEBPACK_IMPORTED_MODULE_0__utilities___default.a.addCssToPage(artworkStyles, styleBlockId);
 		}, this);
 

@@ -23,3 +23,16 @@
 .fullscreen-toggle:hover{
 	cursor: pointer;
 }
+
+.fullscreen:-webkit-full-screen .fullscreen-toggle{
+    display: none !important;
+}
+.fullscreen:-moz-full-screen .fullscreen-toggle{
+    display: none !important;
+}
+.fullscreen:-ms-fullscreen .fullscreen-toggle{
+    display: none !important;
+}
+.fullscreen:fullscreen .fullscreen-toggle{
+    display: none !important;
+}
