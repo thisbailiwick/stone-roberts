@@ -239,7 +239,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utilities___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__utilities__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_underscore__ = __webpack_require__(11);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_underscore___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_underscore__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__center_scroll_to__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__center_scroll_to__ = __webpack_require__(4);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__thumbnail_nav__ = __webpack_require__(12);
 
 
@@ -306,7 +306,6 @@ var nakasentro = {
 				if (!this.isResizing && nakasentro.imagesProcessed === true) {
 					nakasentro.checkArtworks();
 				}
-				// console.log('scrolling');=
 			});
 
 			// add event to handle any code needed when there is a fullscreen change event
@@ -924,6 +923,163 @@ module.exports = jQuery;
 
 /***/ }),
 /* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+var isIosDevice = typeof window !== 'undefined' && window.navigator && window.navigator.platform && /iPad|iPhone|iPod|(iPad Simulator)|(iPhone Simulator)|(iPod Simulator)/.test(window.navigator.platform);
+// Adopted and modified solution from Bohdan Didukh (2017)
+// https://stackoverflow.com/questions/41594997/ios-10-safari-prevent-scrolling-behind-a-fixed-overlay-and-maintain-scroll-posi
+
+var firstTargetElement = null;
+var allTargetElements = [];
+var initialClientY = -1;
+var previousBodyOverflowSetting = void 0;
+var previousBodyPaddingRight = void 0;
+
+var preventDefault = function preventDefault(rawEvent) {
+  var e = rawEvent || window.event;
+  if (e.preventDefault) e.preventDefault();
+
+  return false;
+};
+
+var setOverflowHidden = function setOverflowHidden(options) {
+  // Setting overflow on body/documentElement synchronously in Desktop Safari slows down
+  // the responsiveness for some reason. Setting within a setTimeout fixes this.
+  setTimeout(function () {
+    // If previousBodyPaddingRight is already set, don't set it again.
+    if (previousBodyPaddingRight === undefined) {
+      var _reserveScrollBarGap = !!options && options.reserveScrollBarGap === true;
+      var scrollBarGap = window.innerWidth - document.documentElement.clientWidth;
+
+      if (_reserveScrollBarGap && scrollBarGap > 0) {
+        previousBodyPaddingRight = document.body.style.paddingRight;
+        document.body.style.paddingRight = scrollBarGap + 'px';
+      }
+    }
+
+    // If previousBodyOverflowSetting is already set, don't set it again.
+    if (previousBodyOverflowSetting === undefined) {
+      previousBodyOverflowSetting = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+    }
+  });
+};
+
+var restoreOverflowSetting = function restoreOverflowSetting() {
+  // Setting overflow on body/documentElement synchronously in Desktop Safari slows down
+  // the responsiveness for some reason. Setting within a setTimeout fixes this.
+  setTimeout(function () {
+    if (previousBodyPaddingRight !== undefined) {
+      document.body.style.paddingRight = previousBodyPaddingRight;
+
+      // Restore previousBodyPaddingRight to undefined so setOverflowHidden knows it
+      // can be set again.
+      previousBodyPaddingRight = undefined;
+    }
+
+    if (previousBodyOverflowSetting !== undefined) {
+      document.body.style.overflow = previousBodyOverflowSetting;
+
+      // Restore previousBodyOverflowSetting to undefined
+      // so setOverflowHidden knows it can be set again.
+      previousBodyOverflowSetting = undefined;
+    }
+  });
+};
+
+// https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollHeight#Problems_and_solutions
+var isTargetElementTotallyScrolled = function isTargetElementTotallyScrolled(targetElement) {
+  return targetElement ? targetElement.scrollHeight - targetElement.scrollTop <= targetElement.clientHeight : false;
+};
+
+var handleScroll = function handleScroll(event, targetElement) {
+  var clientY = event.targetTouches[0].clientY - initialClientY;
+
+  if (targetElement && targetElement.scrollTop === 0 && clientY > 0) {
+    // element is at the top of its scroll
+    return preventDefault(event);
+  }
+
+  if (isTargetElementTotallyScrolled(targetElement) && clientY < 0) {
+    // element is at the top of its scroll
+    return preventDefault(event);
+  }
+
+  return true;
+};
+
+var disableBodyScroll = exports.disableBodyScroll = function disableBodyScroll(targetElement, options) {
+  if (isIosDevice) {
+    // targetElement must be provided, and disableBodyScroll must not have been
+    // called on this targetElement before.
+    if (targetElement && !allTargetElements.includes(targetElement)) {
+      allTargetElements = [].concat(_toConsumableArray(allTargetElements), [targetElement]);
+
+      targetElement.ontouchstart = function (event) {
+        if (event.targetTouches.length === 1) {
+          // detect single touch
+          initialClientY = event.targetTouches[0].clientY;
+        }
+      };
+      targetElement.ontouchmove = function (event) {
+        if (event.targetTouches.length === 1) {
+          // detect single touch
+          handleScroll(event, targetElement);
+        }
+      };
+    }
+  } else {
+    setOverflowHidden(options);
+
+    if (!firstTargetElement) firstTargetElement = targetElement;
+  }
+};
+
+var clearAllBodyScrollLocks = exports.clearAllBodyScrollLocks = function clearAllBodyScrollLocks() {
+  if (isIosDevice) {
+    // Clear all allTargetElements ontouchstart/ontouchmove handlers, and the references
+    allTargetElements.forEach(function (targetElement) {
+      targetElement.ontouchstart = null;
+      targetElement.ontouchmove = null;
+    });
+
+    allTargetElements = [];
+
+    // Reset initial clientY
+    initialClientY = -1;
+  } else {
+    restoreOverflowSetting();
+
+    firstTargetElement = null;
+  }
+};
+
+var enableBodyScroll = exports.enableBodyScroll = function enableBodyScroll(targetElement) {
+  if (isIosDevice) {
+    targetElement.ontouchstart = null;
+    targetElement.ontouchmove = null;
+
+    allTargetElements = allTargetElements.filter(function (element) {
+      return element !== targetElement;
+    });
+  } else if (firstTargetElement === targetElement) {
+    restoreOverflowSetting();
+
+    firstTargetElement = null;
+  }
+};
+
+/***/ }),
+/* 4 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1157,13 +1313,13 @@ function setNextVisibility(value) {
 
 
 /***/ }),
-/* 4 */
+/* 5 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "artworkInfo", function() { return artworkInfo; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_body_scroll_lock__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_body_scroll_lock__ = __webpack_require__(3);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_body_scroll_lock___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_body_scroll_lock__);
 
 var artworkInfo = {
@@ -1215,163 +1371,6 @@ var artworkInfo = {
 		//toggle artwork info showing variable
 		artworkInfo.showing = !artworkInfo.showing;
 	},
-};
-
-/***/ }),
-/* 5 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
-
-var isIosDevice = typeof window !== 'undefined' && window.navigator && window.navigator.platform && /iPad|iPhone|iPod|(iPad Simulator)|(iPhone Simulator)|(iPod Simulator)/.test(window.navigator.platform);
-// Adopted and modified solution from Bohdan Didukh (2017)
-// https://stackoverflow.com/questions/41594997/ios-10-safari-prevent-scrolling-behind-a-fixed-overlay-and-maintain-scroll-posi
-
-var firstTargetElement = null;
-var allTargetElements = [];
-var initialClientY = -1;
-var previousBodyOverflowSetting = void 0;
-var previousBodyPaddingRight = void 0;
-
-var preventDefault = function preventDefault(rawEvent) {
-  var e = rawEvent || window.event;
-  if (e.preventDefault) e.preventDefault();
-
-  return false;
-};
-
-var setOverflowHidden = function setOverflowHidden(options) {
-  // Setting overflow on body/documentElement synchronously in Desktop Safari slows down
-  // the responsiveness for some reason. Setting within a setTimeout fixes this.
-  setTimeout(function () {
-    // If previousBodyPaddingRight is already set, don't set it again.
-    if (previousBodyPaddingRight === undefined) {
-      var _reserveScrollBarGap = !!options && options.reserveScrollBarGap === true;
-      var scrollBarGap = window.innerWidth - document.documentElement.clientWidth;
-
-      if (_reserveScrollBarGap && scrollBarGap > 0) {
-        previousBodyPaddingRight = document.body.style.paddingRight;
-        document.body.style.paddingRight = scrollBarGap + 'px';
-      }
-    }
-
-    // If previousBodyOverflowSetting is already set, don't set it again.
-    if (previousBodyOverflowSetting === undefined) {
-      previousBodyOverflowSetting = document.body.style.overflow;
-      document.body.style.overflow = 'hidden';
-    }
-  });
-};
-
-var restoreOverflowSetting = function restoreOverflowSetting() {
-  // Setting overflow on body/documentElement synchronously in Desktop Safari slows down
-  // the responsiveness for some reason. Setting within a setTimeout fixes this.
-  setTimeout(function () {
-    if (previousBodyPaddingRight !== undefined) {
-      document.body.style.paddingRight = previousBodyPaddingRight;
-
-      // Restore previousBodyPaddingRight to undefined so setOverflowHidden knows it
-      // can be set again.
-      previousBodyPaddingRight = undefined;
-    }
-
-    if (previousBodyOverflowSetting !== undefined) {
-      document.body.style.overflow = previousBodyOverflowSetting;
-
-      // Restore previousBodyOverflowSetting to undefined
-      // so setOverflowHidden knows it can be set again.
-      previousBodyOverflowSetting = undefined;
-    }
-  });
-};
-
-// https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollHeight#Problems_and_solutions
-var isTargetElementTotallyScrolled = function isTargetElementTotallyScrolled(targetElement) {
-  return targetElement ? targetElement.scrollHeight - targetElement.scrollTop <= targetElement.clientHeight : false;
-};
-
-var handleScroll = function handleScroll(event, targetElement) {
-  var clientY = event.targetTouches[0].clientY - initialClientY;
-
-  if (targetElement && targetElement.scrollTop === 0 && clientY > 0) {
-    // element is at the top of its scroll
-    return preventDefault(event);
-  }
-
-  if (isTargetElementTotallyScrolled(targetElement) && clientY < 0) {
-    // element is at the top of its scroll
-    return preventDefault(event);
-  }
-
-  return true;
-};
-
-var disableBodyScroll = exports.disableBodyScroll = function disableBodyScroll(targetElement, options) {
-  if (isIosDevice) {
-    // targetElement must be provided, and disableBodyScroll must not have been
-    // called on this targetElement before.
-    if (targetElement && !allTargetElements.includes(targetElement)) {
-      allTargetElements = [].concat(_toConsumableArray(allTargetElements), [targetElement]);
-
-      targetElement.ontouchstart = function (event) {
-        if (event.targetTouches.length === 1) {
-          // detect single touch
-          initialClientY = event.targetTouches[0].clientY;
-        }
-      };
-      targetElement.ontouchmove = function (event) {
-        if (event.targetTouches.length === 1) {
-          // detect single touch
-          handleScroll(event, targetElement);
-        }
-      };
-    }
-  } else {
-    setOverflowHidden(options);
-
-    if (!firstTargetElement) firstTargetElement = targetElement;
-  }
-};
-
-var clearAllBodyScrollLocks = exports.clearAllBodyScrollLocks = function clearAllBodyScrollLocks() {
-  if (isIosDevice) {
-    // Clear all allTargetElements ontouchstart/ontouchmove handlers, and the references
-    allTargetElements.forEach(function (targetElement) {
-      targetElement.ontouchstart = null;
-      targetElement.ontouchmove = null;
-    });
-
-    allTargetElements = [];
-
-    // Reset initial clientY
-    initialClientY = -1;
-  } else {
-    restoreOverflowSetting();
-
-    firstTargetElement = null;
-  }
-};
-
-var enableBodyScroll = exports.enableBodyScroll = function enableBodyScroll(targetElement) {
-  if (isIosDevice) {
-    targetElement.ontouchstart = null;
-    targetElement.ontouchmove = null;
-
-    allTargetElements = allTargetElements.filter(function (element) {
-      return element !== targetElement;
-    });
-  } else if (firstTargetElement === targetElement) {
-    restoreOverflowSetting();
-
-    firstTargetElement = null;
-  }
 };
 
 /***/ }),
@@ -1807,7 +1806,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "zoomy", function() { return zoomy; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utilities__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utilities___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__utilities__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__ = __webpack_require__(5);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__ = __webpack_require__(3);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_body_scroll_lock___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__mousePosition__ = __webpack_require__(9);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__nakasentro__ = __webpack_require__(1);
@@ -3643,7 +3642,10 @@ var zoomy = {
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "init", function() { return init; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "addThumbnail", function() { return addThumbnail; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__center_scroll_to__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__center_scroll_to__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__ = __webpack_require__(3);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_body_scroll_lock___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__);
+
 
 
 var thumbnails = [];
@@ -3669,9 +3671,14 @@ function init(parentElement) {
 		document.querySelector('.fullscreen-wrapper').insertAdjacentHTML('afterbegin', thumbnailTriggerHtml);
 		thumbnailsTrigger = document.getElementById('thumbnail-trigger');
 
-		thumbnailsTrigger.addEventListener('click', function (e) {
+		thumbnailsTrigger.addEventListener('click', function () {
+			if(fullscreenWrapper.classList.contains('showing-thumbnails')){
+				Object(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__["disableBodyScroll"])(thumbnailsNav);
+			}else{
+				Object(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__["clearAllBodyScrollLocks"])(thumbnailsNav);
+			}
+			Object(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__["disableBodyScroll"])(thumbnailsNav);
 			thumbnailsNav.classList.toggle('hide');
-			e.currentTarget.classList.toggle('showing');
 			fullscreenWrapper.classList.toggle('showing-thumbnails');
 		});
 	}
@@ -3693,6 +3700,7 @@ function addThumbnail(imgSrc, associatedDomElement) {
 
 			// timeout time set to same amount of thumbnails-nav transition-duration
 			window.setTimeout(function () {
+				Object(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__["clearAllBodyScrollLocks"])(thumbnailsNav);
 				Object(__WEBPACK_IMPORTED_MODULE_0__center_scroll_to__["scrollToElement"])(associatedDomElement);
 			}, 100);
 		});
@@ -3711,14 +3719,14 @@ function addThumbnail(imgSrc, associatedDomElement) {
 
 __webpack_require__(0);
 __webpack_require__(14);
-__webpack_require__(4);
+__webpack_require__(5);
 __webpack_require__(6);
 __webpack_require__(8);
 __webpack_require__(9);
 __webpack_require__(10);
 __webpack_require__(12);
 __webpack_require__(1);
-__webpack_require__(3);
+__webpack_require__(4);
 __webpack_require__(19);
 module.exports = __webpack_require__(30);
 
@@ -7367,7 +7375,7 @@ Router.prototype.loadEvents = function loadEvents () {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__st_audio__ = __webpack_require__(6);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__zoomy__ = __webpack_require__(10);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__nakasentro__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__artwork_info__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__artwork_info__ = __webpack_require__(5);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__mu_plugins_menu_vertical_push_menu_vertical_push__ = __webpack_require__(23);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_6_vanilla_back_to_top__ = __webpack_require__(27);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_6_vanilla_back_to_top___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_6_vanilla_back_to_top__);

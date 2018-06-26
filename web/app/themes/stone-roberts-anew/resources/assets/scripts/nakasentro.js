@@ -49,13 +49,11 @@ export let nakasentro = {
 			);
 			window.addEventListener(
 				"scroll",
-				// _.debounce(function () {
 				function () {
 					if (!nakasentro.isResizing && nakasentro.imagesProcessed === true) {
 						nakasentro.checkArtworks();
 					}
 				}
-				// }, 0)
 			);
 
 			// for when in fullscreen
@@ -63,7 +61,6 @@ export let nakasentro = {
 				if (!this.isResizing && nakasentro.imagesProcessed === true) {
 					nakasentro.checkArtworks();
 				}
-				// console.log('scrolling');=
 			});
 
 			// add event to handle any code needed when there is a fullscreen change event
