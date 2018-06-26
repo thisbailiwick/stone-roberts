@@ -17,8 +17,6 @@ export default function init() {
 
 
 		smoothscroll.polyfill();
-		const artworkImageRatioHolders = nakasentro.artworks.map(artwork => artwork.imageRatioHolder);
-		console.log(artworkImageRatioHolders);
 
 		// add arrows
 		const arrows = `
@@ -37,12 +35,9 @@ export default function init() {
 		// add keydown events
 		document.addEventListener('keyup', (e) => {
 			if (e.code === 'ArrowLeft') {
-				console.log('arrowleft');
 				e.preventDefault();
 				goPrevious();
 			} else if (e.code === 'ArrowRight') {
-				console.log('arrowright');
-
 				e.preventDefault();
 				goNext();
 			}
