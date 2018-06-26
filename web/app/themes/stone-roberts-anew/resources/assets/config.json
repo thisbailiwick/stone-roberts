@@ -2,12 +2,14 @@
   "entry": {
     "main": [
       "./scripts/utilities.js",
+      "./scripts/youtube.js",
       "./scripts/artwork-info.js",
       "./scripts/st-audio.js",
       "./scripts/more-info.js",
       "./scripts/mousePosition.js",
       "./scripts/zoomy.js",
-      "./scripts/centered.js",
+      "./scripts/nakasentro.js",
+      "./scripts/center-scroll-to.js",
       "./scripts/main.js",
       "./styles/main.scss"
     ],

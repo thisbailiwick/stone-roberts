@@ -1,5 +1,6 @@
 import utilities from './utilities';
 import _ from 'underscore';
+import centerScrollToInit from './center-scroll-to';
 
 export let nakasentro = {
 	fullscreen: document.querySelector(".fullscreen"),
@@ -9,6 +10,7 @@ export let nakasentro = {
 	mainContentWidth: null,
 	mainContentWrap: document.querySelector(".content>.main"),
 	imageCentered: false,
+	imageCenteredElement: null,
 	scrollBeingThrottled: false,
 	isTouchDevice: false,
 	// helps us not process items in the midst of resizing
@@ -18,6 +20,7 @@ export let nakasentro = {
 	recentlyRemovedCenteredClasses: false,
 	fixedImageScrollReleaseCount: 0,
 	imagesProcessed: false,
+	mouse_map_less_pixels: 40,
 
 	init: function () {
 		//reset values
@@ -28,6 +31,8 @@ export let nakasentro = {
 
 			// setup values
 			this.setupValues(true);
+
+			// init-center-scroll-to
 
 			// nakasentro.checkArtworks(true);
 			// for when not in fullscreen
@@ -59,7 +64,7 @@ export let nakasentro = {
 			});
 
 			// add event to handle any code needed when there is a fullscreen change event
-			window.addEventListener('fullscreenchange', this.fullScreenOnChangeEvent.bind(this), false);
+			document.addEventListener('barbaFullscreenOnChange', this.fullScreenOnChangeEvent.bind(this), false);
 		} else {
 			this.mobileSetup(true);
 		}
@@ -93,6 +98,7 @@ export let nakasentro = {
 				artworkUniqueId: artworkElements.artworkUniqueId,
 				imageCentered: false,
 				fullscreenImageCentered: false,
+				isInViewport: false,
 			});
 		}, this);
 
@@ -106,14 +112,25 @@ export let nakasentro = {
 	fullScreenOnChangeEvent: function () {
 		// if in fullscreen we want to add remved events which handle scroll when centered and scroll events is not triggered due to fixed elements
 		/* eslint-disable */
-		if (Barba.FullScreen.isFullScreen === false) {
+		if (Barba.FullScreen.isFullscreen === false) {
 			/* eslint-enable */
-			nakasentro.removeFullscreenCenteredImageScrollEvents.call(this);
+			nakasentro.removeFullscreenCenteredImageScrollEvents.call(this, true);
 		}
 	},
-	removeFullscreenCenteredImageScrollEvents: function () {
+	removeFullscreenCenteredImageScrollEvents: function (removeAllWheel) {
+		removeAllWheel = typeof removeAllWheel === "boolean"
+			? removeAllWheel
+			: false;
 		window.removeEventListener('keydown', this.keydownEvent);
-		this.zoomyWrap.removeEventListener('wheel', this.wheelEvent);
+		if (removeAllWheel === false) {
+			// 'this' is the artwork
+			this.zoomyWrap.removeEventListener('wheel', this.wheelEvent);
+		} else {
+			// 'this' is nakasentro
+			this.artworks.forEach(function (artwork) {
+				artwork.zoomyWrap.removeEventListener('wheel', artwork.wheelEvent);
+			})
+		}
 	},
 	reset: function () {
 		// set values back to initial setup
@@ -126,6 +143,7 @@ export let nakasentro = {
 		this.mainContentWidth = null;
 		this.mainContentWrap = document.querySelector(".content>.main");
 		this.imageCentered = false;
+		this.imageCenteredElement = null;
 		this.scrollBeingThrottled = false;
 		document.body.classList.remove("orientation-portrait", "orientation-landscape", "centered-image");
 		document.querySelectorAll('.artwork_piece').forEach(function (artworkPiece) {
@@ -133,16 +151,24 @@ export let nakasentro = {
 		}, this);
 	},
 
+	resetAllCenteredSettings: function () {
+		document.querySelectorAll('.artwork_piece').forEach(function (artworkPiece) {
+			this.removeArtworkPieceCentered(artworkPiece);
+		}, this);
+		this.removeBodyImageCenteredClasses();
+	},
+
 	removeArtworkPieceCentered: function (artworkPiece) {
 		artworkPiece.classList.remove('centered'/*, 'centered-image-transition-duration'*/);
 		nakasentro.imageCentered = false;
+		// nakasentro.imageCenteredElement = null;
 	},
 	removeBodyImageCenteredClasses: function () {
 		document.body.classList.remove("centered-image");
-		window.setTimeout(function (artwork) {
+		window.setTimeout(function () {
 			// here we delay removing a class to allow some css transitions to happen
-			artwork.classList.remove("centered-image-transition-duration");
-		}, 400, this);
+			nakasentro.imageCenteredElement.classList.remove("centered-image-transition-duration");
+		}, 400);
 	},
 	// setViewportDimensions: function() {
 	//   let viewportDimensions = this.getViewportDimensions();
@@ -295,6 +321,8 @@ export let nakasentro = {
 				imageSpacePlaceholder: artworkElements.imageSpacePlaceholder,
 				artworkUniqueId: artworkElements.artworkUniqueId,
 				imageCentered: false,
+				isInViewport: false,
+				toCenterPixels: 0,
 				// this allows us to track centered image when in fullscreen and we use the counted scroll events or keyboard events to trigger the image out of full width
 				fullscreenImageCentered: false,
 				// mouseMapImage: artworkElements.mouseMapImage,
@@ -336,13 +364,20 @@ export let nakasentro = {
 			// artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.width .main-img, #' + artworkElements.artworkUniqueId + '.centered.width .zoomy-wrap {transform: scale(' + imageViewportWidthRatio + ', ' + imageViewportWidthRatio + ')}';
 
 			// create styles for .main-img and .mouse-map width and height
-			let artworkStyles = '#' + artworkElements.artworkUniqueId + ' .main-img, #' + artworkElements.artworkUniqueId + ' .mouse-map {width: ' + artworkElements.artworkImage.clientWidth + 'px; height: ' + artworkElements.artworkImage.clientHeight + 'px;}';
+
+			let artworkStyles = '#' + artworkElements.artworkUniqueId + ' .main-img, #' + artworkElements.artworkUniqueId + ' .mouse-map-wrap {width: ' + artworkElements.artworkImage.clientWidth + 'px; height: ' + artworkElements.artworkImage.clientHeight + 'px;}';
+
+
+			const mouseMapWidth = artworkElements.artworkImage.clientWidth - nakasentro.mouse_map_less_pixels;
+			const mouseMapHeight = artworkElements.artworkImage.clientHeight - nakasentro.mouse_map_less_pixels;
+
+			artworkStyles += '#' + artworkElements.artworkUniqueId + ' .mouse-map {width: ' + mouseMapWidth + 'px; height: ' + mouseMapHeight + 'px;}';
 
 			// create styles for .main-img and .mouse-map scale amount when image dimension change is height
-			artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.height .main-img, #' + artworkElements.artworkUniqueId + '.centered.height .mouse-map {transform: scale(' + imageViewportHeightRatio + ', ' + imageViewportHeightRatio + ')}';
+			artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.height .main-img, #' + artworkElements.artworkUniqueId + '.centered.height .mouse-map-wrap {transform: scale(' + imageViewportHeightRatio + ', ' + imageViewportHeightRatio + ')}';
 
 			// create styles for .main-img and .mouse-map scale amount when image dimension change is width
-			artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.width .main-img, #' + artworkElements.artworkUniqueId + '.centered.width .mouse-map {transform: scale(' + imageViewportWidthRatio + ', ' + imageViewportWidthRatio + ')}';
+			artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.width .main-img, #' + artworkElements.artworkUniqueId + '.centered.width .mouse-map-wrap {transform: scale(' + imageViewportWidthRatio + ', ' + imageViewportWidthRatio + ')}';
 
 
 			// remove temporary max height for image after processing
@@ -360,6 +395,10 @@ export let nakasentro = {
 			// }
 			utilities.addCssToPage(artworkStyles, styleBlockId);
 		}, this);
+
+		// init button scroll to script
+		centerScrollToInit();
+
 		nakasentro.imagesProcessed = true;
 
 		// document.body.classList.add("artworks-processed");
@@ -409,10 +448,21 @@ export let nakasentro = {
 		return toCenterPixels / utilities.windowHeight * 100;
 	},
 
+	getToCenterPixels: function (artwork) {
+		const rect = artwork.imageSpacePlaceholder.getBoundingClientRect();
+		const distanceFromTopOfViewport = rect.top + rect.height / 2;
+		const toCenterPixels = nakasentro.getPixelsToCenter(distanceFromTopOfViewport);
+		return toCenterPixels;
+	},
+
+	setArtworkToCenterPixels: function (artwork) {
+		let toCenterPixels = this.getToCenterPixels(artwork);
+		nakasentro.artworks[artwork.artworksIndex].toCenterPixels = toCenterPixels;
+		return toCenterPixels;
+	},
+
 	possiblyCenterUncenterImage: function (artwork) {
-		let rect = artwork.imageSpacePlaceholder.getBoundingClientRect();
-		let distanceFromTopOfViewport = rect.top + rect.height / 2;
-		let toCenterPixels = nakasentro.getPixelsToCenter(distanceFromTopOfViewport);
+		let toCenterPixels = this.setArtworkToCenterPixels(artwork);
 
 		// TODO: this is about 51 pixels off, why?!
 		let toCenterPixelsAbsolute = Math.abs(toCenterPixels);
@@ -441,6 +491,7 @@ export let nakasentro = {
 
 				// overarching imageCentered toggle
 				this.imageCentered = true;
+				nakasentro.imageCenteredElement = artwork.element;
 
 				// speicific artwork iamgeCentered toggle
 				artwork.imageCentered = true;
@@ -455,7 +506,7 @@ export let nakasentro = {
 			// 	this.resizeLandscape(artwork, 100);
 			// }
 
-		} else if(artwork.fullscreenImageCentered === true){
+		} else if (artwork.fullscreenImageCentered === true) {
 			// set false variable tracking fullwidth centered image when in fullscreen.
 			artwork.fullscreenImageCentered = false;
 		} else if (artwork.imageCentered === true) {
@@ -483,17 +534,20 @@ export let nakasentro = {
 					window.setTimeout(function () {
 						// here we delay removing a class to allow some css transitions to happen
 						artwork.artworkWrap.classList.remove("centered-image-transition-duration");
+						this.imageCenteredElement = null;
 					}, 400);
 				}
 			}
 		}
 	},
 
-	handlePossibleScrollTrigger: function () {
-		nakasentro.removeBodyImageCenteredClasses.call(this.artworkWrap);
-		nakasentro.removeArtworkPieceCentered(this.artworkWrap);
-		this.imageCentered = false;
-		nakasentro.removeFullscreenCenteredImageScrollEvents.call(this);
+	handlePossibleScrollTrigger: function (e) {
+		if (e.code !== 'ArrowRight' && e.code !== 'ArrowLeft') {
+			nakasentro.removeBodyImageCenteredClasses.call(this.artworkWrap);
+			nakasentro.removeArtworkPieceCentered(this.artworkWrap);
+			this.imageCentered = false;
+			nakasentro.removeFullscreenCenteredImageScrollEvents.call(this);
+		}
 	},
 
 	fullscreenHandleZoomyDivScroll: function () {
@@ -599,9 +653,11 @@ export let nakasentro = {
 	checkArtworks: function () {
 		nakasentro.artworks.forEach(function (artwork) {
 			if (utilities.isElementInViewport(artwork.artworkImage)) {
+				artwork.isInViewport = true;
 				nakasentro.possiblyCenterUncenterImage(artwork);
 			} else {
-				// this.resetImageValues(artwork.artworkImage, artwork.artworkImageWrap);
+				artwork.isInViewport = false;
+				this.setArtworkToCenterPixels(artwork);
 			}
 		}, this);
 	},

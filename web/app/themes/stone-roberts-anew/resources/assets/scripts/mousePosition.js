@@ -49,9 +49,9 @@ export let mousePosition = {
   },
 
   // Mouse position relative to the element
-  mousePositionElement: function(e) {
-    var mousePosDoc = this.mousePositionDocument(e);
-    var target = this.mouseTarget(e);
+  mousePositionElement: function() {
+    var mousePosDoc = this.mousePositionDocument.call(this);
+    var target = this.mouseTarget.call(this);
     var targetPos = this.findPos(target);
     var posx = mousePosDoc.x - targetPos.left;
     var posy = mousePosDoc.y - targetPos.top;

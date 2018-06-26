@@ -2,18 +2,31 @@
   position: relative;
   width: 100%;
 
-  .video-play-screenshot {
+  .wrap {
     overflow: hidden;
     position: relative;
 
-    .caption {
-      margin-top: 10px;
+    .video-play-screenshot {
+      overflow: hidden;
+      display: block;
+      height: 100%;
+      width: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      background-size: cover;
+      background-position: center;
+      z-index: 1;
+    }
+  }
 
-      p {
-        color: #bcbcbc;
-        font-size: 15px;
-        line-height: 19px;
-      }
+  .caption {
+    margin-top: 10px;
+
+    p {
+      color: #bcbcbc;
+      font-size: 15px;
+      line-height: 19px;
     }
   }
 
@@ -26,6 +39,7 @@
     height: 100%;
     top: 0;
     left: 0;
+    z-index: 2 ;
   }
 
   @media screen and (max-width: $mobile-max-width) {
@@ -43,6 +57,12 @@
 
     .video-play-screenshot {
 
+    }
+  }
+  
+  &.playing{
+    .play-button, .video-play-screenshot{
+      display: none;
     }
   }
 }

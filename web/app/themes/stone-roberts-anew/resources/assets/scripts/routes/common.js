@@ -1,10 +1,10 @@
-import reframe from 'reframe.js';
 import {moreInfo} from '../more-info';
 import {stAudio} from '../st-audio';
 import {zoomy} from '../zoomy';
-import {nakasentro} from '../centered';
+import {nakasentro} from '../nakasentro';
 import {artworkInfo} from '../artwork-info';
 import * as initMenuVerticalPush from '../../../../../../mu-plugins/menu-vertical-push/menu-vertical-push';
+import {addBackToTop} from 'vanilla-back-to-top';
 
 export default {
 	init() {
@@ -13,52 +13,65 @@ export default {
 		window.onload = function () {
 			// init menu-vertical-push
 			initMenuVerticalPush.init();
+			addBackToTop({zIndex: 2});
+
+			// Detects if device is on iOS
+			const isIos = () => {
+				const userAgent = window.navigator.userAgent.toLowerCase();
+				return /iphone|ipad|ipod/.test( userAgent );
+			};
+// Detects if device is in standalone mode
+			const isInStandaloneMode = () => ('standalone' in window.navigator) && (window.navigator.standalone);
+
+// Checks if should display install popup notification:
+			if (isIos() && !isInStandaloneMode()) {
+				this.setState({ showInstallMessage: true });
+			}
 		};
 
-		var playVideo = function () {
-			var iframeCode = this.getAttribute("data-embed");
-			var parent = this.parentNode.parentNode;
-			this.parentNode.outerHTML = iframeCode;
-			reframe(parent.querySelector("iframe"));
+		let playVideo = function () {
+			this.closest('.video').classList.add('playing');
+
 		};
-		var playButtons = document.querySelectorAll(".video .play-button");
-		playButtons.forEach(function (value) {
-			value.addEventListener("click", playVideo.bind(value), {
+
+		let playButtons = document.querySelectorAll(".video .play-button");
+		playButtons.forEach(function (button) {
+			button.addEventListener("click", playVideo.bind(button), {
 				once: true,
 			}, false);
 		});
 
 		// add modal
-		var $modal = $("#modal");
-		$modal.on("show.bs.modal", function (e) {
-			var $video_wrap = $modal.find(".video-embed");
-			var embed = decodeURIComponent(
-				$(e.relatedTarget)
-					.data("embed")
-					.replace(/\+/g, " ")
-			);
-			$video_wrap.append(embed);
-			window.setTimeout(function () {
-				$video_wrap.fitVids();
-			}, 200);
-		});
-
-		$modal.on("hide.bs.modal", function () {
-			$modal.find(".fluid-width-video-wrapper").remove();
-		});
+		// let $modal = $("#modal");
+		// $modal.on("show.bs.modal", function (e) {
+		// 	let $video_wrap = $modal.find(".video-embed");
+		// 	let embed = decodeURIComponent(
+		// 		$(e.relatedTarget)
+		// 			.data("embed")
+		// 			.replace(/\+/g, " ")
+		// 	);
+		// 	$video_wrap.append(embed);
+		// 	window.setTimeout(function () {
+		// 		$video_wrap.fitVids();
+		// 	}, 200);
+		// });
+		//
+		// $modal.on("hide.bs.modal", function () {
+		// 	$modal.find(".fluid-width-video-wrapper").remove();
+		// });
 
 		function debounce(func, wait, immediate) {
-			var timeout;
+			let timeout;
 			return function () {
-				var context = this,
+				let context = this,
 					args = arguments;
-				var later = function () {
+				let later = function () {
 					timeout = null;
 					if (!immediate) {
 						func.apply(context, args);
 					}
 				};
-				var callNow = immediate && !timeout;
+				let callNow = immediate && !timeout;
 				clearTimeout(timeout);
 				timeout = setTimeout(later, wait);
 				if (callNow) {
@@ -68,7 +81,7 @@ export default {
 		}
 
 		// setup resize event after user stops resizing
-		var resize_event = debounce(function () {
+		let resize_event = debounce(function () {
 			// things to run after resize
 			moreInfo.init();
 		}, 300);
@@ -88,7 +101,7 @@ export default {
 
 		// init fullscreen
 		/* eslint-disable */
-		var CommonView = Barba.BaseView.extend({
+		let CommonView = Barba.BaseView.extend({
 			/* eslint-enable */
 			namespace: "common",
 			onEnterCompleted: function () {
@@ -103,8 +116,8 @@ export default {
 				stAudio.init();
 
 				// wait for images to load before spinning up the artwork animation
-				var images = document.querySelectorAll('.main .artwork_piece .main-img');
-				var imagesCount = images.length;
+				let images = document.querySelectorAll('.main .artwork_piece .main-img');
+				let imagesCount = images.length;
 				images.forEach(function (img) {
 					if (img.complete === true) {
 						imagesCount--;
