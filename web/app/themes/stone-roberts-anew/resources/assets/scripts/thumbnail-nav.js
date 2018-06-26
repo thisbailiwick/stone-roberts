@@ -1,4 +1,5 @@
 import {scrollToElement} from './center-scroll-to';
+import {disableBodyScroll, clearAllBodyScrollLocks} from 'body-scroll-lock';
 
 let thumbnails = [];
 let thumbnailCount = 0;
@@ -36,9 +37,14 @@ function init(parentElement) {
 		document.querySelector('.fullscreen-wrapper').insertAdjacentHTML('afterbegin', thumbnailTriggerHtml);
 		thumbnailsTrigger = document.getElementById('thumbnail-trigger');
 
-		thumbnailsTrigger.addEventListener('click', function (e) {
+		thumbnailsTrigger.addEventListener('click', function () {
+			if(fullscreenWrapper.classList.contains('showing-thumbnails')){
+				disableBodyScroll(thumbnailsNav);
+			}else{
+				clearAllBodyScrollLocks(thumbnailsNav);
+			}
+			disableBodyScroll(thumbnailsNav);
 			thumbnailsNav.classList.toggle('hide');
-			e.currentTarget.classList.toggle('showing');
 			fullscreenWrapper.classList.toggle('showing-thumbnails');
 		});
 	}
@@ -62,6 +68,7 @@ function addThumbnail(imgSrc, associatedDomElement) {
 
 			// timeout time set to same amount of thumbnails-nav transition-duration
 			window.setTimeout(function () {
+				clearAllBodyScrollLocks(thumbnailsNav);
 				scrollToElement(associatedDomElement);
 			}, 100);
 		});
