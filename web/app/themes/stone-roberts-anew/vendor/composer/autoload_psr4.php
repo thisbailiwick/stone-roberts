@@ -32,6 +32,7 @@ return array(
     'Doctrine\\Common\\Inflector\\' => array($vendorDir . '/doctrine/inflector/lib/Doctrine/Common/Inflector'),
     'Composer\\Installers\\' => array($vendorDir . '/composer/installers/src/Composer/Installers'),
     'Brain\\Hierarchy\\' => array($vendorDir . '/brain/hierarchy/src'),
-    'App\\' => array($baseDir . '/app'),
+    'App\\Controllers\\' => array($baseDir . '/app/controllers'),
+    'App\\' => array($baseDir . '/App'),
     '' => array($vendorDir . '/nesbot/carbon/src'),
 );

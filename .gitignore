@@ -6,6 +6,8 @@ web/app/upgrade
 #web/app/uploads/*
 web/app/uploads/ithemes-security
 web/app/uploads/wp-migrate-db
+web/app/uploads/cache
+web/app/cache/
 
 !web/app/uploads/.gitkeep
 
