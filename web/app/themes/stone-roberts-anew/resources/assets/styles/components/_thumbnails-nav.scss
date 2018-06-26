@@ -1,0 +1,66 @@
+#thumbnails-nav{
+  align-content: flex-start;
+  background-color: rgba(0,0,0,.9);
+  display: flex;
+  flex-wrap: wrap;
+  height: 100vh;
+  left: 0;
+  justify-content: center;
+  opacity: 1;
+  padding: 8vw 4vw;
+  position: fixed;
+  top: 0;
+  transition-duration: .1s;
+  transition-property: transform;
+  width: 100vw;
+  z-index: 300;
+
+  .thumbnail-wrap{
+    height: 21vw;
+    padding: 1vh;
+    width: auto;
+  }
+
+  .thumbnail{
+    height: 100%;
+    width: auto;
+
+    &:hover{
+      cursor: pointer;
+    }
+  }
+
+  &.hide{
+    transform: translateX(-100vw);
+  }
+}
+
+#thumbnail-trigger{
+  $square-side-length: 10;
+  $square-margin-right: 3;
+  $square-margin-bottom: 3;
+  $wrap-width: ($square-margin-right + $square-side-length) * 3;
+  $wrap-height: ($square-margin-bottom + $square-side-length) * 2;
+  height: $wrap-height + px;
+  left: 10px;
+  position: fixed;
+  bottom: 8px;
+  transition-duration: .1s;
+  transition-property: top;
+  width: $wrap-width + px;
+  z-index: 301;
+
+  >div{
+    background-color: #fff;
+    float: left;
+    height: $square-side-length + px;
+    margin: 0 $square-margin-right + px $square-margin-bottom + px 0;
+    width: $square-side-length + px;
+  }
+}
+
+//.fullscreen-wrapper.showing-thumbnails{
+//  #thumbnail-trigger{
+//    left: 2px;
+//  }
+//}

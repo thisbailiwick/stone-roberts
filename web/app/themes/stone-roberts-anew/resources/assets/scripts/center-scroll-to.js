@@ -11,7 +11,7 @@ const scrollCheck = _.debounce(function () {
 	checkButtonNavigationDisplay(currentCentered, 'scroll');
 }, 100);
 
-export default function init() {
+function init() {
 	centerScrollDiv = document.querySelector('.center-scroll-arrows');
 
 	if (centerScrollDiv === null) {
@@ -50,14 +50,6 @@ export default function init() {
 		const currentCentered = getCurrentCentered();
 		checkButtonNavigationDisplay(currentCentered, 'scroll');
 	}
-
-	// find the most centered image
-
-	// if body has class centered-image
-	// get the centered image
-	// set it current centered
-
-	// else get
 }
 
 function getCurrentCentered() {
@@ -105,12 +97,11 @@ function goPrevious() {
 	}
 	let artworkToCenter = checkForPrevious(getCurrentCentered().previousElementSibling);
 
-
 	if (artworkToCenter !== null) {
-		const scrollAmount = getElementMiddle(artworkToCenter);
-		scrollToByPixels(scrollAmount);
+		scrollToElement(artworkToCenter);
 	}
 }
+
 
 function goNext() {
 	if (nakasentro.imageCentered === true) {
@@ -122,8 +113,7 @@ function goNext() {
 	artworkToCenter = checkForNext(artworkToCenter);
 
 	if (artworkToCenter !== null) {
-		const scrollAmount = getElementMiddle(artworkToCenter);
-		scrollToByPixels(scrollAmount);
+		scrollToElement(artworkToCenter);
 	}
 
 	checkButtonNavigationDisplay(artworkToCenter, 'next');
@@ -193,6 +183,11 @@ function getElementMiddle(element) {
 
 }
 
+function scrollToElement(artworkToCenter) {
+	const scrollAmount = getElementMiddle(artworkToCenter);
+	scrollToByPixels(scrollAmount);
+}
+
 function checkButtonNavigationDisplay(artworkToCenter, direction = 'scroll') {
 	if (direction === 'next') {
 		processNextCheck(artworkToCenter, direction);
@@ -220,3 +215,5 @@ function setNextVisibility(value) {
 		centerScrollDiv.classList.add('hide-next');
 	}
 }
+
+export {init, scrollToElement}
