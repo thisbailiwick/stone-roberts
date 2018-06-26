@@ -343,7 +343,6 @@ var nakasentro = {
 				isInViewport: false,
 			});
 		}, this);
-
 	},
 	mobileResize: __WEBPACK_IMPORTED_MODULE_1_underscore___default.a.debounce(function () {
 		// utilities.setViewportDimensions();
@@ -789,7 +788,7 @@ var nakasentro = {
 			nakasentro.removeArtworkPieceCentered(this.artworkWrap);
 			this.imageCentered = false;
 			nakasentro.removeFullscreenCenteredImageScrollEvents.call(this);
-		}else{
+		} else {
 			e.preventDefault();
 		}
 	},
