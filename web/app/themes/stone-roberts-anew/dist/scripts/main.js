@@ -3683,11 +3683,14 @@ function init(parentElement) {
 		document.querySelector('.fullscreen-wrapper').insertAdjacentHTML('afterbegin', thumbnailTriggerHtml);
 		thumbnailsTrigger = document.getElementById('thumbnail-trigger');
 
-		thumbnailsTrigger.addEventListener('click', function () {
-			if(fullscreenWrapper.classList.contains('showing-thumbnails')){
+		thumbnailsTrigger.addEventListener('click', function (e) {
+			console.log(e);
+			if (fullscreenWrapper.classList.contains('showing-thumbnails')) {
+				window.setTimeout(function () {
+					Object(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__["clearAllBodyScrollLocks"])(thumbnailsNav);
+				}, 100);
+			} else {
 				Object(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__["disableBodyScroll"])(thumbnailsNav);
-			}else{
-				Object(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__["clearAllBodyScrollLocks"])(thumbnailsNav);
 			}
 			Object(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__["disableBodyScroll"])(thumbnailsNav);
 			thumbnailsNav.classList.toggle('hide');

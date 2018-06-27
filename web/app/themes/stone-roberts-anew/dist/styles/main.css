@@ -713,6 +713,10 @@ button,
   padding: 0;
 }
 
+body.front {
+  overflow: scroll;
+}
+
 body.front.no-scroll {
   overflow: hidden;
 }
@@ -1500,11 +1504,11 @@ body.front.centered-image #back-to-top {
   -webkit-transition-duration: 0.25s;
        -o-transition-duration: 0.25s;
           transition-duration: 0.25s;
-  -webkit-transition-property: background-size, opacity, -webkit-transform;
-  transition-property: background-size, opacity, -webkit-transform;
-  -o-transition-property: background-size, opacity, -o-transform;
-  transition-property: transform, background-size, opacity;
-  transition-property: transform, background-size, opacity, -webkit-transform, -o-transform;
+  -webkit-transition-property: background-size, -webkit-transform;
+  transition-property: background-size, -webkit-transform;
+  -o-transition-property: background-size, -o-transform;
+  transition-property: transform, background-size;
+  transition-property: transform, background-size, -webkit-transform, -o-transform;
   width: 100%;
 }
 
@@ -1633,6 +1637,10 @@ body.front.centered-image #back-to-top {
   -webkit-transition-duration: 0.25s;
        -o-transition-duration: 0.25s;
           transition-duration: 0.25s;
+}
+
+.artwork_piece.zoomed-delay .mouse-map-wrap {
+  opacity: 1 !important;
 }
 
 body.artworks-processed .artwork_piece {
