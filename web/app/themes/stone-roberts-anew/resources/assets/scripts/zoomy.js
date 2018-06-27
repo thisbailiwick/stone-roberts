@@ -69,6 +69,16 @@ export let zoomy = {
 			}
 		}
 
+		function removeZoomedDelayClass(element) {
+			element.artworkPieceWrap.classList.remove('zoomed-delay');
+		}
+
+		if (this.isZoomed === false) {
+			window.setTimeout(() => {removeZoomedDelayClass(this)}, 250);
+		} else {
+			this.artworkPieceWrap.classList.add('zoomed-delay');
+		}
+
 		if (this.isZoomed === true && zoomy.mouseMapEventsAdded === false) {
 			zoomy.mouseMapEventsAdded = true;
 			this.mouseMapImage.addEventListener("mousemove", this.mouseMoveHandler, {passive: true});
