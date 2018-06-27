@@ -1865,6 +1865,8 @@ var zoomy = {
 	},
 
 	toggleZoom: function (e) {
+		var this$1 = this;
+
 		if (e.currentTarget.classList.contains('mouse-map') || e.currentTarget.classList.contains('mouse-map-wrap')) {
 			zoomy.mapMouseToImage.call(this, e);
 		}
@@ -1877,6 +1879,16 @@ var zoomy = {
 			} else {
 				Object(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__["clearAllBodyScrollLocks"])(this.mouseMapImage);
 			}
+		}
+
+		function removeZoomedDelayClass(element) {
+			element.artworkPieceWrap.classList.remove('zoomed-delay');
+		}
+
+		if (this.isZoomed === false) {
+			window.setTimeout(function () {removeZoomedDelayClass(this$1)}, 250);
+		} else {
+			this.artworkPieceWrap.classList.add('zoomed-delay');
 		}
 
 		if (this.isZoomed === true && zoomy.mouseMapEventsAdded === false) {

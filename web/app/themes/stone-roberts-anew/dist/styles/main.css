@@ -1469,7 +1469,7 @@ body.front.page-template-template-projects .main p {
           align-items: center;
   background-origin: border-box;
   background-repeat: no-repeat;
-  background-size: 150%;
+  background-size: 100%;
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
@@ -1481,11 +1481,11 @@ body.front.page-template-template-projects .main p {
   -webkit-transition-duration: 0.25s;
        -o-transition-duration: 0.25s;
           transition-duration: 0.25s;
-  -webkit-transition-property: -webkit-transform;
-  transition-property: -webkit-transform;
-  -o-transition-property: -o-transform;
-  transition-property: transform;
-  transition-property: transform, -webkit-transform, -o-transform;
+  -webkit-transition-property: background-size, opacity, -webkit-transform;
+  transition-property: background-size, opacity, -webkit-transform;
+  -o-transition-property: background-size, opacity, -o-transform;
+  transition-property: transform, background-size, opacity;
+  transition-property: transform, background-size, opacity, -webkit-transform, -o-transform;
   width: 100%;
 }
 
@@ -1502,7 +1502,8 @@ body.front.page-template-template-projects .main p {
 }
 
 .artwork_piece.zoomed .mouse-map-wrap {
-  opacity: 1 !important;
+  background-size: 150%;
+  opacity: 1;
 }
 
 .artwork_piece.zoomed .mouse-map-wrap:hover {
