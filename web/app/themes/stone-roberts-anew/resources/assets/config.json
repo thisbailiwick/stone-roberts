@@ -26,5 +26,6 @@
     "app/**/*.php",
     "config/**/*.php",
     "resources/views/**/*.php"
-  ]
+  ],
+  "headers": { "Access-Control-Allow-Origin": "*" }
 }

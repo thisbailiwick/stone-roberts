@@ -1,20 +1,33 @@
 #thumbnails-nav{
-  align-content: flex-start;
   background-color: rgba(0,0,0,.9);
-  display: flex;
-  flex-wrap: wrap;
   height: 100vh;
   left: 0;
-  justify-content: center;
   opacity: 1;
   overflow: scroll;
-  padding: 8vw 4vw;
+  padding: 0 4vw 8vw;
   position: fixed;
   top: 0;
   transition-duration: .1s;
   transition-property: transform;
   width: 100vw;
   z-index: 300;
+
+  h1{
+    height: 8vw;
+    width: 100%;
+    text-align: center;
+    margin: 0 0 -2vh 0 !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .thumbnails-wrap{
+    align-content: flex-start;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
 
   .thumbnail-wrap{
     height: 21vw;
@@ -51,28 +64,16 @@
   width: $wrap-width + px;
   z-index: 301;
 
+  &:hover{
+    cursor: pointer;
+  }
+
+
   >div{
     background-color: #fff;
     float: left;
     height: $square-side-length + px;
     margin: 0 $square-margin-right + px $square-margin-bottom + px 0;
     width: $square-side-length + px;
-  }
-}
-
-
-.fullscreen-wrapper.showing-thumbnails{
-  .page-header{
-    position: fixed;
-    top: 1vh;
-    left: 0;
-    z-index: 300;
-    width: 100%;
-    text-align: center;
-    margin: 0 !important;
-    height: 8vw;
-    display: flex;
-    justify-content: center;
-    align-items: center;
   }
 }

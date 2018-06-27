@@ -49,6 +49,8 @@ textarea, input, button, .mobile-nav-link {
 }
 
 body.front {
+  overflow: scroll;
+
   &.no-scroll {
     overflow: hidden;
   }
@@ -111,9 +113,15 @@ body.front {
         opacity: 0;
       }
 
-      p{
+      p {
         margin-top: 0;
       }
+    }
+  }
+
+  &.centered-image {
+    #back-to-top {
+      opacity: 0;
     }
   }
 }

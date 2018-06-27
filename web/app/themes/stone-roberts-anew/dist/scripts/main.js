@@ -3662,17 +3662,19 @@ var thumbnails = [];
 var thumbnailCount = 0;
 var thumbnailsTrigger = null;
 var thumbnailsNav = null;
+var thumbnailsWrap = null;
 var initSetup = false;
 var fullscreenWrapper = document.querySelector('.fullscreen-wrapper');
 
 function init(parentElement) {
 	if (initSetup === false) {
 		initSetup = true;
-
+		var pageHeader = document.querySelector('.main .page-header h1').outerHTML;
 		// add thumbnails div
-		var thumbnailsWrap = "\n\t\t<div id=\"thumbnails-nav\" class=\"hide\">\n\t\t\t\n\t\t</div>\n\t";
-		parentElement.insertAdjacentHTML('afterbegin', thumbnailsWrap);
+		var thumbnailsNavHtml = "\n\t\t<div id=\"thumbnails-nav\" class=\"hide\">\n\t\t\t" + pageHeader + "\n\t\t\t<div class=\"thumbnails-wrap\"></div>\n\t\t</div>\n\t";
+		parentElement.insertAdjacentHTML('afterbegin', thumbnailsNavHtml);
 		thumbnailsNav = document.getElementById('thumbnails-nav');
+		thumbnailsWrap = thumbnailsNav.querySelector('.thumbnails-wrap');
 
 
 		// add trigger divs
@@ -3702,7 +3704,7 @@ function addThumbnail(imgSrc, associatedDomElement) {
 	// don't add thumbnail if we already have
 	if (!thumbnails.find(elementAdded, associatedDomElement)) {
 		var thumbnailHtml = "\n\t\t\t<div class=\"thumbnail-wrap\" id=\"thumbnail-" + thumbnailCount + "\"><img class=\"thumbnail\" src=\"" + imgSrc + "\" /></div>\n\t\t";
-		thumbnailsNav.insertAdjacentHTML('beforeend', thumbnailHtml);
+		thumbnailsWrap.insertAdjacentHTML('beforeend', thumbnailHtml);
 
 		document.getElementById(("thumbnail-" + thumbnailCount)).addEventListener('click', function () {
 			thumbnailsNav.classList.add('hide');
