@@ -10,7 +10,7 @@
 	 $page_term = get_field('page_term');
 	 // Define custom query parameters
 	 $args = array(
-		 'posts_per_page' => 10,
+		 'posts_per_page' => 1000,
 		 'post_type' => 'projects',
 		 'order' => 'ASC',
 		 'post_status' => 'publish',
