@@ -79,3 +79,7 @@
     width: $square-side-length + px;
   }
 }
+
+body:not(.template-projects) #thumbnail-trigger{
+  display: none;
+}

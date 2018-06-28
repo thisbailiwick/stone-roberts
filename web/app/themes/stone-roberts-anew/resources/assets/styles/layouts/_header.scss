@@ -2,24 +2,30 @@
 // TODO: .banner .nav a {}
 header.banner {
   margin-bottom: 70px;
-  
-  .logo{
-    display: block;
-  }
 
   .container {
     overflow: auto;
 
     .brand {
-      background: url($image-path + 'logo.svg') no-repeat center transparent;
+      background-color: $background;
       display: block;
       height: 88px;
       line-height: 1em;
+      margin: 0;
       text-align: center;
-      margin: 4vh auto 9.5vh;
+      padding: 4vh 0 9.5vh;
       font-size: 30px;
       font-weight: bold;
-      width: 419px;
+      position: static;
+      top: 0;
+      left: 0;
+      width: 100%;
+
+      span{
+        display: block;
+        background: url($image-path + 'logo.svg') no-repeat center transparent;
+        height: 88px;
+      }
     }
     .nav-primary {
       .nav {
@@ -31,5 +37,11 @@ header.banner {
         }
       }
     }
+  }
+}
+
+.home {
+  .hamburger, .nav-primary {
+    display: none;
   }
 }

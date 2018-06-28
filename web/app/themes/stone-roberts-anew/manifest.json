@@ -14,7 +14,7 @@
     }
   ],
   "start_url": "/street-scenes",
-  "background_color": "#262626",
+  "background_color": "$background",
   "display": "standalone",
-  "theme_color": "#262626"
+  "theme_color": "$background"
 }

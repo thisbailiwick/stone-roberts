@@ -1,20 +1,25 @@
 import 'hamburgers';
+import {disableBodyScroll, clearAllBodyScrollLocks} from 'body-scroll-lock';
 
 const menuWrap = document.querySelector('header.banner');
 let hamburger = null;
-let menuWrapHeight = null;
+// let menuWrapHeight = null;
+let ignoreHeightAmount = 0;
 
 export function init() {
 	menuWrap.classList.add('menu-vertical-push');
-	menuWrapHeight = outerHeight(menuWrap);
-	menuWrap.style.marginTop = -menuWrapHeight + 'px';
-	const menuLinks = menuWrap.querySelectorAll('a');
+	// menuWrapHeight = outerHeight(menuWrap);
+	// ignoreHeightAmount = outerHeight(menuWrap.querySelector('.brand'));
+	// console.log(ignoreHeightAmount);
+	// console.log(menuWrapHeight);
+	// menuWrap.style.marginTop = -(menuWrapHeight - ignoreHeightAmount) + 'px';
+	const menuLinks = menuWrap.querySelectorAll('a:not(.brand)');
 	menuLinks.forEach(function(link){
 		link.addEventListener('click', menuLinkClick);
 	});
 	const hamburgerHtml = getHamburgerHtml();
-	menuWrap.insertBefore(hamburgerHtml, menuWrap.firstChild);
-	hamburger = document.querySelector('header.banner .hamburger');
+	menuWrap.insertAdjacentElement('beforebegin', hamburgerHtml);
+	hamburger = document.querySelector('.hamburger');
 	window.setTimeout(function () {
 		menuWrap.classList.add();
 	}, 100);
@@ -22,6 +27,11 @@ export function init() {
 
 	hamburger.addEventListener('click', function () {
 		toggleMenu();
+		if(!this.classList.contains('is-active')){
+			disableBodyScroll();
+		}else{
+			clearAllBodyScrollLocks();
+		}
 		this.classList.toggle('is-active');
 	}, false);
 }
@@ -56,7 +66,7 @@ const toggleMenu = () => {
 
 const outerHeight = (el) => {
 		let height = el.offsetHeight;
-		const style = getComputedStyle(el);
-		height += parseInt(style.marginTop) + parseInt(style.marginBottom);
+		// const style = getComputedStyle(el);
+		// height += parseInt(style.marginTop) + parseInt(style.marginBottom);
 		return height;
 };

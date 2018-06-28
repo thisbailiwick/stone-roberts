@@ -378,7 +378,7 @@ HTML;
 	}
 
 	return <<<HTML
-		<ul class="list">
+		<ul class="custom-nav">
 			{$nav_html}
 		</ul>
 HTML;

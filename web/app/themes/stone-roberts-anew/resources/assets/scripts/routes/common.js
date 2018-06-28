@@ -109,8 +109,10 @@ export default {
 				// The Transition has just finished.
 
 				// init thumbnails
-				setThumbnailInitFalse();
-				thumbnailInit(document.querySelector('.main'));
+				if(document.body.classList.contains('template-projects')) {
+					setThumbnailInitFalse();
+					thumbnailInit(document.querySelector('.main'));
+				}
 
 				// spin up share
 				/* eslint-disable */
