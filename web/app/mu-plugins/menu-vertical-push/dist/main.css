@@ -714,10 +714,10 @@
       margin: 0 .3em; }
 
 .hamburger {
-  position: absolute;
+  position: fixed;
   left: 0;
   top: 0;
-  z-index: 20; }
+  z-index: 307; }
   .hamburger .hamburger-inner, .hamburger .hamburger-inner::before, .hamburger .hamburger-inner::after {
     background-color: #fff;
     height: 2px;

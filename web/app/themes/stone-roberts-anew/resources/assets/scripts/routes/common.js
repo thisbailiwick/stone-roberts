@@ -4,7 +4,7 @@ import {zoomy} from '../zoomy';
 import {nakasentro} from '../nakasentro';
 import {artworkInfo} from '../artwork-info';
 import * as initMenuVerticalPush from '../../../../../../mu-plugins/menu-vertical-push/menu-vertical-push';
-import {addBackToTop} from 'vanilla-back-to-top';
+// import {addBackToTop} from 'vanilla-back-to-top';
 import {init as thumbnailInit, setInitFalse as setThumbnailInitFalse} from '../thumbnail-nav';
 // import Cookies from 'js-cookie';
 
@@ -15,7 +15,7 @@ export default {
 		window.onload = function () {
 			// init menu-vertical-push
 			initMenuVerticalPush.init();
-			addBackToTop({zIndex: 2});
+			// addBackToTop({zIndex: 2});
 
 			// Detects if device is on iOS
 			const isIos = () => {
