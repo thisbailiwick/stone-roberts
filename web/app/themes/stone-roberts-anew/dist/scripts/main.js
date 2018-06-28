@@ -7624,6 +7624,7 @@ function init() {
 
 var menuLinkClick = function () {
 	toggleMenu();
+	Object(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__["clearAllBodyScrollLocks"])();
 	hamburger.classList.remove('is-active');
 };
 
