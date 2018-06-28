@@ -1806,6 +1806,14 @@ body.orientation-landscape.zoomed .artwork-meta {
   }
 }
 
+body.template-projects header.banner {
+  margin-bottom: 121px;
+}
+
+body.template-projects .page-header {
+  display: none;
+}
+
 .dev-share-buttons {
   -webkit-box-orient: horizontal;
   -webkit-box-direction: normal;

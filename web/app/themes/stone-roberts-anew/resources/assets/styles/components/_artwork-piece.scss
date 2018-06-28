@@ -443,3 +443,13 @@ body {
     @include nonAnimatingMobile;
   }
 }
+
+body.template-projects{
+  header.banner{
+    margin-bottom: 121px;
+  }
+  
+  .page-header{
+    display: none;
+  }
+}
