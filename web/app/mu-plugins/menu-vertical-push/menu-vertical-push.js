@@ -38,6 +38,7 @@ export function init() {
 
 const menuLinkClick = () => {
 	toggleMenu();
+	clearAllBodyScrollLocks();
 	hamburger.classList.remove('is-active');
 };
 
