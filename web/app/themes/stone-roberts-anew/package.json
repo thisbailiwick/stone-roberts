@@ -106,6 +106,7 @@
     "body-scroll-lock": "^2.4.6",
     "howler": "^2.0.12",
     "jquery": "^3.3.1",
+    "js-cookie": "^2.2.0",
     "reframe.js": "^2.2.1",
     "sanitize.css": "^5.0.0",
     "smoothscroll-polyfill": "^0.4.3",
