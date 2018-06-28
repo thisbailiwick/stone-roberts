@@ -6,7 +6,7 @@ import {artworkInfo} from '../artwork-info';
 import * as initMenuVerticalPush from '../../../../../../mu-plugins/menu-vertical-push/menu-vertical-push';
 import {addBackToTop} from 'vanilla-back-to-top';
 import {init as thumbnailInit, setInitFalse as setThumbnailInitFalse} from '../thumbnail-nav';
-import Cookies from 'js-cookie';
+// import Cookies from 'js-cookie';
 
 export default {
 	init() {
@@ -102,9 +102,9 @@ export default {
 		};
 
 		// add cookie for splash page
-		document.getElementById('welcome-image').addEventListener('click', function () {
-			Cookies.set('splash-viewed', true, {expires: 365});
-		});
+		// document.getElementById('welcome-image').addEventListener('click', function () {
+		// 	Cookies.set('splash-viewed', true, {expires: 365});
+		// });
 
 		// init fullscreen
 		/* eslint-disable */
@@ -142,6 +142,7 @@ export default {
 					}
 					checkIfImagesLoaded(imagesCount);
 				});
+
 
 				function checkIfImagesLoaded(imagesCount) {
 					if (imagesCount === 0) {
