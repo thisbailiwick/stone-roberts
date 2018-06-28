@@ -17,7 +17,7 @@ body.welcome{
   }
   #welcome-image{
     display: block;
-    background: url('/app/uploads/2018/06/Interior_Light.jpg') center center/cover transparent;
+    background: url($image-path + 'splash.jpg') center center/cover transparent;
     height: 100vh;
     width: 100vw;
   }
