@@ -5,7 +5,8 @@ import {nakasentro} from '../nakasentro';
 import {artworkInfo} from '../artwork-info';
 import * as initMenuVerticalPush from '../../../../../../mu-plugins/menu-vertical-push/menu-vertical-push';
 import {addBackToTop} from 'vanilla-back-to-top';
-import { init as thumbnailInit, setInitFalse as setThumbnailInitFalse} from '../thumbnail-nav';
+import {init as thumbnailInit, setInitFalse as setThumbnailInitFalse} from '../thumbnail-nav';
+import Cookies from 'js-cookie';
 
 export default {
 	init() {
@@ -19,14 +20,14 @@ export default {
 			// Detects if device is on iOS
 			const isIos = () => {
 				const userAgent = window.navigator.userAgent.toLowerCase();
-				return /iphone|ipad|ipod/.test( userAgent );
+				return /iphone|ipad|ipod/.test(userAgent);
 			};
 // Detects if device is in standalone mode
 			const isInStandaloneMode = () => ('standalone' in window.navigator) && (window.navigator.standalone);
 
 // Checks if should display install popup notification:
 			if (isIos() && !isInStandaloneMode()) {
-				this.setState({ showInstallMessage: true });
+				this.setState({showInstallMessage: true});
 			}
 		};
 
@@ -100,6 +101,11 @@ export default {
 			return this; // for chaining...
 		};
 
+		// add cookie for splash page
+		document.getElementById('welcome-image').addEventListener('click', function () {
+			Cookies.set('splash-viewed', true, {expires: 365});
+		});
+
 		// init fullscreen
 		/* eslint-disable */
 		let CommonView = Barba.BaseView.extend({
@@ -109,7 +115,7 @@ export default {
 				// The Transition has just finished.
 
 				// init thumbnails
-				if(document.body.classList.contains('template-projects')) {
+				if (document.body.classList.contains('template-projects')) {
 					setThumbnailInitFalse();
 					thumbnailInit(document.querySelector('.main'));
 				}

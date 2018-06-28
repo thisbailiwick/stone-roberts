@@ -101,10 +101,11 @@ HTML;
 	$artwork_info_text = trim($content['artwork_info_text']);
 	$compare_image_height = get_field('compare_height_in_inches', 'options')['compare_height_in_inches'];
 	$compare_image_width = get_field('compare_width_in_inches', 'options')['compare_width_in_inches'];
-
+	$piece_title = $post->post_title;
 	$dev_share_buttons = get_dev_share_buttons(array('facebook', 'twitter', 'email', 'copy'), $permalink, $post->post_title, '', $image['url'], $post->ID);
 	return <<<HTML
 		<div id="{$unique_id}" class="{$content['acf_fc_layout']}">
+			<h3>{$piece_title}</h3>
 			<div class="image-wrap">
       	<div class="image-centered-background"></div>
         	<div class="image-space-placeholder">
