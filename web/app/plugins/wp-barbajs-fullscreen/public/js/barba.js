@@ -63,12 +63,12 @@ return /******/ (function(modules) { // webpackBootstrap
 	var Barba = {
 	  version: '1.0.0',
 	  BaseTransition: __webpack_require__(5),
-	  BaseView: __webpack_require__(7),
+	  BaseView: __webpack_require__(8),
 	  BaseCache: __webpack_require__(25),
-	  Dispatcher: __webpack_require__(8),
-	  Fscreen: __webpack_require__(12),
-	  FullScreen: __webpack_require__(11),
-	  HistoryManager: __webpack_require__(9),
+	  Dispatcher: __webpack_require__(9),
+	  Fscreen: __webpack_require__(13),
+	  FullScreen: __webpack_require__(12),
+	  HistoryManager: __webpack_require__(10),
 	  Pjax: __webpack_require__(15),
 	  Prefetch: __webpack_require__(26),
 	  Utils: __webpack_require__(6)
@@ -860,8 +860,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ }),
 /* 6 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
+	var Cookies = __webpack_require__(7);
+	
 	/**
 	 * Just an object with some helpful functions
 	 *
@@ -995,7 +997,40 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	    if (protocol === 'https:')
 	      return 443;
-	  }
+	  },
+	
+		/**
+		 * Get the paramater/query of a url by name
+		 *
+		 * @memberOf Barba.Utils
+		 * @private
+		 * @param  {String} name
+		 * @param  {String} url
+		 * @return {String} value
+		 */
+		getParameterByName: function(name, url) {
+			name = name.replace(/[\[\]]/g, "\\$&");
+			var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+				results = regex.exec(url);
+			if (!results) return null;
+			if (!results[2]) return '';
+			return decodeURIComponent(results[2].replace(/\+/g, " "));
+		},
+	
+		/**
+		 * Check to see if url has query added to set cookie
+		 *
+		 * @memberOf Barba.Utils
+		 * @private
+		 * @param  {String} query name
+		 * @return {String} url
+		 */
+		urlCookieSetCheck: function(url) {
+			var results = this.getParameterByName('cookie', url);
+			if(results !== '' || results !== null){
+				Cookies.set(results, true, { expires: 365 });
+			}
+		}
 	};
 	
 	module.exports = Utils;
@@ -1005,9 +1040,180 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var Dispatcher = __webpack_require__(8);
+	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
+	 * JavaScript Cookie v2.2.0
+	 * https://github.com/js-cookie/js-cookie
+	 *
+	 * Copyright 2006, 2015 Klaus Hartl & Fagner Brack
+	 * Released under the MIT license
+	 */
+	;(function (factory) {
+		var registeredInModuleLoader = false;
+		if (true) {
+			!(__WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.call(exports, __webpack_require__, exports, module)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+			registeredInModuleLoader = true;
+		}
+		if (true) {
+			module.exports = factory();
+			registeredInModuleLoader = true;
+		}
+		if (!registeredInModuleLoader) {
+			var OldCookies = window.Cookies;
+			var api = window.Cookies = factory();
+			api.noConflict = function () {
+				window.Cookies = OldCookies;
+				return api;
+			};
+		}
+	}(function () {
+		function extend () {
+			var i = 0;
+			var result = {};
+			for (; i < arguments.length; i++) {
+				var attributes = arguments[ i ];
+				for (var key in attributes) {
+					result[key] = attributes[key];
+				}
+			}
+			return result;
+		}
+	
+		function init (converter) {
+			function api (key, value, attributes) {
+				var result;
+				if (typeof document === 'undefined') {
+					return;
+				}
+	
+				// Write
+	
+				if (arguments.length > 1) {
+					attributes = extend({
+						path: '/'
+					}, api.defaults, attributes);
+	
+					if (typeof attributes.expires === 'number') {
+						var expires = new Date();
+						expires.setMilliseconds(expires.getMilliseconds() + attributes.expires * 864e+5);
+						attributes.expires = expires;
+					}
+	
+					// We're using "expires" because "max-age" is not supported by IE
+					attributes.expires = attributes.expires ? attributes.expires.toUTCString() : '';
+	
+					try {
+						result = JSON.stringify(value);
+						if (/^[\{\[]/.test(result)) {
+							value = result;
+						}
+					} catch (e) {}
+	
+					if (!converter.write) {
+						value = encodeURIComponent(String(value))
+							.replace(/%(23|24|26|2B|3A|3C|3E|3D|2F|3F|40|5B|5D|5E|60|7B|7D|7C)/g, decodeURIComponent);
+					} else {
+						value = converter.write(value, key);
+					}
+	
+					key = encodeURIComponent(String(key));
+					key = key.replace(/%(23|24|26|2B|5E|60|7C)/g, decodeURIComponent);
+					key = key.replace(/[\(\)]/g, escape);
+	
+					var stringifiedAttributes = '';
+	
+					for (var attributeName in attributes) {
+						if (!attributes[attributeName]) {
+							continue;
+						}
+						stringifiedAttributes += '; ' + attributeName;
+						if (attributes[attributeName] === true) {
+							continue;
+						}
+						stringifiedAttributes += '=' + attributes[attributeName];
+					}
+					return (document.cookie = key + '=' + value + stringifiedAttributes);
+				}
+	
+				// Read
+	
+				if (!key) {
+					result = {};
+				}
+	
+				// To prevent the for loop in the first place assign an empty array
+				// in case there are no cookies at all. Also prevents odd result when
+				// calling "get()"
+				var cookies = document.cookie ? document.cookie.split('; ') : [];
+				var rdecode = /(%[0-9A-Z]{2})+/g;
+				var i = 0;
+	
+				for (; i < cookies.length; i++) {
+					var parts = cookies[i].split('=');
+					var cookie = parts.slice(1).join('=');
+	
+					if (!this.json && cookie.charAt(0) === '"') {
+						cookie = cookie.slice(1, -1);
+					}
+	
+					try {
+						var name = parts[0].replace(rdecode, decodeURIComponent);
+						cookie = converter.read ?
+							converter.read(cookie, name) : converter(cookie, name) ||
+							cookie.replace(rdecode, decodeURIComponent);
+	
+						if (this.json) {
+							try {
+								cookie = JSON.parse(cookie);
+							} catch (e) {}
+						}
+	
+						if (key === name) {
+							result = cookie;
+							break;
+						}
+	
+						if (!key) {
+							result[name] = cookie;
+						}
+					} catch (e) {}
+				}
+	
+				return result;
+			}
+	
+			api.set = api;
+			api.get = function (key) {
+				return api.call(api, key);
+			};
+			api.getJSON = function () {
+				return api.apply({
+					json: true
+				}, [].slice.call(arguments));
+			};
+			api.defaults = {};
+	
+			api.remove = function (key, attributes) {
+				api(key, '', extend(attributes, {
+					expires: -1
+				}));
+			};
+	
+			api.withConverter = init;
+	
+			return api;
+		}
+	
+		return init(function () {});
+	}));
+
+
+/***/ }),
+/* 8 */
+/***/ (function(module, exports, __webpack_require__) {
+
+	var Dispatcher = __webpack_require__(9);
 	var Utils = __webpack_require__(6);
-	var HistoryManager = __webpack_require__(9);
+	var HistoryManager = __webpack_require__(10);
 	var Pjax = __webpack_require__(15);
 	
 	/**
@@ -1124,7 +1330,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports) {
 
 	/**
@@ -1190,7 +1396,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 	/**
@@ -1200,7 +1406,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	 * @type {Object}
 	 */
 	var Promise = __webpack_require__(1);
-	var Dom = __webpack_require__(10);
+	var Dom = __webpack_require__(11);
 	
 	var HistoryManager = {
 	  /**
@@ -1249,7 +1455,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	   * @private
 	   */
 	  add: function(url, namespace, pageTitle) {
-	    var FullScreen = __webpack_require__(11);
+	    var FullScreen = __webpack_require__(12);
 	    // send a page load event to google analytics
 	    var isFullScreen = FullScreen.fullscreenElement();
 	    var pageId = Dom.getPageId();
@@ -1341,7 +1547,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, exports) {
 
 	/**
@@ -1610,12 +1816,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
-	var Fscreen = __webpack_require__(12);
-	var Dom = __webpack_require__(10);
-	var Cookies = __webpack_require__(13);
+	var Fscreen = __webpack_require__(13);
+	var Dom = __webpack_require__(11);
+	var Cookies = __webpack_require__(7);
 	var CustomEvent = __webpack_require__(14);
 	
 	/**
@@ -1783,7 +1989,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports) {
 
 	'use strict';
@@ -1850,177 +2056,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	};
 
 /***/ }),
-/* 13 */
-/***/ (function(module, exports, __webpack_require__) {
-
-	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
-	 * JavaScript Cookie v2.2.0
-	 * https://github.com/js-cookie/js-cookie
-	 *
-	 * Copyright 2006, 2015 Klaus Hartl & Fagner Brack
-	 * Released under the MIT license
-	 */
-	;(function (factory) {
-		var registeredInModuleLoader = false;
-		if (true) {
-			!(__WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.call(exports, __webpack_require__, exports, module)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-			registeredInModuleLoader = true;
-		}
-		if (true) {
-			module.exports = factory();
-			registeredInModuleLoader = true;
-		}
-		if (!registeredInModuleLoader) {
-			var OldCookies = window.Cookies;
-			var api = window.Cookies = factory();
-			api.noConflict = function () {
-				window.Cookies = OldCookies;
-				return api;
-			};
-		}
-	}(function () {
-		function extend () {
-			var i = 0;
-			var result = {};
-			for (; i < arguments.length; i++) {
-				var attributes = arguments[ i ];
-				for (var key in attributes) {
-					result[key] = attributes[key];
-				}
-			}
-			return result;
-		}
-	
-		function init (converter) {
-			function api (key, value, attributes) {
-				var result;
-				if (typeof document === 'undefined') {
-					return;
-				}
-	
-				// Write
-	
-				if (arguments.length > 1) {
-					attributes = extend({
-						path: '/'
-					}, api.defaults, attributes);
-	
-					if (typeof attributes.expires === 'number') {
-						var expires = new Date();
-						expires.setMilliseconds(expires.getMilliseconds() + attributes.expires * 864e+5);
-						attributes.expires = expires;
-					}
-	
-					// We're using "expires" because "max-age" is not supported by IE
-					attributes.expires = attributes.expires ? attributes.expires.toUTCString() : '';
-	
-					try {
-						result = JSON.stringify(value);
-						if (/^[\{\[]/.test(result)) {
-							value = result;
-						}
-					} catch (e) {}
-	
-					if (!converter.write) {
-						value = encodeURIComponent(String(value))
-							.replace(/%(23|24|26|2B|3A|3C|3E|3D|2F|3F|40|5B|5D|5E|60|7B|7D|7C)/g, decodeURIComponent);
-					} else {
-						value = converter.write(value, key);
-					}
-	
-					key = encodeURIComponent(String(key));
-					key = key.replace(/%(23|24|26|2B|5E|60|7C)/g, decodeURIComponent);
-					key = key.replace(/[\(\)]/g, escape);
-	
-					var stringifiedAttributes = '';
-	
-					for (var attributeName in attributes) {
-						if (!attributes[attributeName]) {
-							continue;
-						}
-						stringifiedAttributes += '; ' + attributeName;
-						if (attributes[attributeName] === true) {
-							continue;
-						}
-						stringifiedAttributes += '=' + attributes[attributeName];
-					}
-					return (document.cookie = key + '=' + value + stringifiedAttributes);
-				}
-	
-				// Read
-	
-				if (!key) {
-					result = {};
-				}
-	
-				// To prevent the for loop in the first place assign an empty array
-				// in case there are no cookies at all. Also prevents odd result when
-				// calling "get()"
-				var cookies = document.cookie ? document.cookie.split('; ') : [];
-				var rdecode = /(%[0-9A-Z]{2})+/g;
-				var i = 0;
-	
-				for (; i < cookies.length; i++) {
-					var parts = cookies[i].split('=');
-					var cookie = parts.slice(1).join('=');
-	
-					if (!this.json && cookie.charAt(0) === '"') {
-						cookie = cookie.slice(1, -1);
-					}
-	
-					try {
-						var name = parts[0].replace(rdecode, decodeURIComponent);
-						cookie = converter.read ?
-							converter.read(cookie, name) : converter(cookie, name) ||
-							cookie.replace(rdecode, decodeURIComponent);
-	
-						if (this.json) {
-							try {
-								cookie = JSON.parse(cookie);
-							} catch (e) {}
-						}
-	
-						if (key === name) {
-							result = cookie;
-							break;
-						}
-	
-						if (!key) {
-							result[name] = cookie;
-						}
-					} catch (e) {}
-				}
-	
-				return result;
-			}
-	
-			api.set = api;
-			api.get = function (key) {
-				return api.call(api, key);
-			};
-			api.getJSON = function () {
-				return api.apply({
-					json: true
-				}, [].slice.call(arguments));
-			};
-			api.defaults = {};
-	
-			api.remove = function (key, attributes) {
-				api(key, '', extend(attributes, {
-					expires: -1
-				}));
-			};
-	
-			api.withConverter = init;
-	
-			return api;
-		}
-	
-		return init(function () {});
-	}));
-
-
-/***/ }),
 /* 14 */
 /***/ (function(module, exports) {
 
@@ -2080,12 +2115,12 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ (function(module, exports, __webpack_require__) {
 
 	var Utils = __webpack_require__(6);
-	var Dispatcher = __webpack_require__(8);
+	var Dispatcher = __webpack_require__(9);
 	var HideShowTransition = __webpack_require__(16);
 	var BaseCache = __webpack_require__(25);
 	
-	var HistoryManager = __webpack_require__(9);
-	var Dom = __webpack_require__(10);
+	var HistoryManager = __webpack_require__(10);
+	var Dom = __webpack_require__(11);
 	
 	/**
 	 * Pjax is a static object with main function
@@ -2149,7 +2184,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	  init: function(options) {
 	    var container = this.Dom.getContainer();
 	    var wrapper = this.Dom.getWrapper();
-	    var FullScreen = __webpack_require__(11);
+	    var FullScreen = __webpack_require__(12);
 	
 	    wrapper.setAttribute('aria-live', 'polite');
 	
@@ -2322,7 +2357,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	   * @param {MouseEvent} evt
 	   */
 	  onLinkClick: function(evt) {
-	    var FullScreen = __webpack_require__(11);
+	    var FullScreen = __webpack_require__(12);
 	    var el = evt.target;
 	
 	    //Go up in the nodelist until we
@@ -2450,6 +2485,8 @@ return /******/ (function(modules) { // webpackBootstrap
 	    if (this.History.currentStatus().url === newUrl)
 	      return false;
 	
+	    // check for cookie before loading
+			Utils.urlCookieSetCheck(newUrl);
 	    var newContainer = this.load(newUrl);
 	    this.History.add(newUrl, null, document.querySelector('title').textContent);
 	    var transition = Object.create(this.getTransition());
@@ -2519,7 +2556,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 	var BaseTransition = __webpack_require__(5);
 	var ScrollToElement = __webpack_require__(17);
-	var HistoryManager = __webpack_require__(9);
+	var HistoryManager = __webpack_require__(10);
 	var Promise = __webpack_require__(1);
 	
 	/**

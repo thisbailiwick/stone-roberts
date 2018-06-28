@@ -127,19 +127,19 @@
 	});
  });
 
-// add_action('wp', function () {
-//  global $wp;
-//  $current = '';
-//	if(!empty($wp->query_vars['pagename'])) {
-//	 $current = $wp->query_vars['pagename'];
+ add_action('wp', function () {
+  global $wp;
+  $current = '';
+	if(!empty($wp->query_vars['pagename'])) {
+	 $current = $wp->query_vars['pagename'];
+	}
+//	if ($current === '/welcome/' || $current === '/welcome' || $current === 'welcome') {
+//	 $_SESSION['splash-seen'] = true;
 //	}
-////	if ($current === '/welcome/' || $current === '/welcome' || $current === 'welcome') {
-////	 $_SESSION['splash-seen'] = true;
-////	}
-////	if (empty($_SESSION['splash-seen']) && ($current !== '/welcome/' || $current !== '/welcome' || $current !== 'welcome')) {
-// if(empty($_COOKIE['splash-viewed']) && ($current !== 'welcome' && $_SERVER['REQUEST_URI'] !== '/?splashseen=true')){
-//	 wp_redirect('http://stoneroberts.localhost/welcome');
-//	 exit;
-//	}
-// }
-// );
+//	if (empty($_SESSION['splash-seen']) && ($current !== '/welcome/' || $current !== '/welcome' || $current !== 'welcome')) {
+ if(empty($_COOKIE['splashseen']) && ($current !== '/welcome' && $current !== 'welcome' && $current !== 'wp/welcome')){
+	 wp_redirect(str_replace('wp/', '', site_url('welcome')));
+	 exit;
+	}
+ }
+ );
