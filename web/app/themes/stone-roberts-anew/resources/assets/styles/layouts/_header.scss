@@ -9,7 +9,7 @@ header.banner {
     .brand {
       background-color: $background;
       display: block;
-      height: 88px;
+      height: 117px;
       line-height: 1em;
       margin: 0;
       text-align: center;
@@ -38,6 +38,10 @@ header.banner {
       }
     }
   }
+}
+
+.hamburger{
+  z-index: 307 !important;
 }
 
 .home {

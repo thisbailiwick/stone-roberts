@@ -1882,7 +1882,7 @@ header.banner .container {
 header.banner .container .brand {
   background-color: #262626;
   display: block;
-  height: 88px;
+  height: 117px;
   line-height: 1em;
   margin: 0;
   text-align: center;
@@ -1909,6 +1909,10 @@ header.banner .container .nav-primary .nav li {
   display: inline-block;
   list-style-type: none;
   margin: 0 .3em;
+}
+
+.hamburger {
+  z-index: 307 !important;
 }
 
 .home .hamburger,
