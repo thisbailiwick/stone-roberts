@@ -7497,15 +7497,18 @@ Router.prototype.loadEvents = function loadEvents () {
 				},
 				"fast"
 			);
-			return this; // for chaining...
+			return this;
 		};
 
 		// add cookie for splash page
-		document.getElementById('welcome-image').addEventListener('click', function () {
-			/* eslint-disable */
-			Barba.FullScreen.goFullScreen();
-			/* eslint-enable */
-		});
+		var welcomeImage = document.getElementById('welcome-image');
+		if(welcomeImage !== null) {
+			welcomeImage.addEventListener('click', function () {
+				/* eslint-disable */
+				Barba.FullScreen.goFullScreen();
+				/* eslint-enable */
+			});
+		}
 
 		// init fullscreen
 		/* eslint-disable */
