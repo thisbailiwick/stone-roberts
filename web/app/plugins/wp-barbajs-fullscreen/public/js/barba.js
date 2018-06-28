@@ -1925,7 +1925,7 @@ return /******/ (function(modules) { // webpackBootstrap
 		  document.querySelector('.fullscreen').insertAdjacentHTML('beforeend', modalHtml);
 	    // check if user has cookies, permanent and session
 		  var showModal = this.shouldShowModal();
-	    if(showModal){
+	    if(false){
 		    this.modal = document.querySelector('.fullscreen-modal');
 		    var buttonYes = this.modal.querySelector('.fullscreen-yes');
 		    var buttonNo = this.modal.querySelector('.fullscreen-no');
