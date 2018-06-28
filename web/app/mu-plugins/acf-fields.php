@@ -61,10 +61,15 @@
 	 $option_page = acf_add_options_page($args);
 	 // add sub page
 	 acf_add_options_sub_page(array(
-		 'page_title' 	=> 'Options',
-		 'menu_title' 	=> 'Options',
+		 'page_title' 	=> 'General',
+		 'menu_title' 	=> 'General',
 		 'parent_slug' 	=> $option_page['menu_slug'],
 	 ));
-
+	 // add sub page
+	 acf_add_options_sub_page(array(
+		 'page_title' 	=> 'Custom Main Menu',
+		 'menu_title' 	=> 'Custom Main Menu',
+		 'parent_slug' 	=> $option_page['menu_slug'],
+	 ));
 	}
  }

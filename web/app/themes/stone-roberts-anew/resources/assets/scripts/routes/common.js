@@ -5,6 +5,7 @@ import {nakasentro} from '../nakasentro';
 import {artworkInfo} from '../artwork-info';
 import * as initMenuVerticalPush from '../../../../../../mu-plugins/menu-vertical-push/menu-vertical-push';
 import {addBackToTop} from 'vanilla-back-to-top';
+import { init as thumbnailInit, setInitFalse as setThumbnailInitFalse} from '../thumbnail-nav';
 
 export default {
 	init() {
@@ -106,6 +107,10 @@ export default {
 			namespace: "common",
 			onEnterCompleted: function () {
 				// The Transition has just finished.
+
+				// init thumbnails
+				setThumbnailInitFalse();
+				thumbnailInit(document.querySelector('.main'));
 
 				// spin up share
 				/* eslint-disable */

@@ -2,17 +2,24 @@
 // TODO: .banner .nav a {}
 header.banner {
   margin-bottom: 70px;
+  
+  .logo{
+    display: block;
+  }
 
   .container {
     overflow: auto;
 
     .brand {
+      background: url($image-path + 'logo.svg') no-repeat center transparent;
       display: block;
+      height: 88px;
       line-height: 1em;
       text-align: center;
-      margin-top: 1em;
+      margin: 4vh auto 9.5vh;
       font-size: 30px;
       font-weight: bold;
+      width: 419px;
     }
     .nav-primary {
       .nav {

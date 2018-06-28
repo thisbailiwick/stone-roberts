@@ -1,7 +1,7 @@
 import utilities from './utilities';
 import _ from 'underscore';
 import {init as centerScrollToInit} from './center-scroll-to';
-import { init as thumbnailInit, addThumbnail } from './thumbnail-nav';
+import { addThumbnail } from './thumbnail-nav';
 
 export let nakasentro = {
 	fullscreen: document.querySelector(".fullscreen"),
@@ -28,8 +28,7 @@ export let nakasentro = {
 		this.reset();
 
 		this.isTouchDevice = utilities.isTouchDevice();
-		// init thumbnails
-		thumbnailInit(document.querySelector('.main'));
+
 		if (this.isTouchDevice === false) {
 
 			// setup values

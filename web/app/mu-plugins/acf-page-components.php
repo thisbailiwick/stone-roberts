@@ -351,7 +351,7 @@ HTML;
 
 	}
 
-	if ($_POST['post_type'] === 'projects') {
+	if (isset($_POST['post_type']) && $_POST['post_type'] === 'projects') {
 	 foreach ($_POST['acf']['field_5ad92400012d8'] as $index => $project_section) {
 		if ($project_section['acf_fc_layout'] === 'video') {
 		 // save iframe to hidden field
@@ -360,4 +360,27 @@ HTML;
 		}
 	 }
 	}
+ }
+
+ function get_custom_nav() {
+	$nav_items = get_field('menu_items', 'options');
+	$nav_html = '';
+	foreach ($nav_items as $index => $nav_item) {
+	 $nav_html .= <<<HTML
+			<li class="list-item">	
+				<a href="{$nav_item['page_link']}#" class="nav-item">
+				 <span class="nav-item-header">{$nav_item['category_title']}</span>
+				 <span class="nav-item-image" style="background-image: url({$nav_item['thumbnail_image']['url']})"></span>
+				 <span class="nav-item-short-text">{$nav_item['short_text']}</span>		
+				</a>
+			</li>			
+HTML;
+	}
+
+	return <<<HTML
+		<ul class="list">
+			{$nav_html}
+		</ul>
+HTML;
+
  }
