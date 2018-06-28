@@ -85,4 +85,8 @@ function addThumbnail(imgSrc, associatedDomElement) {
 
 }
 
-export {init, addThumbnail}
+function setInitFalse(){
+	initSetup = false;
+}
+
+export {init, addThumbnail, setInitFalse}
