@@ -703,8 +703,8 @@
   overflow: hidden;
   transition-duration: .25s;
   transition-property: margin-top; }
-  .menu-vertical-push.open {
-    margin-top: 0 !important; }
+  .menu-vertical-push.open .nav-primary {
+    transform: translateY(0); }
   .menu-vertical-push .nav-primary .nav {
     padding: 0;
     text-align: center; }
@@ -712,15 +712,16 @@
       display: inline-block;
       list-style-type: none;
       margin: 0 .3em; }
-  .menu-vertical-push .hamburger {
-    position: absolute;
-    left: 0;
-    top: 0;
-    z-index: 20; }
-    .menu-vertical-push .hamburger .hamburger-inner, .menu-vertical-push .hamburger .hamburger-inner::before, .menu-vertical-push .hamburger .hamburger-inner::after {
-      background-color: #fff;
-      height: 2px;
-      width: 30px; }
+
+.hamburger {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 20; }
+  .hamburger .hamburger-inner, .hamburger .hamburger-inner::before, .hamburger .hamburger-inner::after {
+    background-color: #fff;
+    height: 2px;
+    width: 30px; }
 
 
 /*# sourceMappingURL=main.css.map*/
