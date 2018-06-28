@@ -1910,6 +1910,10 @@ header.banner .container .brand span {
   height: 88px;
 }
 
+header.banner .container .nav-primary {
+  z-index: 300;
+}
+
 header.banner .container .nav-primary .nav {
   padding: 0;
 }
