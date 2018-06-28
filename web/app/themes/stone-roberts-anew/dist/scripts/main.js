@@ -7501,9 +7501,11 @@ Router.prototype.loadEvents = function loadEvents () {
 		};
 
 		// add cookie for splash page
-		// document.getElementById('welcome-image').addEventListener('click', function () {
-		// 	Cookies.set('splash-viewed', true, {expires: 365});
-		// });
+		document.getElementById('welcome-image').addEventListener('click', function () {
+			/* eslint-disable */
+			Barba.FullScreen.goFullScreen();
+			/* eslint-enable */
+		});
 
 		// init fullscreen
 		/* eslint-disable */
