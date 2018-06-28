@@ -959,8 +959,8 @@ body.front.centered-image #back-to-top {
   width: auto;
 }
 
-.custom-nav .list-item:hover,
-.custom-nav .list-item:active {
+.custom-nav .list-item:hover .nav-item-image,
+.custom-nav .list-item:active .nav-item-image {
   -webkit-transform: scale(1.01);
        -o-transform: scale(1.01);
           transform: scale(1.01);

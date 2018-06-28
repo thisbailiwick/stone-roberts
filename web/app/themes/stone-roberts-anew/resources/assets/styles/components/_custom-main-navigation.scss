@@ -35,7 +35,8 @@
     max-width: none;
     width: auto;
 
-    &:hover, &:active {
+
+    &:hover .nav-item-image, &:active .nav-item-image{
       transform: scale(1.01);
       transition-duration: .25s;
       transition-property: transform;
