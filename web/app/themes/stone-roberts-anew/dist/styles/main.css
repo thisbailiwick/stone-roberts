@@ -1866,7 +1866,7 @@ header.banner .container .brand {
 
 header.banner .container .brand span {
   display: block;
-  background: url("/app/themes/stone-roberts-anew/dist/images/logo.svg") no-repeat center transparent;
+  background: url("/app/themes/stone-roberts-anew/dist/images/logo.png") no-repeat center transparent;
   height: 88px;
 }
 
