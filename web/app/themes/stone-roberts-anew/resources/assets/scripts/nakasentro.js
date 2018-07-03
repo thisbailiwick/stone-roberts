@@ -1,7 +1,8 @@
 import utilities from './utilities';
 import _ from 'underscore';
 import {init as centerScrollToInit} from './center-scroll-to';
-import { addThumbnail } from './thumbnail-nav';
+import {addThumbnail} from './thumbnail-nav';
+import {zoomy} from './zoomy';
 
 export let nakasentro = {
 	fullscreen: document.querySelector(".fullscreen"),
@@ -197,7 +198,8 @@ export let nakasentro = {
 		let zoomyWrap = artworkImageWrap.querySelector(".zoomy-wrap");
 		let imageSpacePlaceholder = artworkImageWrap.querySelector('.image-space-placeholder');
 		let imageRatioHolder = artworkImageWrap.querySelector('.image-ratio-holder');
-		let mouseMapImage = artworkImageWrap.querySelector(".mouse-map");
+		let mouseMapWrap = zoomyWrap.querySelector('.mouse-map-wrap');
+		let mouseMapImage = mouseMapWrap.querySelector(".mouse-map");
 		let artworkMetaWrap = artworkImageWrap.querySelector(".artwork-meta");
 		let imgSrc = artworkImage.getAttribute('src');
 		return {
@@ -209,6 +211,7 @@ export let nakasentro = {
 			zoomyWrap: zoomyWrap,
 			imageSpacePlaceholder: imageSpacePlaceholder,
 			imageRatioHolder: imageRatioHolder,
+			mouseMapWrap: mouseMapWrap,
 			mouseMapImage: mouseMapImage,
 			artworkMetaWrap: artworkMetaWrap,
 			imgSrc: imgSrc,
@@ -379,10 +382,34 @@ export let nakasentro = {
 			artworkStyles += '#' + artworkElements.artworkUniqueId + ' .mouse-map {width: ' + mouseMapWidth + 'px; height: ' + mouseMapHeight + 'px;}';
 
 			// create styles for .main-img and .mouse-map scale amount when image dimension change is height
-			artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.height .main-img, #' + artworkElements.artworkUniqueId + '.centered.height .mouse-map-wrap {transform: scale(' + imageViewportHeightRatio + ', ' + imageViewportHeightRatio + ')}';
+			artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.height .main-img {transform: scale(' + imageViewportHeightRatio + ', ' + imageViewportHeightRatio + ')}';
 
 			// create styles for .main-img and .mouse-map scale amount when image dimension change is width
-			artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.width .main-img, #' + artworkElements.artworkUniqueId + '.centered.width .mouse-map-wrap {transform: scale(' + imageViewportWidthRatio + ', ' + imageViewportWidthRatio + ')}';
+			artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.width .main-img {transform: scale(' + imageViewportWidthRatio + ', ' + imageViewportWidthRatio + ')}';
+
+			// const baseZoomSetting = parseInt(artworkElements.mouseMapWrap.getAttribute('zoom-setting'));
+			// pixel amounts for mousemap elements when image has width setting type
+			const mouseMapZoomWidthPixelWidth = artworkElements.artworkImage.clientWidth * imageViewportWidthRatio;
+			const mouseMapZoomWidthPixelHeight = artworkElements.artworkImage.clientHeight * imageViewportWidthRatio;
+
+			// pizel amounts for mousemap elements when image has height setting type
+			const mouseMapZoomHeightPixelHeight = artworkElements.artworkImage.clientHeight * imageViewportHeightRatio;
+			const mouseMapZoomHeightPixelWidth = artworkElements.artworkImage.clientWidth * imageViewportHeightRatio;
+			// const mouseMapWrapScaleWidth = imageViewportWidthRatio - 1;
+			// const mouseMapWrapScaleHeight = imageViewportHeightRatio - 1;
+
+			// const scaledZoomValueWidth =  baseZoomSetting - ((baseZoomSetting * imageViewportWidthRatio) - baseZoomSetting);
+			// const scaledZoomValueHeight = baseZoomSetting - ((baseZoomSetting * imageViewportHeightRatio) - baseZoomSetting);
+
+
+			// create zoom value style for when the image is scaled full width/height and therefor the original zoom value is scaled up also
+			artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.width .mouse-map-wrap { width: ' + mouseMapZoomWidthPixelWidth + 'px; height: ' + mouseMapZoomWidthPixelHeight + 'px;}';
+
+			artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.height .mouse-map-wrap { width: ' + mouseMapZoomHeightPixelWidth + 'px; height: ' + mouseMapZoomHeightPixelHeight + 'px;}';
+
+			artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.width .mouse-map { width: ' + (mouseMapZoomWidthPixelWidth - nakasentro.mouse_map_less_pixels) + 'px; height: ' + (mouseMapZoomWidthPixelHeight - nakasentro.mouse_map_less_pixels) + 'px;}';
+
+			artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.height .mouse-map { width: ' + (mouseMapZoomHeightPixelWidth - nakasentro.mouse_map_less_pixels) + 'px; height: ' + (mouseMapZoomHeightPixelHeight - nakasentro.mouse_map_less_pixels) + 'px;}';
 
 
 			// remove temporary max height for image after processing
@@ -466,7 +493,6 @@ export let nakasentro = {
 	possiblyCenterUncenterImage: function (artwork) {
 		let toCenterPixels = this.setArtworkToCenterPixels(artwork);
 
-		// TODO: this is about 51 pixels off, why?!
 		let toCenterPixelsAbsolute = Math.abs(toCenterPixels);
 
 		let toCenterPercentage = nakasentro.getPercentageToCenter(toCenterPixelsAbsolute);
@@ -484,12 +510,8 @@ export let nakasentro = {
 				}
 				window.addEventListener('keydown', artwork.keydownEvent);
 				artwork.zoomyWrap.addEventListener('wheel', artwork.wheelEvent, {passive: true});
-				// this.recentlyAddedCenteredClasses = true;
-				// window.setTimeout(function () {
-				// 	nakasentro.recentlyAddedCenteredClasses = false;
-				// }, 250);
+
 				document.body.classList.add("centered-image");
-				// console.log('setting centered classes');
 
 				// overarching imageCentered toggle
 				this.imageCentered = true;
@@ -497,16 +519,9 @@ export let nakasentro = {
 
 				// speicific artwork iamgeCentered toggle
 				artwork.imageCentered = true;
-				// artwork.artworkWrap.style.top = artwork.artworkWrap.getBoundingClientRect().top;
+
 				artwork.artworkWrap.classList.add("centered", "centered-image-transition-duration");
 			}
-
-			// if (artwork.imageSizeChangeTechnique === "width") {
-			// 	// only change the length if it's larger than the original
-			// 	this.resizePortrait(artwork, 100);
-			// } else {
-			// 	this.resizeLandscape(artwork, 100);
-			// }
 
 		} else if (artwork.fullscreenImageCentered === true) {
 			// set false variable tracking fullwidth centered image when in fullscreen.
@@ -530,9 +545,6 @@ export let nakasentro = {
 					document.body.classList.remove("centered-image");
 					artwork.artworkWrap.classList.remove("centered");
 
-					// TODO: is this needed here?
-					// this.resetImageValues(artwork);
-
 					window.setTimeout(function () {
 						// here we delay removing a class to allow some css transitions to happen
 						artwork.artworkWrap.classList.remove("centered-image-transition-duration");
@@ -543,12 +555,38 @@ export let nakasentro = {
 		}
 	},
 
+	possiblyRemoveZoom: function () {
+		if (this.artworkWrap.classList.contains('zoomed')) {
+			zoomy.removeArtworkZoomByPictureIndex(this.artworkWrap.getAttribute('zoomy-pictures-index'));
+			return true;
+		}else{
+			return false;
+		}
+	},
+
+	removeImageCentered: function (element) {
+		nakasentro.removeBodyImageCenteredClasses.call(element.artworkWrap);
+		nakasentro.removeArtworkPieceCentered(element.artworkWrap);
+		nakasentro.removeFullscreenCenteredImageScrollEvents.call(element);
+		element.imageCentered = false;
+	},
+
+	processZoomRemoval: function () {
+		const zoomRemoved = nakasentro.possiblyRemoveZoom.call(this);
+		if (zoomRemoved === true) {
+			window.setTimeout(() => {
+				zoomy.removeZoomedDelayClass(this.artworkWrap);
+				nakasentro.removeImageCentered(this)
+			}, 500);
+		} else {
+			nakasentro.removeImageCentered(this);
+		}
+	},
+
 	handlePossibleScrollTrigger: function (e) {
+		//todo: if zoom enabled, disable and wait for animation to finish before continuing, needs to happen no matter what the keycode is
 		if (e.code !== 'ArrowRight' && e.code !== 'ArrowLeft') {
-			nakasentro.removeBodyImageCenteredClasses.call(this.artworkWrap);
-			nakasentro.removeArtworkPieceCentered(this.artworkWrap);
-			this.imageCentered = false;
-			nakasentro.removeFullscreenCenteredImageScrollEvents.call(this);
+			nakasentro.processZoomRemoval.call(this);
 		} else {
 			e.preventDefault();
 		}
@@ -556,11 +594,9 @@ export let nakasentro = {
 
 	fullscreenHandleZoomyDivScroll: function () {
 		if (nakasentro.fixedImageScrollReleaseCount >= 20) {
-			nakasentro.removeBodyImageCenteredClasses.call(this.artworkWrap);
-			nakasentro.removeArtworkPieceCentered(this.artworkWrap);
-			this.imageCentered = false;
+			//todo: if zoom enabled, disable and wait for animation to finish before continuing
+			nakasentro.processZoomRemoval.call(this);
 			nakasentro.fixedImageScrollReleaseCount = 0;
-			nakasentro.removeFullscreenCenteredImageScrollEvents.call(this);
 		} else {
 			nakasentro.fixedImageScrollReleaseCount++;
 		}

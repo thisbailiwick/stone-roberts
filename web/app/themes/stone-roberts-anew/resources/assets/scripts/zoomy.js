@@ -10,12 +10,16 @@ export let zoomy = {
 	mouseMapLessPixelsHalf: nakasentro.mouse_map_less_pixels / 2,
 	init: function () {
 		this.reset();
-		document.querySelectorAll(".artwork_piece .actions .zoom").forEach(function (value, index) {
+		document.querySelectorAll(".artwork_piece[zoom-enabled] .actions .zoom").forEach(function (value, index) {
 			var artworkPieceWrap = value.parentNode.parentNode.parentNode.parentNode;
 			var zoomyWrap = artworkPieceWrap.querySelector(".zoomy-wrap");
 			var mouseMapWrap = zoomyWrap.querySelector('.mouse-map-wrap');
 			var mouseMapImage = zoomyWrap.querySelector(".mouse-map");
 			var img = artworkPieceWrap.firstElementChild;
+
+			// add zoomy pictures index value to artworkpiece wrap for reference in nakasentro
+			artworkPieceWrap.setAttribute('zoomy-pictures-index', index);
+
 			this.pictures.push({
 				button: value,
 				index: index,
@@ -54,13 +58,55 @@ export let zoomy = {
 		this.pictures = Array();
 	},
 
+	removeArtworkZoomByPictureIndex: function (index) {
+		zoomy.pictures[index].artworkPieceWrap.classList.toggle("zoomed");
+		zoomy.pictures[index].isZoomed = false;
+		// mobile devices get body locked/unlocked
+		if (zoomy.isTouchDevice) {
+			clearAllBodyScrollLocks(this.pictures[index].mouseMapImage);
+		}
+
+		zoomy.removeMouseMoveEvents.call(zoomy.pictures[index]);
+	},
+
+	addMouseMoveEvents: function () {
+		zoomy.mouseMapEventsAdded = true;
+		this.mouseMapImage.addEventListener("mousemove", this.mouseMoveHandler, {passive: true});
+		this.mouseMapImage.addEventListener("touchmove", this.touchMoveHandler, {passive: true});
+	},
+
+	removeMouseMoveEvents: function () {
+		zoomy.mouseMapEventsAdded = false;
+		this.mouseMapImage.removeEventListener("mousemove", this.mouseMoveHandler, false);
+		this.mouseMapImage.removeEventListener("touchmove", this.touchMoveHandler, false);
+	},
+
+	setTimeoutRemoveDelayClass: function (element) {
+		// this delay needs to be associated with the $zoom-transition-duration variable found in _artwork-piece.scss
+		window.setTimeout(() => {
+			// todo make sure this is working
+			this.removeZoomedDelayClass(element.artworkPieceWrap);
+		}, 500);
+	},
+
+	removeZoomedDelayClass: function (element) {
+		element.classList.remove('zoomed-delay');
+	},
+
 	toggleZoom: function (e) {
+
+		//move zoom image to cursor/touch point
 		if (e.currentTarget.classList.contains('mouse-map') || e.currentTarget.classList.contains('mouse-map-wrap')) {
 			zoomy.mapMouseToImage.call(this, e);
 		}
+
 		this.artworkPieceWrap.classList.toggle("zoomed");
-		document.body.classList.toggle("zoomed");
+		// document.body.classList.toggle("zoomed");
+
+		// toggle the picture aray element zoomed value
 		this.isZoomed = !this.isZoomed;
+
+		// mobile devices get body locked/unlocked
 		if (zoomy.isTouchDevice) {
 			if (this.isZoomed === true) {
 				disableBodyScroll(this.mouseMapImage);
@@ -69,24 +115,18 @@ export let zoomy = {
 			}
 		}
 
-		function removeZoomedDelayClass(element) {
-			element.artworkPieceWrap.classList.remove('zoomed-delay');
-		}
-
+		// add or remove the delay class used for animation
 		if (this.isZoomed === false) {
-			window.setTimeout(() => {removeZoomedDelayClass(this)}, 250);
+			zoomy.setTimeoutRemoveDelayClass(this);
 		} else {
 			this.artworkPieceWrap.classList.add('zoomed-delay');
 		}
 
+		// add or remove touch/mousemove events
 		if (this.isZoomed === true && zoomy.mouseMapEventsAdded === false) {
-			zoomy.mouseMapEventsAdded = true;
-			this.mouseMapImage.addEventListener("mousemove", this.mouseMoveHandler, {passive: true});
-			this.mouseMapImage.addEventListener("touchmove", this.touchMoveHandler, {passive: true});
+			zoomy.addMouseMoveEvents.call(this);
 		} else if (zoomy.mouseMapEventsAdded) {
-			zoomy.mouseMapEventsAdded = false;
-			this.mouseMapImage.removeEventListener("mousemove", this.mouseMoveHandler, false);
-			this.mouseMapImage.removeEventListener("touchmove", this.touchMoveHandler, false);
+			zoomy.removeMouseMoveEvents.call(this);
 		}
 	},
 	mapMouseToImage: function (e) {
@@ -101,11 +141,11 @@ export let zoomy = {
 				// image centered
 				// adjust the percentage based on the scale amount (the transfoorm: scale() messes with the sizes somehow
 				if (this.imageRotation === 'width') {
-						leftPercentage = (position.x / (mouseMap.clientWidth * this.scaleWidth)) * 100;
-					topPercentage = (position.y / ((mouseMap.clientWidth * this.scaleWidth) * nakasentro.artworks[this.artworksIndex].originalDimensions.imageRatioHeight)) * 100;
+					leftPercentage = (position.x / mouseMap.clientWidth) * 100;
+					topPercentage = (position.y / (mouseMap.clientWidth * nakasentro.artworks[this.artworksIndex].originalDimensions.imageRatioHeight)) * 100;
 				} else {
-					topPercentage = (position.y / (mouseMap.clientHeight * this.scaleHeight)) * 100;
-					leftPercentage = (position.x / (((mouseMap.clientHeight * this.scaleHeight) * nakasentro.artworks[this.artworksIndex].originalDimensions.imageRatioWidth) * this.scaleWidth)) * 100;
+					topPercentage = (position.y / mouseMap.clientHeight) * 100;
+					leftPercentage = (position.x / ((mouseMap.clientHeight * nakasentro.artworks[this.artworksIndex].originalDimensions.imageRatioWidth) * this.scaleWidth)) * 100;
 				}
 			} else {
 				// image not centered
@@ -127,6 +167,7 @@ export let zoomy = {
 				? 100
 				: leftPercentage;
 
+			// console.log('leftPercentage, topPercentage: ' + leftPercentage, topPercentage);
 			this.mouseMapWrap.style.backgroundPosition = leftPercentage + "% " + topPercentage + "%";
 		}
 	},

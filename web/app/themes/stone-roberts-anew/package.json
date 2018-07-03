@@ -103,10 +103,14 @@
     "yargs": "~11.0.0"
   },
   "dependencies": {
+    "@fortawesome/fontawesome": "^1.1.8",
+    "@fortawesome/fontawesome-free-brands": "^5.0.13",
+    "@fortawesome/fontawesome-free-solid": "^5.0.13",
     "body-scroll-lock": "^2.4.6",
     "howler": "^2.0.12",
     "jquery": "^3.3.1",
     "js-cookie": "^2.2.0",
+    "objectFitPolyfill": "^2.1.1",
     "reframe.js": "^2.2.1",
     "sanitize.css": "^5.0.0",
     "smoothscroll-polyfill": "^0.4.3",

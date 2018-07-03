@@ -40,8 +40,7 @@ function init(parentElement) {
 		document.querySelector('.fullscreen-wrapper').insertAdjacentHTML('afterbegin', thumbnailTriggerHtml);
 		thumbnailsTrigger = document.getElementById('thumbnail-trigger');
 
-		thumbnailsTrigger.addEventListener('click', function (e) {
-			console.log(e);
+		thumbnailsTrigger.addEventListener('click', function () {
 			if (fullscreenWrapper.classList.contains('showing-thumbnails')) {
 				window.setTimeout(function () {
 					clearAllBodyScrollLocks(thumbnailsNav);

@@ -23,7 +23,7 @@
                     "display": "block",
                     "sub_fields": [
                         {
-                            "key": "field_5b352704a6236",
+                            "key": "field_5b2bd6fd610be",
                             "label": "Video Host",
                             "name": "video_host",
                             "type": "select",
@@ -39,8 +39,10 @@
                                 "youtube": "YouTube",
                                 "vimeo": "Vimeo"
                             },
-                            "default_value": [],
-                            "allow_null": 0,
+                            "default_value": [
+                                "youtube"
+                            ],
+                            "allow_null": 1,
                             "multiple": 0,
                             "ui": 0,
                             "ajax": 0,
@@ -56,7 +58,7 @@
                             "required": 0,
                             "conditional_logic": 0,
                             "wrapper": {
-                                "width": "",
+                                "width": "75",
                                 "class": "",
                                 "id": ""
                             },
@@ -269,7 +271,7 @@
                             "key": "field_5af4c7b3df401",
                             "label": "Image",
                             "name": "",
-                            "type": "tab",
+                            "type": "accordion",
                             "instructions": "",
                             "required": 0,
                             "conditional_logic": 0,
@@ -278,7 +280,8 @@
                                 "class": "",
                                 "id": ""
                             },
-                            "placement": "top",
+                            "open": 0,
+                            "multi_expand": 0,
                             "endpoint": 0
                         },
                         {
@@ -327,7 +330,7 @@
                             "key": "field_5af4c79ddf400",
                             "label": "Artwork Info",
                             "name": "",
-                            "type": "tab",
+                            "type": "accordion",
                             "instructions": "",
                             "required": 0,
                             "conditional_logic": 0,
@@ -336,7 +339,8 @@
                                 "class": "",
                                 "id": ""
                             },
-                            "placement": "top",
+                            "open": 0,
+                            "multi_expand": 0,
                             "endpoint": 0
                         },
                         {
@@ -418,6 +422,81 @@
                             "layout": "block",
                             "prefix_label": 0,
                             "prefix_name": 0
+                        },
+                        {
+                            "key": "field_5b357571cdc60",
+                            "label": "Zoom Settings",
+                            "name": "",
+                            "type": "accordion",
+                            "instructions": "",
+                            "required": 0,
+                            "conditional_logic": 0,
+                            "wrapper": {
+                                "width": "",
+                                "class": "",
+                                "id": ""
+                            },
+                            "open": 0,
+                            "multi_expand": 0,
+                            "endpoint": 0
+                        },
+                        {
+                            "key": "field_5b3574cbde7d8",
+                            "label": "Type",
+                            "name": "zoom_setting",
+                            "type": "select",
+                            "instructions": "",
+                            "required": 0,
+                            "conditional_logic": 0,
+                            "wrapper": {
+                                "width": "",
+                                "class": "",
+                                "id": ""
+                            },
+                            "choices": {
+                                "global_default": "Global Default",
+                                "custom": "Custom Setting",
+                                "filesize": "Image File Size",
+                                "none": "No Zoom"
+                            },
+                            "default_value": [
+                                "global_default"
+                            ],
+                            "allow_null": 0,
+                            "multiple": 0,
+                            "ui": 0,
+                            "ajax": 0,
+                            "return_format": "value",
+                            "placeholder": ""
+                        },
+                        {
+                            "key": "field_5b357502de7d9",
+                            "label": "Custom Zoom Value",
+                            "name": "custom_zoom_value",
+                            "type": "number",
+                            "instructions": "Set the % width the image should be zoomed in.",
+                            "required": 0,
+                            "conditional_logic": [
+                                [
+                                    {
+                                        "field": "field_5b3574cbde7d8",
+                                        "operator": "==",
+                                        "value": "custom"
+                                    }
+                                ]
+                            ],
+                            "wrapper": {
+                                "width": "",
+                                "class": "",
+                                "id": ""
+                            },
+                            "default_value": "",
+                            "placeholder": "",
+                            "prepend": "",
+                            "append": "%",
+                            "min": "",
+                            "max": "",
+                            "step": ""
                         }
                     ],
                     "min": "",
@@ -448,5 +527,5 @@
     ],
     "active": 1,
     "description": "",
-    "modified": 1530210122
+    "modified": 1530309600
 }

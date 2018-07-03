@@ -12,12 +12,29 @@
     z-index: 150;
 }
 
-.dev-share-buttons.show {
-    display: flex;
+.dev-share-buttons__text--copy{
+    text-indent: unset !important;
+    white-space: nowrap !important;
 }
 
 .dev-share-buttons__item--copy input {
     display: block;
     width: 400px;
     max-width: 100%;
+}
+
+.dev-share-buttons__item--copy{
+    position: relative;
+}
+
+.dev-share-buttons__item--copy.success svg{
+    display: none;
+}
+
+.dev-share-buttons__item--copy .copy-content-element{
+    display: none;
+    position: static;
+}
+.dev-share-buttons__item--copy.success .copy-content-element{
+    display: block;
 }
