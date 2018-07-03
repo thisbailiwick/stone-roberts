@@ -23,7 +23,7 @@
                     "display": "block",
                     "sub_fields": [
                         {
-                            "key": "field_5b2bd6fd610be",
+                            "key": "field_5b352704a6236",
                             "label": "Video Host",
                             "name": "video_host",
                             "type": "select",
@@ -39,10 +39,8 @@
                                 "youtube": "YouTube",
                                 "vimeo": "Vimeo"
                             },
-                            "default_value": [
-                                "youtube"
-                            ],
-                            "allow_null": 1,
+                            "default_value": [],
+                            "allow_null": 0,
                             "multiple": 0,
                             "ui": 0,
                             "ajax": 0,
@@ -58,7 +56,7 @@
                             "required": 0,
                             "conditional_logic": 0,
                             "wrapper": {
-                                "width": "75",
+                                "width": "",
                                 "class": "",
                                 "id": ""
                             },
@@ -450,5 +448,5 @@
     ],
     "active": 1,
     "description": "",
-    "modified": 1529621765
+    "modified": 1530210122
 }
