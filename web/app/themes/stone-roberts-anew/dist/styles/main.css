@@ -1523,7 +1523,8 @@ body:not(.template-projects) #thumbnail-trigger {
   margin-bottom: 29%;
   max-height: 100%;
   padding-bottom: 3vh;
-  position: relative;
+  position: absolute;
+  top: 4%;
   z-index: 1;
 }
 
