@@ -5,7 +5,7 @@ var copyClick = {
       contentElement.addEventListener(
         "click",
         this.copyElementText.bind(contentElement),
-        false
+        true
       );
     }, this);
   },
@@ -24,11 +24,12 @@ var copyClick = {
       selection.removeAllRanges();
 
       var original = contentElement.textContent;
-      contentElement.textContent = "Copied!";
+	    contentElement.querySelector('.copy-content-element').textContent = "Copied!";
+      contentElement.querySelector('.copy-content-element').classList.remove('hide_text');
       contentElement.classList.add("success");
 
       setTimeout(() => {
-        contentElement.textContent = original;
+        contentElement.querySelector('.copy-content-element').textContent = original;
         contentElement.classList.remove("success");
       }, 1200);
     } catch (e) {

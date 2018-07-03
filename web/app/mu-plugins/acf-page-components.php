@@ -95,16 +95,77 @@ HTML;
 
  }
 
+ function get_zoom_width($type, $artwork_piece, $custom_zoom_value) {
+	switch ($type) {
+	 case 'custom':
+		// custom number is %
+		$width = ((int)$custom_zoom_value * .01) * (int)$artwork_piece['width'];
+		break;
+	 case 'filesize':
+		// this is filesize
+		$width = $artwork_piece['width'];
+		break;
+	 case 'none':
+		$width = 'disabled';
+		break;
+
+	 default:
+		$width = 'disabled';
+	}
+
+	return $width;
+ }
+
+ function process_global_default_zoom_setting($artwork_piece) {
+	$global_default = get_field('default_zoom_setting', 'options');
+	$global_custom_zoom_value = get_field('custom_zoom_value', 'options');
+	$width = get_zoom_width($global_default, $artwork_piece, $global_custom_zoom_value);
+	return $width;
+ }
+
+ function get_zoom_setting($local_type, $artwork_piece, $local_custom_zoom_value) {
+	switch ($local_type) {
+	 case 'global_default':
+		$width = process_global_default_zoom_setting($artwork_piece, $local_custom_zoom_value);
+		break;
+	 default:
+		$width = get_zoom_width($local_type, $artwork_piece, $local_custom_zoom_value);
+		break;
+	}
+	return $width;
+ }
+
  function html_artwork_piece($content, $unique_id, $post) {
 	$image = $content['artwork_piece'];
 	$permalink = get_permalink($post->ID);
 	$artwork_info_text = trim($content['artwork_info_text']);
 	$compare_image_height = get_field('compare_height_in_inches', 'options')['compare_height_in_inches'];
 	$compare_image_width = get_field('compare_width_in_inches', 'options')['compare_width_in_inches'];
+	$compare_image_url = get_field('compare_background_image', 'options');
 	$piece_title = $post->post_title;
 	$dev_share_buttons = get_dev_share_buttons(array('facebook', 'twitter', 'email', 'copy'), $permalink, $post->post_title, '', $image['url'], $post->ID);
+
+	// get zoom settings based on values set in wp admin
+	// TODO: move to this to naksentro.js where we're setting other css styles
+	$zoom_setting = get_zoom_setting($content['zoom_setting'], $content['artwork_piece'], $content['custom_zoom_value']);
+	$zoom_enabled_attribute = '';
+	$zoom_style = '';
+	$zoom_attribute = '';
+	if($zoom_setting !== 'disabled') {
+	 $zoom_enabled_attribute = ' zoom-enabled';
+		$zoom_style = <<<HTML
+		<style type="text/css">
+			#{$unique_id}.zoomed .mouse-map-wrap{
+				background-size: {$zoom_setting}px auto;
+			}
+		</style>
+HTML;
+
+		$zoom_attribute = ' zoom-setting="' . $zoom_setting . '"';
+	}
 	return <<<HTML
-		<div id="{$unique_id}" class="{$content['acf_fc_layout']}">
+		{$zoom_style}
+		<div id="{$unique_id}" class="{$content['acf_fc_layout']}"{$zoom_enabled_attribute}>
 			<h3>{$piece_title}</h3>
 			<div class="image-wrap">
       	<div class="image-centered-background"></div>
@@ -113,7 +174,7 @@ HTML;
           		<img class="main-img" src="{$image['url']}" alt="{$image['alt']}" data-width="{$image['width']}" data-height="{$image['height']}"/>
           	</div>
           	<div class="zoomy-wrap">
-          		<div class="mouse-map-wrap" style="background-image: url('{$image['url']}');">
+          		<div class="mouse-map-wrap" style="background-image: url('{$image['url']}');"{$zoom_attribute}{$zoom_enabled_attribute}>
 								<div class="mouse-map"></div>
 							</div>
             	{$dev_share_buttons}
@@ -122,20 +183,20 @@ HTML;
 					</div>
 					<div class="piece-comparison">
 						<div class="piece-comparison-wrap">
-							<span class="close">X</span>
+							<span class="close"><i class="fas fa-times-circle"></i></span>
 							<div class="comparison-image-wrap">
 								<img class="comparison-image" src="{$image['url']}" alt="{$image['alt']}" data-width="{$content['width']}" data-height="{$content['height']}" />
 								<div class="info-text">{$artwork_info_text}<p>, <span class="width">{$content['width']}</span> x <span class="height">{$content['height']}</span></p></div>
 							</div>
-							<img src="/wordpress/wp-content/themes/sheldontapley-anew/dist/images/sheldon-cutout.png" class="compared-to" />
+							<div style="background: url('{$compare_image_url['url']}') no-repeat center/cover transparent" data-file-width="{$compare_image_url['width']}" data-file-height="{$compare_image_url['height']}" class="compared-to" /></div>
 						</div>
 					</div>
 					<div class="artwork-meta">
 						<div class="caption">{$content['caption_text']}</div>
 						<div class="actions">
-							<div class="zoom fas fa-search-plus" data-large-image="{$image['url']}" data-zoom-unique-id="{$unique_id}"></div>
-							<div class="info fas fa-info-circle" data-width="{$content['width']}" data-height="{$content['height']}" data-compare-height-inches="{$compare_image_height}" data-compare-width-inches="{$compare_image_width}"></div>
-							<div class="share fas fa-share-square"></div>
+							<div class="zoom" data-large-image="{$image['url']}" data-zoom-unique-id="{$unique_id}"><i class="fas fa-search-plus"></i></div>
+							<div class="info" data-width="{$content['width']}" data-height="{$content['height']}" data-compare-height-inches="{$compare_image_height}" data-compare-width-inches="{$compare_image_width}"><i class="fas fa-info-circle"></i></div>
+							<div class="share"><i class="fas fa-share-square"></i></div>
 						</div>
 					</div>
           </div>

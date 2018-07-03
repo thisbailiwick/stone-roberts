@@ -1,5 +1,5 @@
 .artwork_piece {
-  $zoom-transition-duration: .25s;
+  $zoom-transition-duration: .5s;
   display: flex;
   justify-content: center; // max-height: 100vh !important;
   max-width: 100vw !important;
@@ -7,7 +7,7 @@
   padding-top: 55px;
   position: relative;
   transition-property: width, height;
-  transition-duration: .25s;
+  transition-duration: $zoom-transition-duration;
   //width: 100vw;
   // .zoom-wrap {
   //     display: inline-block;
@@ -15,7 +15,7 @@
   //     position: relative;
   //     text-align: center;
 
-  h3{
+  h3 {
     position: absolute;
     top: 0;
     left: 0;
@@ -46,16 +46,16 @@
         flex-grow: 0;
         flex-shrink: 0;
         //left: 0;
-          max-height: 100vh;
+        max-height: 100vh;
         //max-width: 100vw;
         position: static;
         //top: 0;
-        transition-duration: 1s;
+        transition-duration: $zoom-transition-duration;
         //transition-duration: $zoom-transition-duration;
         //transition-property: width, height, opacity;
       }
 
-      .artwork-image-wrap{
+      .artwork-image-wrap {
         margin: 0 auto;
       }
 
@@ -69,7 +69,7 @@
       display: inline-block;
       margin-right: 1%;
       //width: calc(100% - 131px);
-      width: 100%;
+      width: 81%;
     }
     .artwork-meta {
       display: flex; // position: absolute;
@@ -82,7 +82,7 @@
       }
 
       .actions {
-        display: none;
+        display: block;
         position: absolute;
         right: 0;
         flex-grow: 0;
@@ -118,10 +118,10 @@
       height: 100vh;
 
       .piece-comparison-wrap {
-        align-items: flex-end;
+        align-items: center;
         display: flex;
         height: 100%;
-        justify-content: space-around;
+        justify-content: center;
         //margin: $piece-comparison-padding $piece-comparison-padding 0 $piece-comparison-padding;
         margin: 0 auto;
         overflow: hidden;
@@ -140,6 +140,8 @@
         //overflow: hidden;
         padding-bottom: $piece-comparison-padding;
         position: relative;
+        z-index: 1;
+
         .comparison-image {
           flex-shrink: 1;
           height: auto;
@@ -149,23 +151,33 @@
         }
         .info-text {
           p {
+            color: #0f0f0f;
             display: inline;
           }
         }
       }
       .compared-to {
-        float: right;
-        height: auto;
+        height: 100vh;
+        left: 0;
         max-height: none;
         max-width: none;
+        object-fit: cover;
+        position: absolute;
+        top: 0;
         transition-duration: 250ms;
         transition-property: width, height;
-        width: 30vw;
+        width: 100vw;
       }
       .close {
+        color: #0f0f0f;
         position: absolute;
         right: 20px;
         top: 20px;
+        z-index: 5;
+
+        &:hover{
+          cursor: pointer;
+        }
       }
     }
   }
@@ -193,7 +205,7 @@
     width: 100%;
     z-index: 10;
 
-    .zoom-img{
+    .zoom-img {
       background-color: hsla(0, 0%, 6%, 1.0);
       position: absolute;
       //left: 0;
@@ -217,27 +229,27 @@
       opacity: 0;
       position: relative;
       transition-duration: $zoom-transition-duration;
-      transition-property: transform, background-size;
+      transition-property: transform, background-size, width, height;
       width: 100%;
-      &:hover {
+      &[zoom-enabled]:hover {
         cursor: zoom-in;
       }
 
-      .mouse-map{
+      .mouse-map {
         opacity: .4;
-        //background: repeating-linear-gradient(#e66465, #9198e5 25%, #20e61a 50%, #9198e5 75%);
-        //background: repeating-linear-gradient(#e66465 25%, #e66465 40%, #9198e5 50%);
         height: 100%;
         width: 100%;
         margin: 0 auto;
+        transition-duration: $zoom-transition-duration;
+        transition-property: transform, background-size, width, height;
       }
     }
   }
   &.zoomed {
     .mouse-map-wrap {
-      background-size: 150%;
+      //background-size: 150%;
       opacity: 1;
-      
+
       &:hover {
         cursor: zoom-out;
       }
@@ -246,7 +258,6 @@
       //opacity: 0;
     }
   }
-
 
   &.centered {
     //height: 100vh;
@@ -292,14 +303,14 @@
     .artwork-meta {
       $width-displayed: 40px;
       background-color: hsla(0, 0%, 10%, 1);
-      align-items: flex-start;
+      align-items: center;
       bottom: 0;
       display: flex;
       justify-content: space-between;
       left: calc(100vw - #{$width-displayed});
       padding: 0;
       position: fixed;
-      transition-duration: .25s;
+      transition-duration: $zoom-transition-duration;
       transition-property: left;
       width: 100vw;
       z-index: 302;
@@ -325,14 +336,15 @@
       &:hover {
         left: 0;
         padding-left: 1.2em;
+        padding-right: 1.2em;
 
       }
 
       .caption {
         padding: 20px 20px 20px 41px;
-        width: 100%;
+        width: 81%;
 
-        p{
+        p {
           text-align: center;
         }
       }
@@ -368,11 +380,31 @@
     .main-img {
       transition-duration: $zoom-transition-duration;
     }
+
+    .zoomy-wrap{
+      //align-items: center !important;
+      //bottom: 0;
+      //height: auto !important;
+      //position: fixed;
+      //left: 0;
+      //right: 0;
+      //top: 0;
+    }
   }
 
-  &.zoomed-delay{
-    .mouse-map-wrap{
+  &.zoomed-delay {
+    .mouse-map-wrap {
       opacity: 1 !important;
+    }
+  }
+  
+  .actions .zoom{
+    display: none !important;
+  }
+
+  &[zoom-enabled]{
+    .actions .zoom{
+      display: inline-block !important;
     }
   }
 }
@@ -429,7 +461,7 @@ body {
   &.orientation-landscape {
     .centered {
 
-    }me
+    }
     &.zoomed {
       .artwork-meta {
         z-index: 0;
@@ -444,12 +476,12 @@ body {
   }
 }
 
-body.template-projects{
-  header.banner{
+body.template-projects {
+  header.banner {
     margin-bottom: 121px;
   }
 
-  .page-header{
+  .page-header {
     display: none;
   }
 }

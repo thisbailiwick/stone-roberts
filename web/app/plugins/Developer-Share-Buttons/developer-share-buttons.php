@@ -467,13 +467,15 @@ if ( ! class_exists( 'DeveloperShareButtons' ) ) {
 					}
 
 					$before_link = '';
-					if($service['id'] == 'copy'){
-						$share_text = '<span class="copy-content-element">' . $url . '</span>';
+					if ($service['id'] === 'copy'){
+						$share_text = '<span class="copy-content-element">' . $url . '</span><span class="icon fas fa-copy"';
 						$service['title'] = '';
 						$before_link = '<div class="link-input-wrap"><input value="' . $url . '"></div>';
-					}elseif ( isset( $options['share-text'] ) ) {
+					} elseif ( isset( $options['share-text'] ) ) {
 						$share_text = trim( $options['share-text'] ) . ' ';
 					}
+
+
 
 					$share_text = apply_filters( static::$slug_ . '_share_text', $share_text );
 					$after_text = apply_filters( static::$slug_ . '_after_share_text', '', $service );
@@ -486,7 +488,15 @@ if ( ! class_exists( 'DeveloperShareButtons' ) ) {
 
 				
 					$url = sprintf( $service['url_structure'], $url, $title, $text, $image );
-					$html = sprintf( $before_link . '<a target="_blank" href="%1$s" class="%2$s__item %2$s__item--%3$s">%5$s<span class="%2$s__text %2$s__text--%3$s">%4$s</span>%6$s</a> ', $url, $css_class, $service['id'], $share_text . $service['title'], $before_text, $after_text );
+
+					$icon = '';
+					if($service['id'] === 'email'){
+					 $icon = '<i class="fas fa-envelope"></i>';
+					}else if($service['id'] !== 'copy'){
+						$icon = '<i class="fab fa-' . $service['id'] . '"></i>';
+					}
+//					echo '<h1>'.$icon.'</h1>';
+					$html = sprintf( $before_link . '<a target="_blank" href="%1$s" class="%2$s__item %2$s__item--%3$s">%5$s<span class="hide_text %2$s__text %2$s__text--%3$s">%4$s</span>%6$s %7$s </a> ', $url, $css_class, $service['id'], $share_text . $service['title'], $before_text, $after_text, $icon );
 
 					return $html;
 				}
