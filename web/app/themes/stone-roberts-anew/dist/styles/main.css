@@ -1648,8 +1648,8 @@ body:not(.template-projects) #thumbnail-trigger {
 }
 
 .artwork_piece.zoomed .mouse-map-wrap:hover {
-  cursor: -webkit-zoom-out;
-  cursor: zoom-out;
+  cursor: -webkit-zoom-out !important;
+  cursor: zoom-out !important;
 }
 
 .artwork_piece.centered .image-space-placeholder {
