@@ -367,6 +367,15 @@
       }
     }
   }
+
+  //&.width{
+  //}
+  //
+  //&.height{
+  //  .main-img{
+  //    max-height: 95vh;
+  //  }
+  //}
   &:not(.zoomed) {
     .artwork-meta {
       &:hover {
@@ -378,6 +387,8 @@
     }
   }
   &.centered-image-transition-duration {
+    background: rgba(0,0,0,.8);
+
     .main-img {
       transition-duration: $zoom-transition-duration;
     }

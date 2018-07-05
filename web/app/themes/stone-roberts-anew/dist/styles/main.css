@@ -1513,7 +1513,6 @@ body:not(.template-projects) #thumbnail-trigger {
   -webkit-box-flex: 0;
       -ms-flex-positive: 0;
           flex-grow: 0;
-  float: left;
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
@@ -1751,6 +1750,10 @@ body:not(.template-projects) #thumbnail-trigger {
 
 .artwork_piece:not(.zoomed) .artwork-meta:hover .caption p {
   opacity: 1;
+}
+
+.artwork_piece.centered-image-transition-duration {
+  background: rgba(0, 0, 0, 0.8);
 }
 
 .artwork_piece.centered-image-transition-duration .main-img {
