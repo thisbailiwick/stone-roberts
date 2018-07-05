@@ -1752,10 +1752,6 @@ body:not(.template-projects) #thumbnail-trigger {
   opacity: 1;
 }
 
-.artwork_piece.centered-image-transition-duration {
-  background: rgba(0, 0, 0, 0.8);
-}
-
 .artwork_piece.centered-image-transition-duration .main-img {
   -webkit-transition-duration: 0.5s;
        -o-transition-duration: 0.5s;
