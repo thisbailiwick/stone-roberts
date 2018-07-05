@@ -660,7 +660,7 @@ export let nakasentro = {
 
 	fullscreenHandleZoomyDivScroll: function () {
 		if (nakasentro.fixedImageScrollReleaseCount >= 20) {
-			this.uncenterImageBreakZoom();
+			nakasentro.uncenterImageBreakZoom.call(this);
 		} else {
 			nakasentro.fixedImageScrollReleaseCount++;
 		}
