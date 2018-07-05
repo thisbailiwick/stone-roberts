@@ -1782,6 +1782,10 @@ body.centered-image .main > *.centered {
   opacity: 1 !important;
 }
 
+body.centered-image .main > *.centered h3 {
+  opacity: 0;
+}
+
 body.is-touch .artwork_piece .main-img {
   max-width: 100vw;
   max-height: none !important;
