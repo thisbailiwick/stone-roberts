@@ -58,7 +58,16 @@ export let zoomy = {
 		this.pictures = Array();
 	},
 
+	possiblyImmediatelyRemoveZoom: function(){
+		/* eslint-disable */
+		if (Barba.FullScreen.isFullscreen === true) {
+			/* eslint-enable */
+
+		}
+	},
+
 	removeArtworkZoomByPictureIndex: function (index) {
+		console.log('remove zoomed class');
 		zoomy.pictures[index].artworkPieceWrap.classList.toggle("zoomed");
 		zoomy.pictures[index].isZoomed = false;
 		// mobile devices get body locked/unlocked

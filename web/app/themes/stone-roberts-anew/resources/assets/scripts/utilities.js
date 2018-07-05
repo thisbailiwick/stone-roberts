@@ -52,11 +52,15 @@ let utilities = {
 		this.windowHalfHeight = this.windowHeight / 2;
 		this.browserOrientation = this.getBrowserOrientation();
 	},
-	isElementInViewport: function (el) {
-		var rect = el.getBoundingClientRect();
+	isElementVerticallyInViewport: function (el) {
+		var bounding = el.getBoundingClientRect();
+
 		return (
-			rect.top >= 0 &&
-			rect.bottom <= (window.innerHeight || document.documentElement.clientHeight)
+			bounding.top >= 0 &&
+			bounding.top <= (window.innerHeight || document.documentElement.clientHeight)
+			||
+			bounding.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+			bounding.bottom >= 0
 		);
 	},
 	isTouchDevice: function () {

@@ -121,11 +121,15 @@ var utilities = {
 		this.windowHalfHeight = this.windowHeight / 2;
 		this.browserOrientation = this.getBrowserOrientation();
 	},
-	isElementInViewport: function (el) {
-		var rect = el.getBoundingClientRect();
+	isElementVerticallyInViewport: function (el) {
+		var bounding = el.getBoundingClientRect();
+
 		return (
-			rect.top >= 0 &&
-			rect.bottom <= (window.innerHeight || document.documentElement.clientHeight)
+			bounding.top >= 0 &&
+			bounding.top <= (window.innerHeight || document.documentElement.clientHeight)
+			||
+			bounding.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+			bounding.bottom >= 0
 		);
 	},
 	isTouchDevice: function () {
@@ -249,13 +253,14 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 
 var nakasentro = {
-	fullscreen: document.querySelector(".fullscreen"),
+	fullscreen: document.querySelector('.fullscreen'),
 	fullscreenWrapper: document.querySelector('.fullscreen-wrapper'),
-	artworks_elements: document.querySelectorAll(".artwork_piece"),
+	artworks_elements: document.querySelectorAll('.artwork_piece'),
 	artworks: Array(),
 	mainContentWidth: null,
-	mainContentWrap: document.querySelector(".content>.main"),
+	mainContentWrap: document.querySelector('.content>.main'),
 	imageCentered: false,
+	imageCenteredTrue: false, // tracks when image has gone fulldimension and get's toggled out of fulldimension but is still within the considered centered range
 	imageCenteredElement: null,
 	scrollBeingThrottled: false,
 	isTouchDevice: false,
@@ -267,6 +272,7 @@ var nakasentro = {
 	fixedImageScrollReleaseCount: 0,
 	imagesProcessed: false,
 	mouse_map_less_pixels: 40,
+	delayedTransitionInProgress: false,
 
 	init: function () {
 		//reset values
@@ -283,17 +289,13 @@ var nakasentro = {
 
 			// nakasentro.checkArtworks(true);
 			// for when not in fullscreen
-			window.addEventListener(
-				"scroll",
-				function () {
+			window.addEventListener('scroll', function () {
 					if (!this.isResizing && nakasentro.imagesProcessed === true) {
 						nakasentro.checkArtworks();
 					}
 				}.bind(this)
 			);
-			window.addEventListener(
-				"scroll",
-				function () {
+			window.addEventListener('scroll', function () {
 					if (!nakasentro.isResizing && nakasentro.imagesProcessed === true) {
 						nakasentro.checkArtworks();
 					}
@@ -301,7 +303,7 @@ var nakasentro = {
 			);
 
 			// for when in fullscreen
-			nakasentro.fullscreen.addEventListener("scroll", function () {
+			nakasentro.fullscreen.addEventListener('scroll', function () {
 				if (!this.isResizing && nakasentro.imagesProcessed === true) {
 					nakasentro.checkArtworks();
 				}
@@ -317,7 +319,7 @@ var nakasentro = {
 	mobileSetup: function (isInit) {
 		this.mainContentWidth = this.mainContentWrap.clientWidth;
 
-		this.setBodyClasses("orientation-" + __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.browserOrientation);
+		this.setBodyClasses('orientation-' + __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.browserOrientation);
 		nakasentro.artworks_elements.forEach(function (artwork, index) {
 			var artworkElements = this.getArtworkElements(artwork, index);
 			if (isInit === false) {
@@ -362,11 +364,11 @@ var nakasentro = {
 		/* eslint-disable */
 		if (Barba.FullScreen.isFullscreen === false) {
 			/* eslint-enable */
-			nakasentro.removeFullscreenCenteredImageScrollEvents.call(this, true);
+			nakasentro.removeFullDimensionsCenteredImageScrollEvents.call(this, true);
 		}
 	},
-	removeFullscreenCenteredImageScrollEvents: function (removeAllWheel) {
-		removeAllWheel = typeof removeAllWheel === "boolean"
+	removeFullDimensionsCenteredImageScrollEvents: function (removeAllWheel) {
+		removeAllWheel = typeof removeAllWheel === 'boolean'
 			? removeAllWheel
 			: false;
 		window.removeEventListener('keydown', this.keydownEvent);
@@ -382,18 +384,19 @@ var nakasentro = {
 	},
 	reset: function () {
 		// set values back to initial setup
-		this.fullscreen = document.querySelector(".fullscreen");
-		this.artworks_elements = document.querySelectorAll(".artwork_piece");
+		this.fullscreen = document.querySelector('.fullscreen');
+		this.artworks_elements = document.querySelectorAll('.artwork_piece');
 		this.artworks = Array();
 		// this.windowHeight = null;
 		// this.windowWidth = null;
 		// this.windowRatioWidth = null;
 		this.mainContentWidth = null;
-		this.mainContentWrap = document.querySelector(".content>.main");
+		this.mainContentWrap = document.querySelector('.content>.main');
 		this.imageCentered = false;
+		this.imageCenteredTrue = false;
 		this.imageCenteredElement = null;
 		this.scrollBeingThrottled = false;
-		document.body.classList.remove("orientation-portrait", "orientation-landscape", "centered-image");
+		document.body.classList.remove('orientation-portrait', 'orientation-landscape', 'centered-image');
 		document.querySelectorAll('.artwork_piece').forEach(function (artworkPiece) {
 			this.removeArtworkPieceCentered(artworkPiece);
 		}, this);
@@ -407,15 +410,17 @@ var nakasentro = {
 	},
 
 	removeArtworkPieceCentered: function (artworkPiece) {
+		// console.log('artwork classlist removing centered');
 		artworkPiece.classList.remove('centered'/*, 'centered-image-transition-duration'*/);
-		nakasentro.imageCentered = false;
+		// console.log('global removing imageCentered');
+		// nakasentro.imageCentered = false;
 		// nakasentro.imageCenteredElement = null;
 	},
 	removeBodyImageCenteredClasses: function () {
-		document.body.classList.remove("centered-image");
+		document.body.classList.remove('centered-image');
 		window.setTimeout(function () {
 			// here we delay removing a class to allow some css transitions to happen
-			nakasentro.imageCenteredElement.classList.remove("centered-image-transition-duration");
+			nakasentro.imageCenteredElement.classList.remove('centered-image-transition-duration');
 		}, 400);
 	},
 	// setViewportDimensions: function() {
@@ -425,26 +430,26 @@ var nakasentro = {
 	//   this.windowRatioWidth = this.windowWidth / this.windowHeight;
 	// },
 	// resetImageValues: function (artworkImage, artworkImageWrap) {
-	// 	artworkImage.setAttribute("style", "");
+	// 	artworkImage.setAttribute('style', '');
 	// },
 	resetImageValues: function (artwork) {
-		artwork.artworkImage.setAttribute("style", "");
-		artwork.zoomyWrap.setAttribute("style", "");
+		artwork.artworkImage.setAttribute('style', '');
+		artwork.zoomyWrap.setAttribute('style', '');
 		artwork.imageRatioHolder.setAttribute('style', '');
 	},
 	getArtworkElements: function (artwork, index) {
 		var artworkWrap = artwork;
 		artworkWrap.setAttribute('artworks-index', index);
 		var artworkUniqueId = artwork.getAttribute('id');
-		var artworkImageWrap = artwork.querySelector(".image-wrap");
+		var artworkImageWrap = artwork.querySelector('.image-wrap');
 		var centerImageWrap = artworkImageWrap.querySelector('.center-image-wrap');
-		var artworkImage = artworkImageWrap.querySelector(".main-img");
-		var zoomyWrap = artworkImageWrap.querySelector(".zoomy-wrap");
+		var artworkImage = artworkImageWrap.querySelector('.main-img');
+		var zoomyWrap = artworkImageWrap.querySelector('.zoomy-wrap');
 		var imageSpacePlaceholder = artworkImageWrap.querySelector('.image-space-placeholder');
 		var imageRatioHolder = artworkImageWrap.querySelector('.image-ratio-holder');
 		var mouseMapWrap = zoomyWrap.querySelector('.mouse-map-wrap');
-		var mouseMapImage = mouseMapWrap.querySelector(".mouse-map");
-		var artworkMetaWrap = artworkImageWrap.querySelector(".artwork-meta");
+		var mouseMapImage = mouseMapWrap.querySelector('.mouse-map');
+		var artworkMetaWrap = artworkImageWrap.querySelector('.artwork-meta');
 		var imgSrc = artworkImage.getAttribute('src');
 		return {
 			artworkWrap: artworkWrap,
@@ -469,14 +474,14 @@ var nakasentro = {
 	},
 	setupValues: function (isInit) {
 		nakasentro.imagesProcessed = false;
-		isInit = typeof isInit === "boolean"
+		isInit = typeof isInit === 'boolean'
 			? isInit
 			: false;
 		this.reset();
 
 		this.mainContentWidth = this.mainContentWrap.clientWidth;
 
-		this.setBodyClasses("orientation-" + __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.browserOrientation);
+		this.setBodyClasses('orientation-' + __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.browserOrientation);
 
 		nakasentro.artworks_elements.forEach(function (artwork, index) {
 			// let zoomWrap = artwork.querySelector('.zoom-wrap');
@@ -499,14 +504,14 @@ var nakasentro = {
 			// temporarily set maxHeight for processing
 			artworkElements.artworkImage.style.maxHeight = '100vh';
 
-			artworkElements.artworkImage.style.minHeight = artworkElements.artworkImage.clientHeight + "px";
-			artworkElements.artworkImage.style.minWidth = artworkElements.artworkImage.clientWidth + "px";
+			artworkElements.artworkImage.style.minHeight = artworkElements.artworkImage.clientHeight + 'px';
+			artworkElements.artworkImage.style.minWidth = artworkElements.artworkImage.clientWidth + 'px';
 
 			var imageVhValue = artworkElements.artworkImage.clientHeight / __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.windowHeight * 100;
 			var imageVwValue = artworkElements.artworkImage.clientWidth / __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.windowWidth * 100;
 			if (imageVhValue === 0) {
 				// debugger;
-				// console.log("———————————image values are zero on init!!!!");
+				// console.log('———————————image values are zero on init!!!!');
 			}
 			var imageVhValueToFull = 100 - imageVhValue;
 
@@ -520,8 +525,8 @@ var nakasentro = {
 			var imageRatioHeight = artworkElements.artworkImage.clientHeight / artworkElements.artworkImage.clientWidth;
 
 			if (artworkElements.artworkImage.clientHeight >= __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.windowHeight) {
-				artworkElements.imageRatioHolder.style.height = artworkElements.artworkImage.clientHeight + "px";
-				artworkElements.imageRatioHolder.style.width = artworkElements.artworkImage.clientWidth + "px";
+				artworkElements.imageRatioHolder.style.height = artworkElements.artworkImage.clientHeight + 'px';
+				artworkElements.imageRatioHolder.style.width = artworkElements.artworkImage.clientWidth + 'px';
 			} else {
 				artworkElements.imageRatioHolder.style.paddingBottom = 100 * imageRatioHeight + '%';
 			}
@@ -536,7 +541,7 @@ var nakasentro = {
 
 			var imageMaxHeight = null;
 			// get image max height
-			if (imageSizeChangeTechnique === "width") {
+			if (imageSizeChangeTechnique === 'width') {
 				// if imageSizeChangeTechnique is width we want to multiply the viewport width in px by the height/width ratio of the image
 				imageMaxHeight = __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.windowHeight * (artworkElements.artworkImage.clientHeight / artworkElements.artworkImage.clientWidth);
 			} else {
@@ -545,7 +550,7 @@ var nakasentro = {
 			}
 
 			// get image max height
-			// if (imageSizeChangeTechnique === "height") {
+			// if (imageSizeChangeTechnique === 'height') {
 			// 	// if imageSizeChangeTechnique is width we want to multiply the viewport width in px by the height/width ratio of the image
 			// 	const imageMaxWidth = utilities.windowWidth * (artworkElements.artworkImage.clientHeight / artworkElements.artworkImage.clientWidth);
 			// } else {
@@ -598,7 +603,7 @@ var nakasentro = {
 			});
 
 			nakasentro.artworks[index].wheelEvent = nakasentro.fullscreenHandleZoomyDivScroll.bind(nakasentro.artworks[index]);
-			nakasentro.artworks[index].keydownEvent = nakasentro.handlePossibleScrollTrigger.bind(nakasentro.artworks[index]);
+			nakasentro.artworks[index].keydownEvent = nakasentro.handlePossibleScrollKeyEvent.bind(nakasentro.artworks[index]);
 
 			// let artworkStyles = '';
 			// if (utilities.browserOrientation === 'portrait') {
@@ -674,11 +679,11 @@ var nakasentro = {
 
 		nakasentro.imagesProcessed = true;
 
-		// document.body.classList.add("artworks-processed");
-		window.addEventListener("resize", this.debounceWindowResize);
-		window.addEventListener("resize", function () {
+		// document.body.classList.add('artworks-processed');
+		window.addEventListener('resize', this.debounceWindowResize);
+		window.addEventListener('resize', function () {
 			if (nakasentro.isResizing === false) {
-				document.body.classList.add("viewport-resizing");
+				document.body.classList.add('viewport-resizing');
 				nakasentro.isResizing = true;
 			}
 		});
@@ -691,7 +696,7 @@ var nakasentro = {
 			__WEBPACK_IMPORTED_MODULE_0__utilities___default.a.setViewportDimensions();
 			nakasentro.setupValues();
 		}
-		document.body.classList.remove("viewport-resizing");
+		document.body.classList.remove('viewport-resizing');
 		nakasentro.isResizing = false;
 	}, 250),
 
@@ -705,7 +710,7 @@ var nakasentro = {
 	},
 
 	setBodyClasses: function (classes) {
-		document.querySelector("body").classList.add(classes);
+		document.querySelector('body').classList.add(classes);
 	},
 
 	getPixelsToCenter: function (distanceFromTopOfViewport) {
@@ -734,67 +739,128 @@ var nakasentro = {
 		return toCenterPixels;
 	},
 
+	centerImage: function (artwork) {
+		/* eslint-disable */
+		if (Barba.FullScreen.isFullscreen === true) {
+			/* eslint-enable */
+			artwork.fullscreenImageCentered = true;
+		}
+
+		// console.log('adding keydown/wheel event listeners to ', artwork);
+		window.addEventListener('keydown', artwork.keydownEvent);
+		artwork.zoomyWrap.addEventListener('wheel', artwork.wheelEvent, {passive: true});
+
+		// console.log('body classlist adding centered-image');
+		document.body.classList.add('centered-image');
+
+		// overarching imageCentered toggle
+		// console.log('global image Centered set true');
+		this.imageCentered = true;
+		this.imageCenteredTrue = true;
+		nakasentro.imageCenteredElement = artwork.element;
+
+		// console.log('artwork imageCentered set true');
+		// speicific artwork iamgeCentered toggle
+		artwork.imageCentered = true;
+
+		// if (!artwork.artworkWrap.classList.contains('centered-image-transition-duration')) {
+		// 	console.log('adding centered centered-image-transition-duration classes to artwork');
+		// 	console.log('');
+		artwork.artworkWrap.classList.add('centered', 'centered-image-transition-duration');
+		// }
+	},
+
+	uncenterImage: function (artwork, fullDimensionEvent) {
+		if ( fullDimensionEvent === void 0 ) fullDimensionEvent = false;
+
+// if in fullscreen we want to add remved events which handle scroll when centered and scroll events is not triggered due to fixed elements
+
+		nakasentro.removeFullDimensionsCenteredImageScrollEvents.call(artwork);
+
+		// speicific artwork iamgeCentered toggle
+		// console.log('artwork imageCentered setting false');
+		// artwork.imageCentered = false;
+		// console.log('body classlist removing centered-image');
+		document.body.classList.remove('centered-image');
+		// console.log('artowrk classlist removing centered');
+		artwork.artworkWrap.classList.remove('centered');
+		// console.log('global imageCentered setting false');
+
+		// overarching imageCentered toggle
+		if (fullDimensionEvent === false) {
+			this.imageCenteredTrue = false;
+			this.imageCentered = false;
+
+			if (nakasentro.imageCenteredTrue === false) {
+				artwork.imageCentered = false;
+			}
+		}
+		// console.log('global imageCenteredElement set null');
+		// console.log('');
+
+		this.imageCenteredElement = null;
+		this.possiblyRunDelayedTransition(artwork, fullDimensionEvent);
+	},
+
+	possiblyRunDelayedTransition: function possiblyRunDelayedTransition(artwork, fullDimensionEvent) {
+		var this$1 = this;
+
+		if (this.delayedTransitionInProgress === false) {
+			this.delayedTransitionInProgress = true;
+			window.setTimeout(function () {
+				// last check
+				if (nakasentro.imageCenteredTrue === true && fullDimensionEvent === true || this$1.imageCentered === false) {
+					nakasentro.runDelayedTransition(artwork);
+				} else {
+					nakasentro.delayedTransitionInProgress = false;
+				}
+			}, 400);
+		}
+	},
+
+	runDelayedTransition: function runDelayedTransition(artwork) {
+		// here we delay removing a class to allow some css transiti
+		// ons to happen
+		// console.log('artwork classlist removing centered-image-transition-duration');
+		artwork.artworkWrap.classList.remove('centered-image-transition-duration');
+		// console.log('artwork imageCentered set false');
+		// artwork.imageCentered = false;
+		this.delayedTransitionInProgress = false;
+	},
+
 	possiblyCenterUncenterImage: function (artwork) {
 		var toCenterPixels = this.setArtworkToCenterPixels(artwork);
 
 		var toCenterPixelsAbsolute = Math.abs(toCenterPixels);
 
 		var toCenterPercentage = nakasentro.getPercentageToCenter(toCenterPixelsAbsolute);
+		// console.log(toCenterPercentage);
+		artwork.artworkWrap.setAttribute('percent-to-center', toCenterPercentage);
 
 		// if we're close to the centerpoint of an image, we trigger a scroll to
 		if (toCenterPercentage < nakasentro.consideredCenteredPercentage) {
 			// image is centered
-			if (this.imageCentered === false && artwork.fullscreenImageCentered === false/* && this.recentlyAddedCenteredClasses === false*/) {
+			// console.log('this.imageCentered: ' + this.imageCentered);
+			// console.log('artwork.fullscreenImageCentered: ' + artwork.fullscreenImageCentered);
+			// console.log('artwork.imageCentered: ' + artwork.imageCentered);
+			if (artwork.imageCentered === false && artwork.fullscreenImageCentered === false/* && this.recentlyAddedCenteredClasses === false*/) {
 				// if in fullscreen we want to add these events to handle scroll when centered and scroll events is not triggered due to fixed elements
 
-				/* eslint-disable */
-				if (Barba.FullScreen.isFullscreen === true) {
-					/* eslint-enable */
-					artwork.fullscreenImageCentered = true;
-				}
-				window.addEventListener('keydown', artwork.keydownEvent);
-				artwork.zoomyWrap.addEventListener('wheel', artwork.wheelEvent, {passive: true});
-
-				document.body.classList.add("centered-image");
-
-				// overarching imageCentered toggle
-				this.imageCentered = true;
-				nakasentro.imageCenteredElement = artwork.element;
-
-				// speicific artwork iamgeCentered toggle
-				artwork.imageCentered = true;
-
-				artwork.artworkWrap.classList.add("centered", "centered-image-transition-duration");
+				this.centerImage(artwork);
 			}
 
 		} else if (artwork.fullscreenImageCentered === true) {
 			// set false variable tracking fullwidth centered image when in fullscreen.
+			// console.log('setting artwork.fullscreenImageCentered false, should only run when in fullscreen');
 			artwork.fullscreenImageCentered = false;
 		} else if (artwork.imageCentered === true) {
 			// console.log(artwork);
 			if (toCenterPercentage > nakasentro.consideredCenteredPercentage) {
-				// console.log('turning off');
-
 				// image is not centered
-
-				if (this.imageCentered === true /*&& this.recentlyRemovedCenteredClasses === false*/) {
-
-					// if in fullscreen we want to add remved events which handle scroll when centered and scroll events is not triggered due to fixed elements
-
-					// overarching imageCentered toggle
-					this.imageCentered = false;
-
-					// speicific artwork iamgeCentered toggle
-					artwork.imageCentered = false;
-					document.body.classList.remove("centered-image");
-					artwork.artworkWrap.classList.remove("centered");
-
-					window.setTimeout(function () {
-						// here we delay removing a class to allow some css transitions to happen
-						artwork.artworkWrap.classList.remove("centered-image-transition-duration");
-						this.imageCenteredElement = null;
-					}, 400);
-				}
+				// if (this.imageCentered === true /*&& this.recentlyRemovedCenteredClasses === false*/) {
+				this.uncenterImageBreakZoom.call(artwork);
+				this.uncenterImage(artwork);
+				// }
 			}
 		}
 	},
@@ -803,7 +869,7 @@ var nakasentro = {
 		if (this.artworkWrap.classList.contains('zoomed')) {
 			__WEBPACK_IMPORTED_MODULE_4__zoomy__["zoomy"].removeArtworkZoomByPictureIndex(this.artworkWrap.getAttribute('zoomy-pictures-index'));
 			return true;
-		}else{
+		} else {
 			return false;
 		}
 	},
@@ -811,38 +877,42 @@ var nakasentro = {
 	removeImageCentered: function (element) {
 		nakasentro.removeBodyImageCenteredClasses.call(element.artworkWrap);
 		nakasentro.removeArtworkPieceCentered(element.artworkWrap);
-		nakasentro.removeFullscreenCenteredImageScrollEvents.call(element);
-		element.imageCentered = false;
+		nakasentro.removeFullDimensionsCenteredImageScrollEvents.call(element);
+		// element.imageCentered = false;
 	},
 
 	processZoomRemoval: function () {
-		var this$1 = this;
-
-		var zoomRemoved = nakasentro.possiblyRemoveZoom.call(this);
-		if (zoomRemoved === true) {
-			window.setTimeout(function () {
-				__WEBPACK_IMPORTED_MODULE_4__zoomy__["zoomy"].removeZoomedDelayClass(this$1.artworkWrap);
-				nakasentro.removeImageCentered(this$1)
-			}, 500);
-		} else {
-			nakasentro.removeImageCentered(this);
-		}
+		// if (zoomRemoved === true) {
+		// window.setTimeout(() => {
+		__WEBPACK_IMPORTED_MODULE_4__zoomy__["zoomy"].removeZoomedDelayClass(this.artworkWrap);
+		nakasentro.possiblyRemoveZoom.call(this);
+		// }, 500);
+		// } else {
+		// 	nakasentro.removeImageCentered(this);
+		// }
 	},
 
-	handlePossibleScrollTrigger: function (e) {
+	handlePossibleScrollKeyEvent: function (e) {
 		//todo: if zoom enabled, disable and wait for animation to finish before continuing, needs to happen no matter what the keycode is
-		if (e.code !== 'ArrowRight' && e.code !== 'ArrowLeft') {
-			nakasentro.processZoomRemoval.call(this);
-		} else {
+		nakasentro.processZoomRemoval.call(this);
+		// nakasentro.removeImageCentered(this);
+		nakasentro.uncenterImage.call(nakasentro, this, true);
+		if (e.code === 'ArrowRight' && e.code === 'ArrowLeft') {
 			e.preventDefault();
 		}
 	},
 
+	uncenterImageBreakZoom: function () {
+//todo: if zoom enabled, disable and wait for animation to finish before continuing
+		nakasentro.processZoomRemoval.call(this);
+		nakasentro.uncenterImage.call(nakasentro, this, true);
+		// nakasentro.removeImageCentered(this);
+		nakasentro.fixedImageScrollReleaseCount = 0;
+	},
+
 	fullscreenHandleZoomyDivScroll: function () {
 		if (nakasentro.fixedImageScrollReleaseCount >= 20) {
-			//todo: if zoom enabled, disable and wait for animation to finish before continuing
-			nakasentro.processZoomRemoval.call(this);
-			nakasentro.fixedImageScrollReleaseCount = 0;
+			this.uncenterImageBreakZoom();
 		} else {
 			nakasentro.fixedImageScrollReleaseCount++;
 		}
@@ -874,18 +944,18 @@ var nakasentro = {
 		// @c is the change between the beginning and destination value of the property.
 		// @d is the total time of the tween.
 		// TODO: Figure out a better name for lengthValue
-		// let lengthValue = this.browserOrientation === "portrait" ? artwork.originalDimensions.imageVwValue : artwork.originalDimensions.imageVhValue;
+		// let lengthValue = this.browserOrientation === 'portrait' ? artwork.originalDimensions.imageVwValue : artwork.originalDimensions.imageVhValue;
 		// lengthValue = lengthValue * .45;
 
 		// let w = window,
 		//   doc = document,
 		//   e = doc.documentElement,
-		//   g = doc.getElementsByTagName("body")[0],
+		//   g = doc.getElementsByTagName('body')[0],
 		//   x = w.innerWidth || e.clientWidth || g.clientWidth,
 		//   y = w.innerHeight || e.clientHeight || g.clientHeight;
 
 		// let result = x * lengthValue / 100;
-		// console.log("result: " + result);
+		// console.log('result: ' + result);
 		// console.log('toCenterPercentage: ' + toCenterPercentage);
 		var toCenterPercentagePassed = 100 - toCenterPercentage;
 		// console.log('toCenterPercentagePassed: ' + toCenterPercentagePassed);
@@ -909,13 +979,13 @@ var nakasentro = {
 
 	resizePortrait: function (artwork, imageNewWidth) {
 		if (artwork.artworkImage.clientWidth >= artwork.originalDimensions.width) {
-			var width = imageNewWidth + "vw";
+			var width = imageNewWidth + 'vw';
 			var imageWidth = artwork.artworkImage.clientWidth;
-			var imageHeight = artwork.artworkImage.clientHeight + "px";
+			var imageHeight = artwork.artworkImage.clientHeight + 'px';
 			artwork.artworkImage.style.width = width;
 			artwork.zoomyWrap.style.height = imageHeight;
 			artwork.zoomyWrap.style.width = width;
-			artwork.artworkMetaWrap.style.width = imageWidth + "px";
+			artwork.artworkMetaWrap.style.width = imageWidth + 'px';
 
 			//this helper div keeps the vertical space when the image is centered and the image itself is positioned 'fixed'
 			// artwork.imageSpacePlaceholder.style.height = imageNewWidth / artwork.originalDimensions.imageRatioWidth + 'vh';
@@ -924,8 +994,8 @@ var nakasentro = {
 
 	resizeLandscape: function (artwork, imageNewHeight) {
 		if (artwork.artworkImage.clientHeight >= artwork.originalDimensions.height) {
-			var height = imageNewHeight + "vh";
-			var imageWidth = artwork.artworkImage.clientWidth + "px";
+			var height = imageNewHeight + 'vh';
+			var imageWidth = artwork.artworkImage.clientWidth + 'px';
 			artwork.artworkImage.style.height = height;
 			artwork.zoomyWrap.style.height = height;
 			artwork.zoomyWrap.style.width = imageWidth;
@@ -938,7 +1008,7 @@ var nakasentro = {
 
 	checkArtworks: function () {
 		nakasentro.artworks.forEach(function (artwork) {
-			if (__WEBPACK_IMPORTED_MODULE_0__utilities___default.a.isElementInViewport(artwork.artworkImage)) {
+			if (__WEBPACK_IMPORTED_MODULE_0__utilities___default.a.isElementVerticallyInViewport(artwork.artworkImage)) {
 				artwork.isInViewport = true;
 				nakasentro.possiblyCenterUncenterImage(artwork);
 			} else {
@@ -1187,7 +1257,16 @@ var zoomy = {
 		this.pictures = Array();
 	},
 
+	possiblyImmediatelyRemoveZoom: function(){
+		/* eslint-disable */
+		if (Barba.FullScreen.isFullscreen === true) {
+			/* eslint-enable */
+
+		}
+	},
+
 	removeArtworkZoomByPictureIndex: function (index) {
+		console.log('remove zoomed class');
 		zoomy.pictures[index].artworkPieceWrap.classList.toggle("zoomed");
 		zoomy.pictures[index].isZoomed = false;
 		// mobile devices get body locked/unlocked
@@ -1864,7 +1943,7 @@ var info = {
 	infoButtons: null,
 	init: function () {
 		this.infoButtons = document.querySelectorAll(".actions .info");
-			console.log('begin');
+			// console.log('begin');
 		this.infoButtons.forEach(function (button) {
 			var imageWrap = button.closest(".image-wrap");
 			var pieceComparisonWrap = imageWrap.querySelector(".piece-comparison-wrap");
@@ -1878,7 +1957,7 @@ var info = {
 			var piece = pieceComparisonWrap.querySelector(".comparison-image");
 			var pieceWidthInches = button.getAttribute("data-width");
 			var pieceImageDimensions = this.getImageDimensions(piece, pieceWidthInches);
-			console.log(pieceImageDimensions);
+			// console.log(pieceImageDimensions);
 			// console.log('pieceComparisonWrapHeightPixels > window.innerHeight: ' + pieceComparisonWrapHeightPixels, window.innerHeight);
 			// if(pieceComparisonWrapHeightPixels > window.innerHeight){
 			// 	pieceComparisonWrapHeightPixels = window.innerHeight;
@@ -1989,7 +2068,7 @@ var info = {
 
 		// TODO: get if window is wider than tall or taller than wide.
 		//
-		console.log('forScaleDimensions.image.clientHeight, forScaleDimensions.image.clientWidth: ' + forScaleDimensions.image.clientHeight, forScaleDimensions.image.clientWidth);
+		// console.log('forScaleDimensions.image.clientHeight, forScaleDimensions.image.clientWidth: ' + forScaleDimensions.image.clientHeight, forScaleDimensions.image.clientWidth);
 		// get actual pixel width of what forscale image should be based on it's current height
 		var forScaleWidth = forScaleDimensions.image.clientHeight * (forScaleDimensions.fileNaturalWidth / forScaleDimensions.fileNaturalHeight);
 		var forScaleHeight = forScaleDimensions.image.clientWidth * (forScaleDimensions.fileNaturalHeight / forScaleDimensions.fileNaturalWidth);
@@ -2012,7 +2091,7 @@ var info = {
 
 		// pieceDimensions.image.style.height = pieceHeight + 'px';
 		// pieceDimensions.image.style.width = pieceWidth + 'px';
-		console.log(pieceWidth, pieceHeight);
+		// console.log(pieceWidth, pieceHeight);
 
 		return {width: pieceWidth, height: pieceHeight};
 

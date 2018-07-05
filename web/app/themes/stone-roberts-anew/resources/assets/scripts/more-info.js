@@ -3,7 +3,7 @@ var info = {
 	infoButtons: null,
 	init: function () {
 		this.infoButtons = document.querySelectorAll(".actions .info");
-			console.log('begin');
+			// console.log('begin');
 		this.infoButtons.forEach(function (button) {
 			var imageWrap = button.closest(".image-wrap");
 			var pieceComparisonWrap = imageWrap.querySelector(".piece-comparison-wrap");
@@ -17,7 +17,7 @@ var info = {
 			var piece = pieceComparisonWrap.querySelector(".comparison-image");
 			var pieceWidthInches = button.getAttribute("data-width");
 			var pieceImageDimensions = this.getImageDimensions(piece, pieceWidthInches);
-			console.log(pieceImageDimensions);
+			// console.log(pieceImageDimensions);
 			// console.log('pieceComparisonWrapHeightPixels > window.innerHeight: ' + pieceComparisonWrapHeightPixels, window.innerHeight);
 			// if(pieceComparisonWrapHeightPixels > window.innerHeight){
 			// 	pieceComparisonWrapHeightPixels = window.innerHeight;
@@ -124,7 +124,7 @@ var info = {
 
 		// TODO: get if window is wider than tall or taller than wide.
 		//
-		console.log('forScaleDimensions.image.clientHeight, forScaleDimensions.image.clientWidth: ' + forScaleDimensions.image.clientHeight, forScaleDimensions.image.clientWidth);
+		// console.log('forScaleDimensions.image.clientHeight, forScaleDimensions.image.clientWidth: ' + forScaleDimensions.image.clientHeight, forScaleDimensions.image.clientWidth);
 		// get actual pixel width of what forscale image should be based on it's current height
 		let forScaleWidth = forScaleDimensions.image.clientHeight * (forScaleDimensions.fileNaturalWidth / forScaleDimensions.fileNaturalHeight);
 		let forScaleHeight = forScaleDimensions.image.clientWidth * (forScaleDimensions.fileNaturalHeight / forScaleDimensions.fileNaturalWidth);
@@ -147,7 +147,7 @@ var info = {
 
 		// pieceDimensions.image.style.height = pieceHeight + 'px';
 		// pieceDimensions.image.style.width = pieceWidth + 'px';
-		console.log(pieceWidth, pieceHeight);
+		// console.log(pieceWidth, pieceHeight);
 
 		return {width: pieceWidth, height: pieceHeight};
 
