@@ -455,6 +455,10 @@ body {
       opacity: 0;
       &.centered {
         opacity: 1 !important;
+
+        h3{
+          opacity: 0;
+        }
       }
     }
   }
