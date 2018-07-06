@@ -43,25 +43,6 @@ export default {
 			}, false);
 		});
 
-		// add modal
-		// let $modal = $("#modal");
-		// $modal.on("show.bs.modal", function (e) {
-		// 	let $video_wrap = $modal.find(".video-embed");
-		// 	let embed = decodeURIComponent(
-		// 		$(e.relatedTarget)
-		// 			.data("embed")
-		// 			.replace(/\+/g, " ")
-		// 	);
-		// 	$video_wrap.append(embed);
-		// 	window.setTimeout(function () {
-		// 		$video_wrap.fitVids();
-		// 	}, 200);
-		// });
-		//
-		// $modal.on("hide.bs.modal", function () {
-		// 	$modal.find(".fluid-width-video-wrapper").remove();
-		// });
-
 		function debounce(func, wait, immediate) {
 			let timeout;
 			return function () {

@@ -40,7 +40,11 @@ var info = {
 			piece.style.height = dimensionValues.height + "px";
 			// forScale.style.width = dimensionValues.forScaleWidthPixels + "px";
 			// forScale.style.height = dimensionValues.forScaleHeightPixels + "px";
+
+			// add processed class, toggles visibility
+			pieceComparisonWrap.classList.add('piece-comparison-processed');
 		}, this);
+
 	},
 	getImageDimensions: function (element, widthInches, type = 'piece') {
 		var fileNaturalWidth = 0;

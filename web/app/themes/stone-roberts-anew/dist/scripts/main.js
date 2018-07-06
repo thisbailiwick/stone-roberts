@@ -1979,7 +1979,11 @@ var info = {
 			piece.style.height = dimensionValues.height + "px";
 			// forScale.style.width = dimensionValues.forScaleWidthPixels + "px";
 			// forScale.style.height = dimensionValues.forScaleHeightPixels + "px";
+
+			// add processed class, toggles visibility
+			pieceComparisonWrap.classList.add('piece-comparison-processed');
 		}, this);
+
 	},
 	getImageDimensions: function (element, widthInches, type) {
 		if ( type === void 0 ) type = 'piece';
@@ -7861,25 +7865,6 @@ Router.prototype.loadEvents = function loadEvents () {
 			}, false);
 		});
 
-		// add modal
-		// let $modal = $("#modal");
-		// $modal.on("show.bs.modal", function (e) {
-		// 	let $video_wrap = $modal.find(".video-embed");
-		// 	let embed = decodeURIComponent(
-		// 		$(e.relatedTarget)
-		// 			.data("embed")
-		// 			.replace(/\+/g, " ")
-		// 	);
-		// 	$video_wrap.append(embed);
-		// 	window.setTimeout(function () {
-		// 		$video_wrap.fitVids();
-		// 	}, 200);
-		// });
-		//
-		// $modal.on("hide.bs.modal", function () {
-		// 	$modal.find(".fluid-width-video-wrapper").remove();
-		// });
-
 		function debounce(func, wait, immediate) {
 			var timeout;
 			return function () {
@@ -8048,7 +8033,9 @@ function init() {
 			Object(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__["clearAllBodyScrollLocks"])();
 		}
 		this.classList.toggle('is-active');
-	}, false);
+	}, false);a
+
+	menuWrap.classList.add('menu-vertical-push-processed');
 }
 
 var menuLinkClick = function () {

@@ -182,7 +182,7 @@ HTML;
             <div class="image-ratio-holder"></div>
 					</div>
 					<div class="piece-comparison">
-						<div class="piece-comparison-wrap">
+						<div class="piece-comparison-wrap" style="visibility: hidden;">
 							<span class="close"><i class="fas fa-times-circle"></i></span>
 							<div class="comparison-image-wrap">
 								<img class="comparison-image" src="{$image['url']}" alt="{$image['alt']}" data-width="{$content['width']}" data-height="{$content['height']}" />

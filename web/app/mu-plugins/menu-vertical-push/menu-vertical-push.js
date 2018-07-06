@@ -33,7 +33,9 @@ export function init() {
 			clearAllBodyScrollLocks();
 		}
 		this.classList.toggle('is-active');
-	}, false);
+	}, false);a
+
+	menuWrap.classList.add('menu-vertical-push-processed');
 }
 
 const menuLinkClick = () => {

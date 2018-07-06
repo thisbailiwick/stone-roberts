@@ -19,5 +19,5 @@
  add_action('wp_enqueue_scripts', function () {
 	$plugin_dir = plugin_dir_url(__FILE__);
 	wp_enqueue_style('menu-vertical-push.css', $plugin_dir . 'dist/main.css', false, null);
-	wp_enqueue_script('menu-vertical-push.js', $plugin_dir . 'dist/bundle.js', false, null, true);
+//	wp_enqueue_script('menu-vertical-push.js', $plugin_dir . 'dist/bundle.js', false, null, true);
  }, 100);

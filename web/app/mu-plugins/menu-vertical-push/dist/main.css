@@ -705,13 +705,17 @@
   transition-property: margin-top; }
   .menu-vertical-push.open .nav-primary {
     transform: translateY(0); }
-  .menu-vertical-push .nav-primary .nav {
-    padding: 0;
-    text-align: center; }
-    .menu-vertical-push .nav-primary .nav li {
-      display: inline-block;
-      list-style-type: none;
-      margin: 0 .3em; }
+  .menu-vertical-push .nav-primary {
+    visibility: hidden; }
+    .menu-vertical-push .nav-primary .nav {
+      padding: 0;
+      text-align: center; }
+      .menu-vertical-push .nav-primary .nav li {
+        display: inline-block;
+        list-style-type: none;
+        margin: 0 .3em; }
+  .menu-vertical-push.menu-vertical-push-processed .nav-primary {
+    visibility: visible; }
 
 .hamburger {
   position: fixed;

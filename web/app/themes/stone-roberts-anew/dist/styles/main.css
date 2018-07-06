@@ -1502,6 +1502,10 @@ body:not(.template-projects) #thumbnail-trigger {
   width: 100%;
 }
 
+.artwork_piece .image-wrap .piece-comparison .piece-comparison-wrap.piece-comparison-processed {
+  visibility: visible !important;
+}
+
 .artwork_piece .image-wrap .piece-comparison .comparison-image-wrap {
   -webkit-box-align: center;
       -ms-flex-align: center;
