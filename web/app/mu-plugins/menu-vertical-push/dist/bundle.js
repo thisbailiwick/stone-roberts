@@ -133,7 +133,7 @@ function init() {
 	// console.log(menuWrapHeight);
 	// menuWrap.style.marginTop = -(menuWrapHeight - ignoreHeightAmount) + 'px';
 	const menuLinks = menuWrap.querySelectorAll('a:not(.brand)');
-	menuLinks.forEach(function(link){
+	menuLinks.forEach(function (link) {
 		link.addEventListener('click', menuLinkClick);
 	});
 	const hamburgerHtml = getHamburgerHtml();
@@ -146,9 +146,9 @@ function init() {
 
 	hamburger.addEventListener('click', function () {
 		toggleMenu();
-		if(!this.classList.contains('is-active')){
+		if (!this.classList.contains('is-active')) {
 			Object(body_scroll_lock__WEBPACK_IMPORTED_MODULE_1__["disableBodyScroll"])();
-		}else{
+		} else {
 			Object(body_scroll_lock__WEBPACK_IMPORTED_MODULE_1__["clearAllBodyScrollLocks"])();
 		}
 		this.classList.toggle('is-active');
@@ -187,10 +187,10 @@ const toggleMenu = () => {
 };
 
 const outerHeight = (el) => {
-		let height = el.offsetHeight;
-		// const style = getComputedStyle(el);
-		// height += parseInt(style.marginTop) + parseInt(style.marginBottom);
-		return height;
+	let height = el.offsetHeight;
+	// const style = getComputedStyle(el);
+	// height += parseInt(style.marginTop) + parseInt(style.marginBottom);
+	return height;
 };
 
 /***/ }),

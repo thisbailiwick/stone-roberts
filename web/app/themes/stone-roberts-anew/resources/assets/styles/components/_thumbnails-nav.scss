@@ -8,7 +8,7 @@
   position: fixed;
   top: 0;
   transition-duration: .1s;
-  transition-property: transform;
+  transition-property: transform, opacity;
   width: 100vw;
   z-index: 300;
 
@@ -47,6 +47,7 @@
   }
 
   &.hide{
+    opacity: 0;
     transform: translateX(-100vw);
   }
 }

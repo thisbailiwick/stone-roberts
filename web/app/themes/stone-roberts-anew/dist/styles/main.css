@@ -713,7 +713,12 @@ button,
   padding: 0;
 }
 
+html {
+  background: #262626;
+}
+
 body.front {
+  background: #262626;
   overflow: scroll;
 }
 
@@ -722,10 +727,7 @@ body.front.no-scroll {
 }
 
 body.front .fullscreen {
-  background-color: #faf9f9;
-  -webkit-transition-duration: .75s;
-       -o-transition-duration: .75s;
-          transition-duration: .75s;
+  background-color: #262626;
 }
 
 @media screen and (max-width: 767px) {
@@ -1254,11 +1256,11 @@ body.front.centered-image #back-to-top {
   -webkit-transition-duration: .1s;
        -o-transition-duration: .1s;
           transition-duration: .1s;
-  -webkit-transition-property: -webkit-transform;
-  transition-property: -webkit-transform;
-  -o-transition-property: -o-transform;
-  transition-property: transform;
-  transition-property: transform, -webkit-transform, -o-transform;
+  -webkit-transition-property: opacity, -webkit-transform;
+  transition-property: opacity, -webkit-transform;
+  -o-transition-property: opacity, -o-transform;
+  transition-property: transform, opacity;
+  transition-property: transform, opacity, -webkit-transform, -o-transform;
   width: 100vw;
   z-index: 300;
 }
@@ -1310,6 +1312,7 @@ body.front.centered-image #back-to-top {
 }
 
 #thumbnails-nav.hide {
+  opacity: 0;
   -webkit-transform: translateX(-100vw);
        -o-transform: translateX(-100vw);
           transform: translateX(-100vw);
@@ -1893,28 +1896,37 @@ body.template-projects .page-header {
   margin-bottom: 0;
 }
 
-body.welcome header.banner {
-  display: none;
-}
-
-body.welcome .page-header {
-  display: none;
-}
-
-body.welcome .hamburger {
-  display: none;
-}
-
-body.welcome p {
-  margin: 0;
-  padding: 0;
-}
-
-body.welcome #welcome-image {
+#splash-modal {
   display: block;
-  background: url("/app/themes/stone-roberts-anew/dist/images/splash.jpg") center center/cover transparent;
+  background-color: transparent;
+  background-size: cover;
+  background-position: center;
   height: 100vh;
+  left: 0;
+  opacity: 0;
+  position: fixed;
+  top: 0;
+  -webkit-transition-duration: .25s;
+       -o-transition-duration: .25s;
+          transition-duration: .25s;
+  -webkit-transition-property: opacity;
+  -o-transition-property: opacity;
+  transition-property: opacity;
   width: 100vw;
+  z-index: -1;
+}
+
+#splash-modal:hover {
+  cursor: pointer;
+}
+
+.show-splash #splash-modal {
+  opacity: 1;
+  z-index: 400;
+}
+
+.show-splash-transition #splash-modal {
+  z-index: 400;
 }
 
 header.banner {

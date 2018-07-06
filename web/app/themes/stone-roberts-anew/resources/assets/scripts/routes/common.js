@@ -82,16 +82,6 @@ export default {
 			return this;
 		};
 
-		// add cookie for splash page
-		const welcomeImage = document.getElementById('welcome-image');
-		if(welcomeImage !== null) {
-			welcomeImage.addEventListener('click', function () {
-				/* eslint-disable */
-				Barba.FullScreen.goFullScreen();
-				/* eslint-enable */
-			});
-		}
-
 		// init fullscreen
 		/* eslint-disable */
 		let CommonView = Barba.BaseView.extend({

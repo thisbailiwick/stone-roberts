@@ -1,6 +1,7 @@
 {
   "entry": {
     "main": [
+      "./scripts/splash-page.js",
       "./scripts/utilities.js",
       "./scripts/youtube.js",
       "./scripts/artwork-info.js",

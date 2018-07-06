@@ -1,0 +1,32 @@
+#splash-modal{
+  display: block;
+  background-color: transparent;
+  background-size: cover;
+  background-position: center;
+  height: 100vh;
+  left: 0;
+  opacity: 0;
+  position: fixed;
+  top: 0;
+  transition-duration: .25s;
+  transition-property: opacity;
+  width: 100vw;
+  z-index: -1;
+
+  &:hover{
+    cursor: pointer;
+  }
+}
+
+.show-splash{
+  #splash-modal{
+    opacity: 1;
+    z-index: 400;
+  }
+}
+
+.show-splash-transition{
+  #splash-modal{
+    z-index: 400;
+  }
+}

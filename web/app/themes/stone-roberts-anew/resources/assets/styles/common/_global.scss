@@ -47,8 +47,11 @@ textarea, input, button, .mobile-nav-link {
   margin: 0 auto;
   padding: 0;
 }
-
+html{
+  background: $background;
+}
 body.front {
+  background: $background;
   overflow: scroll;
 
   &.no-scroll {
@@ -57,8 +60,8 @@ body.front {
 
   .fullscreen {
     //background: transparent;
-    background-color: #faf9f9;
-    transition-duration: .75s;
+    background-color: $background;
+    //transition-duration: .75s;
 
     .fullscreen-wrapper {
       @include breakpoint($xs) {

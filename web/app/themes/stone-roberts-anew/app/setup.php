@@ -127,19 +127,13 @@
 	});
  });
 
- add_action('wp', function () {
-  global $wp;
-  $current = '';
-	if(!empty($wp->query_vars['pagename'])) {
-	 $current = $wp->query_vars['pagename'];
-	}
-//	if ($current === '/welcome/' || $current === '/welcome' || $current === 'welcome') {
-//	 $_SESSION['splash-seen'] = true;
-//	}
-//	if (empty($_SESSION['splash-seen']) && ($current !== '/welcome/' || $current !== '/welcome' || $current !== 'welcome')) {
- if(empty($_COOKIE['splashseen']) && ($current !== '/welcome' && $current !== 'welcome' && $current !== 'wp/welcome')){
-	 wp_redirect(str_replace('wp/', '', site_url('welcome')));
-	 exit;
-	}
- }
- );
+ // add splash page div to footer
+add_action('wp_footer', function(){
+ 	$image_src = get_bloginfo('url') . get_field('splash_page_image', 'options')['url'];
+
+ 	echo <<<HTML
+		<div id="splash-modal" style="background-image: url('{$image_src}');"></div>
+HTML;
+
+
+});
