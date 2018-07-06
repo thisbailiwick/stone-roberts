@@ -1,5 +1,5 @@
 var copyClick = {
-  copyElements: document.querySelectorAll(".dev-share-buttons__item--copy"),
+  copyElements: document.querySelectorAll(".dev-share-buttons__item--copy .copy-content-element"),
   init: function() {
     this.copyElements.forEach(function(contentElement) {
       contentElement.addEventListener(
@@ -24,13 +24,14 @@ var copyClick = {
       selection.removeAllRanges();
 
       var original = contentElement.textContent;
-	    contentElement.querySelector('.copy-content-element').textContent = "Copied!";
-      contentElement.querySelector('.copy-content-element').classList.remove('hide_text');
-      contentElement.classList.add("success");
+      let parentWrap = contentElement.closest('.dev-share-buttons__item--copy');
+	    contentElement.textContent = "Copied!";
+      contentElement.classList.remove('hide_text');
+      parentWrap.classList.add("success");
 
       setTimeout(() => {
-        contentElement.querySelector('.copy-content-element').textContent = original;
-        contentElement.classList.remove("success");
+        contentElement.textContent = original;
+        parentWrap.classList.remove("success");
       }, 1200);
     } catch (e) {
       var errorMsg = document.querySelector(".error-msg");
