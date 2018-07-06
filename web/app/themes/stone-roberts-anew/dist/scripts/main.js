@@ -4151,7 +4151,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 
 var modal = document.getElementById('splash-modal');
-// if (Cookies.get('splashseen') === undefined) {
+if (__WEBPACK_IMPORTED_MODULE_0_js_cookie___default.a.get('splashseen') === undefined) {
 	document.body.classList.add('show-splash', 'show-splash-transition');
 	modal.addEventListener('click', function () {
 
@@ -4166,7 +4166,7 @@ var modal = document.getElementById('splash-modal');
 		}, 1000);
 		__WEBPACK_IMPORTED_MODULE_0_js_cookie___default.a.set('splashseen', 'true', {expires: 365});
 	});
-// }
+}
 
 /***/ }),
 /* 16 */

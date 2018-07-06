@@ -1236,6 +1236,10 @@ body.front.centered-image #back-to-top {
           transform: rotate(180deg);
 }
 
+.center-scroll-arrows div:hover {
+  cursor: pointer;
+}
+
 .center-scroll-arrows.hide-next .next {
   visibility: hidden;
 }

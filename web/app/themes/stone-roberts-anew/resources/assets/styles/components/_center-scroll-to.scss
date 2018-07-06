@@ -12,6 +12,10 @@
     &.next {
       transform: rotate(180deg);
     }
+
+    &:hover{
+      cursor: pointer;
+    }
   }
 
   &.hide-next {

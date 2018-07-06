@@ -1,7 +1,7 @@
 import Cookies from 'js-cookie';
 
 const modal = document.getElementById('splash-modal');
-// if (Cookies.get('splashseen') === undefined) {
+if (Cookies.get('splashseen') === undefined) {
 	document.body.classList.add('show-splash', 'show-splash-transition');
 	modal.addEventListener('click', function () {
 
@@ -16,4 +16,4 @@ const modal = document.getElementById('splash-modal');
 		}, 1000);
 		Cookies.set('splashseen', 'true', {expires: 365});
 	});
-// }
+}
