@@ -33,7 +33,7 @@ export function init() {
 			clearAllBodyScrollLocks();
 		}
 		this.classList.toggle('is-active');
-	}, false);a
+	}, false);
 
 	menuWrap.classList.add('menu-vertical-push-processed');
 }

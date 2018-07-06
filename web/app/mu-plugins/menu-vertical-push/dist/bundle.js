@@ -152,7 +152,7 @@ function init() {
 			Object(body_scroll_lock__WEBPACK_IMPORTED_MODULE_1__["clearAllBodyScrollLocks"])();
 		}
 		this.classList.toggle('is-active');
-	}, false);a
+	}, false);
 
 	menuWrap.classList.add('menu-vertical-push-processed');
 }
