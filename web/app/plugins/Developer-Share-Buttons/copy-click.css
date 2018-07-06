@@ -13,6 +13,7 @@
 }
 
 .dev-share-buttons__text--copy{
+    position: relative;
     text-indent: unset !important;
     white-space: nowrap !important;
 }
@@ -32,9 +33,20 @@
 }
 
 .dev-share-buttons__item--copy .copy-content-element{
-    display: none;
-    position: static;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    top: 0;
 }
+
+.dev-share-buttons__item--copy.success .dev-share-buttons__text--copy{
+    left: 0;
+    overflow: visible;
+    position: absolute;
+    top: 0;
+}
+
 .dev-share-buttons__item--copy.success .copy-content-element{
     display: block;
 }
