@@ -1898,7 +1898,7 @@ body.template-projects .page-header {
 
 #splash-modal {
   display: block;
-  background-color: transparent;
+  background-color: #262626;
   background-size: cover;
   background-position: center;
   height: 100vh;
