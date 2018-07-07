@@ -23,7 +23,7 @@ export let nakasentro = {
 	recentlyRemovedCenteredClasses: false,
 	fixedImageScrollReleaseCount: 0,
 	imagesProcessed: false,
-	mouse_map_less_pixels: 40,
+	mouse_map_less_percentage: .3,
 	delayedTransitionInProgress: false,
 
 	init: function () {
@@ -377,8 +377,8 @@ export let nakasentro = {
 			let artworkStyles = '#' + artworkElements.artworkUniqueId + ' .main-img, #' + artworkElements.artworkUniqueId + ' .mouse-map-wrap {width: ' + artworkElements.artworkImage.clientWidth + 'px; height: ' + artworkElements.artworkImage.clientHeight + 'px;}';
 
 
-			const mouseMapWidth = artworkElements.artworkImage.clientWidth - nakasentro.mouse_map_less_pixels;
-			const mouseMapHeight = artworkElements.artworkImage.clientHeight - nakasentro.mouse_map_less_pixels;
+			const mouseMapWidth = artworkElements.artworkImage.clientWidth - (nakasentro.mouse_map_less_percentage * artworkElements.artworkImage.clientWidth);
+			const mouseMapHeight = artworkElements.artworkImage.clientHeight - (nakasentro.mouse_map_less_percentage * artworkElements.artworkImage.clientHeight);
 
 			artworkStyles += '#' + artworkElements.artworkUniqueId + ' .mouse-map {width: ' + mouseMapWidth + 'px; height: ' + mouseMapHeight + 'px;}';
 
@@ -408,9 +408,9 @@ export let nakasentro = {
 
 			artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.height .mouse-map-wrap { width: ' + mouseMapZoomHeightPixelWidth + 'px; height: ' + mouseMapZoomHeightPixelHeight + 'px;}';
 
-			artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.width .mouse-map { width: ' + (mouseMapZoomWidthPixelWidth - nakasentro.mouse_map_less_pixels) + 'px; height: ' + (mouseMapZoomWidthPixelHeight - nakasentro.mouse_map_less_pixels) + 'px;}';
+			artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.width .mouse-map { width: ' + (mouseMapZoomWidthPixelWidth - (nakasentro.mouse_map_less_percentage * mouseMapZoomWidthPixelWidth)) + 'px; height: ' + (mouseMapZoomWidthPixelHeight - (nakasentro.mouse_map_less_percentage * mouseMapZoomWidthPixelHeight)) + 'px;}';
 
-			artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.height .mouse-map { width: ' + (mouseMapZoomHeightPixelWidth - nakasentro.mouse_map_less_pixels) + 'px; height: ' + (mouseMapZoomHeightPixelHeight - nakasentro.mouse_map_less_pixels) + 'px;}';
+			artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.height .mouse-map { width: ' + (mouseMapZoomHeightPixelWidth - (nakasentro.mouse_map_less_percentage * mouseMapZoomHeightPixelWidth)) + 'px; height: ' + (mouseMapZoomHeightPixelHeight - (nakasentro.mouse_map_less_percentage * mouseMapZoomHeightPixelHeight)) + 'px;}';
 
 
 			// remove temporary max height for image after processing

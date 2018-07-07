@@ -1635,6 +1635,7 @@ body:not(.template-projects) #thumbnail-trigger {
   -webkit-box-align: center;
       -ms-flex-align: center;
           align-items: center;
+  background-color: #1c1c1c;
   background-origin: border-box;
   background-repeat: no-repeat;
   background-size: 100%;
@@ -1686,6 +1687,10 @@ body:not(.template-projects) #thumbnail-trigger {
 .artwork_piece.zoomed .mouse-map-wrap:hover {
   cursor: -webkit-zoom-out !important;
   cursor: zoom-out !important;
+}
+
+.artwork_piece.zoomed .main-img {
+  visibility: hidden;
 }
 
 .artwork_piece.centered .image-space-placeholder {

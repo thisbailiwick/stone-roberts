@@ -7,7 +7,7 @@ export let zoomy = {
 	pictures: Array(),
 	isTouchDevice: utilities.isTouchDevice(),
 	mouseMapEventsAdded: false,
-	mouseMapLessPixelsHalf: nakasentro.mouse_map_less_pixels / 2,
+	mouseMapLessPixelsHalf: nakasentro.mouse_map_less_percentage / 2,
 	init: function () {
 		this.reset();
 		document.querySelectorAll(".artwork_piece[zoom-enabled] .actions .zoom").forEach(function (value, index) {
@@ -79,14 +79,14 @@ export let zoomy = {
 
 	addMouseMoveEvents: function () {
 		zoomy.mouseMapEventsAdded = true;
-		this.mouseMapImage.addEventListener("mousemove", this.mouseMoveHandler, {passive: true});
-		this.mouseMapImage.addEventListener("touchmove", this.touchMoveHandler, {passive: true});
+		document.body.addEventListener("mousemove", this.mouseMoveHandler, {passive: true});
+		document.body.addEventListener("touchmove", this.touchMoveHandler, {passive: true});
 	},
 
 	removeMouseMoveEvents: function () {
 		zoomy.mouseMapEventsAdded = false;
-		this.mouseMapImage.removeEventListener("mousemove", this.mouseMoveHandler, false);
-		this.mouseMapImage.removeEventListener("touchmove", this.touchMoveHandler, false);
+		document.body.removeEventListener("mousemove", this.mouseMoveHandler, false);
+		document.body.removeEventListener("touchmove", this.touchMoveHandler, false);
 	},
 
 	setTimeoutRemoveDelayClass: function (element) {
@@ -137,11 +137,11 @@ export let zoomy = {
 			zoomy.removeMouseMoveEvents.call(this);
 		}
 	},
-	mapMouseToImage: function (e) {
+	mapMouseToImage: function () {
 		var mouseMap = this.mouseMapImage;
-		var position = mousePosition.mousePositionElement(e);
-
-		if (position.x > 0) {
+		var position = mousePosition.mousePositionElement(this.mouseMapImage);
+		
+		// if (position.x > 0) {
 			var leftPercentage = 0;
 			var topPercentage = 0;
 
@@ -162,21 +162,23 @@ export let zoomy = {
 			}
 
 			// set max and min values
-			topPercentage = topPercentage < 0
-				? 0
+			const minValue = -2;
+			const maxValue = 102;
+			topPercentage = topPercentage < minValue
+				? minValue
 				: topPercentage;
-			topPercentage = topPercentage > 100
-				? 100
+			topPercentage = topPercentage > maxValue
+				? maxValue
 				: topPercentage;
-			leftPercentage = leftPercentage < 0
-				? 0
+			leftPercentage = leftPercentage < minValue
+				? minValue
 				: leftPercentage;
-			leftPercentage = leftPercentage > 100
-				? 100
+			leftPercentage = leftPercentage > maxValue
+				? maxValue
 				: leftPercentage;
 
 			// console.log('leftPercentage, topPercentage: ' + leftPercentage, topPercentage);
 			this.mouseMapWrap.style.backgroundPosition = leftPercentage + "% " + topPercentage + "%";
-		}
+		// }
 	},
 };

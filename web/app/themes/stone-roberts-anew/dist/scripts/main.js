@@ -271,7 +271,7 @@ var nakasentro = {
 	recentlyRemovedCenteredClasses: false,
 	fixedImageScrollReleaseCount: 0,
 	imagesProcessed: false,
-	mouse_map_less_pixels: 40,
+	mouse_map_less_percentage: .3,
 	delayedTransitionInProgress: false,
 
 	init: function () {
@@ -625,8 +625,8 @@ var nakasentro = {
 			var artworkStyles = '#' + artworkElements.artworkUniqueId + ' .main-img, #' + artworkElements.artworkUniqueId + ' .mouse-map-wrap {width: ' + artworkElements.artworkImage.clientWidth + 'px; height: ' + artworkElements.artworkImage.clientHeight + 'px;}';
 
 
-			var mouseMapWidth = artworkElements.artworkImage.clientWidth - nakasentro.mouse_map_less_pixels;
-			var mouseMapHeight = artworkElements.artworkImage.clientHeight - nakasentro.mouse_map_less_pixels;
+			var mouseMapWidth = artworkElements.artworkImage.clientWidth - (nakasentro.mouse_map_less_percentage * artworkElements.artworkImage.clientWidth);
+			var mouseMapHeight = artworkElements.artworkImage.clientHeight - (nakasentro.mouse_map_less_percentage * artworkElements.artworkImage.clientHeight);
 
 			artworkStyles += '#' + artworkElements.artworkUniqueId + ' .mouse-map {width: ' + mouseMapWidth + 'px; height: ' + mouseMapHeight + 'px;}';
 
@@ -656,9 +656,9 @@ var nakasentro = {
 
 			artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.height .mouse-map-wrap { width: ' + mouseMapZoomHeightPixelWidth + 'px; height: ' + mouseMapZoomHeightPixelHeight + 'px;}';
 
-			artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.width .mouse-map { width: ' + (mouseMapZoomWidthPixelWidth - nakasentro.mouse_map_less_pixels) + 'px; height: ' + (mouseMapZoomWidthPixelHeight - nakasentro.mouse_map_less_pixels) + 'px;}';
+			artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.width .mouse-map { width: ' + (mouseMapZoomWidthPixelWidth - (nakasentro.mouse_map_less_percentage * mouseMapZoomWidthPixelWidth)) + 'px; height: ' + (mouseMapZoomWidthPixelHeight - (nakasentro.mouse_map_less_percentage * mouseMapZoomWidthPixelHeight)) + 'px;}';
 
-			artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.height .mouse-map { width: ' + (mouseMapZoomHeightPixelWidth - nakasentro.mouse_map_less_pixels) + 'px; height: ' + (mouseMapZoomHeightPixelHeight - nakasentro.mouse_map_less_pixels) + 'px;}';
+			artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.height .mouse-map { width: ' + (mouseMapZoomHeightPixelWidth - (nakasentro.mouse_map_less_percentage * mouseMapZoomHeightPixelWidth)) + 'px; height: ' + (mouseMapZoomHeightPixelHeight - (nakasentro.mouse_map_less_percentage * mouseMapZoomHeightPixelHeight)) + 'px;}';
 
 
 			// remove temporary max height for image after processing
@@ -1206,7 +1206,7 @@ var zoomy = {
 	pictures: Array(),
 	isTouchDevice: __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.isTouchDevice(),
 	mouseMapEventsAdded: false,
-	mouseMapLessPixelsHalf: __WEBPACK_IMPORTED_MODULE_3__nakasentro__["nakasentro"].mouse_map_less_pixels / 2,
+	mouseMapLessPixelsHalf: __WEBPACK_IMPORTED_MODULE_3__nakasentro__["nakasentro"].mouse_map_less_percentage / 2,
 	init: function () {
 		this.reset();
 		document.querySelectorAll(".artwork_piece[zoom-enabled] .actions .zoom").forEach(function (value, index) {
@@ -1278,14 +1278,14 @@ var zoomy = {
 
 	addMouseMoveEvents: function () {
 		zoomy.mouseMapEventsAdded = true;
-		this.mouseMapImage.addEventListener("mousemove", this.mouseMoveHandler, {passive: true});
-		this.mouseMapImage.addEventListener("touchmove", this.touchMoveHandler, {passive: true});
+		document.body.addEventListener("mousemove", this.mouseMoveHandler, {passive: true});
+		document.body.addEventListener("touchmove", this.touchMoveHandler, {passive: true});
 	},
 
 	removeMouseMoveEvents: function () {
 		zoomy.mouseMapEventsAdded = false;
-		this.mouseMapImage.removeEventListener("mousemove", this.mouseMoveHandler, false);
-		this.mouseMapImage.removeEventListener("touchmove", this.touchMoveHandler, false);
+		document.body.removeEventListener("mousemove", this.mouseMoveHandler, false);
+		document.body.removeEventListener("touchmove", this.touchMoveHandler, false);
 	},
 
 	setTimeoutRemoveDelayClass: function (element) {
@@ -1338,11 +1338,11 @@ var zoomy = {
 			zoomy.removeMouseMoveEvents.call(this);
 		}
 	},
-	mapMouseToImage: function (e) {
+	mapMouseToImage: function () {
 		var mouseMap = this.mouseMapImage;
-		var position = __WEBPACK_IMPORTED_MODULE_2__mousePosition__["mousePosition"].mousePositionElement(e);
-
-		if (position.x > 0) {
+		var position = __WEBPACK_IMPORTED_MODULE_2__mousePosition__["mousePosition"].mousePositionElement(this.mouseMapImage);
+		
+		// if (position.x > 0) {
 			var leftPercentage = 0;
 			var topPercentage = 0;
 
@@ -1363,22 +1363,24 @@ var zoomy = {
 			}
 
 			// set max and min values
-			topPercentage = topPercentage < 0
-				? 0
+			var minValue = -2;
+			var maxValue = 102;
+			topPercentage = topPercentage < minValue
+				? minValue
 				: topPercentage;
-			topPercentage = topPercentage > 100
-				? 100
+			topPercentage = topPercentage > maxValue
+				? maxValue
 				: topPercentage;
-			leftPercentage = leftPercentage < 0
-				? 0
+			leftPercentage = leftPercentage < minValue
+				? minValue
 				: leftPercentage;
-			leftPercentage = leftPercentage > 100
-				? 100
+			leftPercentage = leftPercentage > maxValue
+				? maxValue
 				: leftPercentage;
 
 			// console.log('leftPercentage, topPercentage: ' + leftPercentage, topPercentage);
 			this.mouseMapWrap.style.backgroundPosition = leftPercentage + "% " + topPercentage + "%";
-		}
+		// }
 	},
 };
 
@@ -2168,67 +2170,46 @@ var moreInfo = info;
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "mousePosition", function() { return mousePosition; });
 var mousePosition = {
-  // Which HTML element is the target of the event
-  mouseTarget: function(e) {
-    var targ;
-    if (!e) {
+	// Mouse position relative to the document
+	// From http://www.quirksmode.org/js/events_properties.html
+	mousePositionDocument: function (e) {
+		var posx = 0;
+		var posy = 0;
+		if (!e) {
 			/* eslint-disable */
-      var e = window.event;
-	    /* eslint-enable */
-    }
-    if (e.target) {
-      targ = e.target;
-    } else if (e.srcElement) {
-      targ = e.srcElement;
-    }
-    if (targ.nodeType == 3) {
-      // defeat Safari bug
-      targ = targ.parentNode;
-    }
-    return targ;
-  },
+			var e = window.event;
+			/* eslint-enable */
+		}
+		if (e.pageX || e.pageY) {
+			posx = e.pageX;
+			posy = e.pageY;
+		} else if (e.clientX || e.clientY) {
+			posx = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+			posy = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+		}
+		return {
+			x: posx,
+			y: posy,
+		};
+	},
 
-  // Mouse position relative to the document
-  // From http://www.quirksmode.org/js/events_properties.html
-  mousePositionDocument: function(e) {
-    var posx = 0;
-    var posy = 0;
-    if (!e) {
-			/* eslint-disable */
-	    var e = window.event;
-	    /* eslint-enable */
-    }
-    if (e.pageX || e.pageY) {
-      posx = e.pageX;
-      posy = e.pageY;
-    } else if (e.clientX || e.clientY) {
-      posx = e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
-      posy = e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
-    }
-    return {
-      x: posx,
-      y: posy,
-    };
-  },
+	// Find out where an element is on the page
+	findPos: function (obj) {
+		var rect = obj.getBoundingClientRect();
+		return {top: rect.top + window.scrollY, left: rect.left + window.scrollX}
+	},
 
-  // Find out where an element is on the page
-  findPos: function(obj) {
-    var rect = obj.getBoundingClientRect();
-    return { top: rect.top + window.scrollY, left: rect.left + window.scrollX }
-  },
-
-  // Mouse position relative to the element
-  mousePositionElement: function() {
-    var mousePosDoc = this.mousePositionDocument.call(this);
-    var target = this.mouseTarget.call(this);
-    var targetPos = this.findPos(target);
-    var posx = mousePosDoc.x - targetPos.left;
-    var posy = mousePosDoc.y - targetPos.top;
-    return {
-      x: posx,
-      y: posy,
-    };
-  },
+	// Mouse position relative to the element
+	mousePositionElement: function (target) {
+		var mousePosDoc = this.mousePositionDocument.call(this);
+		var targetPos = this.findPos(target);
+		var posx = mousePosDoc.x - targetPos.left;
+		var posy = mousePosDoc.y - targetPos.top;
+		return {
+			x: posx,
+			y: posy,
+		};
+	},
 };
 
 /***/ }),

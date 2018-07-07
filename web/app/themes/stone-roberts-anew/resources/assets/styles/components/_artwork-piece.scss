@@ -224,6 +224,7 @@
 
     .mouse-map-wrap {
       align-items: center;
+      background-color: hsla(0,0,11%,1);
       background-origin: border-box;
       background-repeat: no-repeat;
       background-size: 100%;
@@ -252,15 +253,22 @@
   }
   &.zoomed {
     .mouse-map-wrap {
-      //background-size: 150%;
       opacity: 1;
 
       &:hover {
         cursor: zoom-out !important;
       }
     }
+
+    .zoomy-wrap{
+      //background: hsla(0,0,11%,1);
+    }
+
+    .image-space-placeholder{
+      //background: hsla(0,0,11%,1);
+    }
     .main-img {
-      //opacity: 0;
+      visibility: hidden;
     }
   }
 
