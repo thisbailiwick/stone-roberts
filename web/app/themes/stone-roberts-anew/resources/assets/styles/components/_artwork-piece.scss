@@ -53,7 +53,7 @@
     .caption {
       display: inline-block;
       margin-right: 1%;
-      width: 81%;
+      width: calc(100% - 118px);
     }
     .artwork-meta {
       display: flex; // position: absolute;

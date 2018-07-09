@@ -1455,7 +1455,7 @@ body:not(.template-projects) #thumbnail-trigger {
 .artwork_piece .image-wrap .caption {
   display: inline-block;
   margin-right: 1%;
-  width: 81%;
+  width: calc(100% - 118px);
 }
 
 .artwork_piece .image-wrap .artwork-meta {
