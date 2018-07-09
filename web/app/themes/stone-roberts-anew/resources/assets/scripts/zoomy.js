@@ -140,7 +140,7 @@ export let zoomy = {
 	mapMouseToImage: function () {
 		var mouseMap = this.mouseMapImage;
 		var position = mousePosition.mousePositionElement(this.mouseMapImage);
-		
+
 		// if (position.x > 0) {
 			var leftPercentage = 0;
 			var topPercentage = 0;
