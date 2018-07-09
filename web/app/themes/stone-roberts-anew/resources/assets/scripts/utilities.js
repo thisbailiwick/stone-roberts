@@ -8,7 +8,7 @@ let utilities = {
 	bodyOverlay: document.getElementById('body-overlay'),
 	init: function () {
 		this.setViewportDimensions();
-
+		document.addEventListener('barbaFullscreenOnChange', this.fullScreenOnChangeEvent.bind(this), false);
 		// throw in closest polyfill
 		// https://developer.mozilla.org/en-US/docs/Web/API/Element/closest
 		if (!Element.prototype.matches) Element.prototype.matches = Element.prototype.msMatchesSelector || Element.prototype.webkitMatchesSelector;
@@ -23,6 +23,11 @@ let utilities = {
 				} while (el !== null && el.nodeType === 1);
 				return null;
 			};
+	},
+	fullScreenOnChangeEvent: function () {
+		window.setTimeout(function () {
+			utilities.setViewportDimensions();
+		}, 250);
 	},
 	reset: function () {
 		this.windowHeight = null;

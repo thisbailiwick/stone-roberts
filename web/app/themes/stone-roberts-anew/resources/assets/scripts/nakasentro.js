@@ -118,6 +118,11 @@ export let nakasentro = {
 			/* eslint-enable */
 			nakasentro.removeFullDimensionsCenteredImageScrollEvents.call(this, true);
 		}
+
+		// nakasentro.debounceWindowResize();
+		nakasentro.artworks = Array();
+		utilities.setViewportDimensions();
+		nakasentro.setupValues();
 	},
 	removeFullDimensionsCenteredImageScrollEvents: function (removeAllWheel) {
 		removeAllWheel = typeof removeAllWheel === 'boolean'
@@ -442,8 +447,8 @@ export let nakasentro = {
 	},
 
 	debounceWindowResize: _.debounce(function () {
-		let currentViewportDimenstions = utilities.getViewportDimensions();
-		if (utilities.windowHeight !== currentViewportDimenstions.height || utilities.windowWidth !== currentViewportDimenstions.width) {
+		let currentViewportDimensions = utilities.getViewportDimensions();
+		if (utilities.windowHeight !== currentViewportDimensions.height || utilities.windowWidth !== currentViewportDimensions.width) {
 			nakasentro.artworks = Array();
 			utilities.setViewportDimensions();
 			nakasentro.setupValues();
@@ -452,14 +457,7 @@ export let nakasentro = {
 		nakasentro.isResizing = false;
 	}, 250),
 
-	windowResize: function () {
-		let currentViewportDimenstions = utilities.getViewportDimensions();
-		if (utilities.windowHeight !== currentViewportDimenstions.height || utilities.windowWidth !== currentViewportDimenstions.width) {
-			nakasentro.artworks = Array();
-			utilities.setViewportDimensions();
-			nakasentro.setupValues();
-		}
-	},
+
 
 	setBodyClasses: function (classes) {
 		document.querySelector('body').classList.add(classes);

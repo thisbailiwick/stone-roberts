@@ -1859,6 +1859,8 @@ return /******/ (function(modules) { // webpackBootstrap
 				this.setFullScreenToggle();
 				this.preference = options.showFullscreenModal;
 				this.initFullscreenModal();
+	
+				Fscreen.default.addEventListener('fullscreenchange', FullScreen.fullScreenOnChangeEvent.bind(FullScreen), false);
 			} else {
 				//browser is not capable
 				document.querySelector('.fullscreen-toggle').style.display = 'none';
@@ -1870,13 +1872,13 @@ return /******/ (function(modules) { // webpackBootstrap
 				FullScreen.goFullScreen();
 			});
 		},
+	
 		replaceBodyClasses: function () {
 			var body = document.getElementsByTagName('body')[0];
 			body.className = Dom.currentBodyClasses;
 		},
 		// all fullscreen requests should go through this function
 		goFullScreen: function () {
-			// if safari, hide all elements before toggling
 			var fullscreenElement = document.querySelector('.fullscreen');
 			Fscreen.default.requestFullscreen(fullscreenElement);
 			if (this.preference === false) {
@@ -1989,7 +1991,6 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	};
 	
-	Fscreen.default.addEventListener('fullscreenchange', FullScreen.fullScreenOnChangeEvent.bind(FullScreen), false);
 	module.exports = FullScreen;
 
 

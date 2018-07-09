@@ -234,7 +234,7 @@ var utilities = {
 	bodyOverlay: document.getElementById('body-overlay'),
 	init: function () {
 		this.setViewportDimensions();
-
+		document.addEventListener('barbaFullscreenOnChange', this.fullScreenOnChangeEvent.bind(this), false);
 		// throw in closest polyfill
 		// https://developer.mozilla.org/en-US/docs/Web/API/Element/closest
 		if (!Element.prototype.matches) { Element.prototype.matches = Element.prototype.msMatchesSelector || Element.prototype.webkitMatchesSelector; }
@@ -249,6 +249,11 @@ var utilities = {
 				} while (el !== null && el.nodeType === 1);
 				return null;
 			}; }
+	},
+	fullScreenOnChangeEvent: function () {
+		window.setTimeout(function () {
+			utilities.setViewportDimensions();
+		}, 250);
 	},
 	reset: function () {
 		this.windowHeight = null;
@@ -523,6 +528,11 @@ var nakasentro = {
 			/* eslint-enable */
 			nakasentro.removeFullDimensionsCenteredImageScrollEvents.call(this, true);
 		}
+
+		// nakasentro.debounceWindowResize();
+		nakasentro.artworks = Array();
+		__WEBPACK_IMPORTED_MODULE_0__utilities___default.a.setViewportDimensions();
+		nakasentro.setupValues();
 	},
 	removeFullDimensionsCenteredImageScrollEvents: function (removeAllWheel) {
 		removeAllWheel = typeof removeAllWheel === 'boolean'
@@ -847,8 +857,8 @@ var nakasentro = {
 	},
 
 	debounceWindowResize: __WEBPACK_IMPORTED_MODULE_1_underscore___default.a.debounce(function () {
-		var currentViewportDimenstions = __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.getViewportDimensions();
-		if (__WEBPACK_IMPORTED_MODULE_0__utilities___default.a.windowHeight !== currentViewportDimenstions.height || __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.windowWidth !== currentViewportDimenstions.width) {
+		var currentViewportDimensions = __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.getViewportDimensions();
+		if (__WEBPACK_IMPORTED_MODULE_0__utilities___default.a.windowHeight !== currentViewportDimensions.height || __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.windowWidth !== currentViewportDimensions.width) {
 			nakasentro.artworks = Array();
 			__WEBPACK_IMPORTED_MODULE_0__utilities___default.a.setViewportDimensions();
 			nakasentro.setupValues();
@@ -857,14 +867,7 @@ var nakasentro = {
 		nakasentro.isResizing = false;
 	}, 250),
 
-	windowResize: function () {
-		var currentViewportDimenstions = __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.getViewportDimensions();
-		if (__WEBPACK_IMPORTED_MODULE_0__utilities___default.a.windowHeight !== currentViewportDimenstions.height || __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.windowWidth !== currentViewportDimenstions.width) {
-			nakasentro.artworks = Array();
-			__WEBPACK_IMPORTED_MODULE_0__utilities___default.a.setViewportDimensions();
-			nakasentro.setupValues();
-		}
-	},
+
 
 	setBodyClasses: function (classes) {
 		document.querySelector('body').classList.add(classes);
@@ -8140,6 +8143,7 @@ Router.prototype.loadEvents = function loadEvents () {
 
 				function checkIfImagesLoaded(imagesCount) {
 					if (imagesCount === 0) {
+						console.log('PROCESSING IMAGES');
 						initArtwork();
 
 						//spin up zoomy, must be done after initArtwork
