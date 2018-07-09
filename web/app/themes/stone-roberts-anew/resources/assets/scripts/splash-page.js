@@ -7,9 +7,12 @@ if (Cookies.get('splashseen') === undefined) {
 	document.body.classList.add('show-splash', 'show-splash-transition');
 	modal.addEventListener('click', function () {
 
-			/* eslint-disable */
+
+		/* eslint-disable */
+		if (Barba.FullScreen.isEnabled()) {
 			Barba.FullScreen.goFullScreen();
-			/* eslint-enable */
+		}
+		/* eslint-enable */
 		window.setTimeout(function () {
 			document.body.classList.remove('show-splash');
 			window.setTimeout(function () {
@@ -17,6 +20,7 @@ if (Cookies.get('splashseen') === undefined) {
 				clearAllBodyScrollLocks(modal);
 			}, 250);
 		}, 1000);
+
 		Cookies.set('splashseen', 'true', {expires: 365});
 	});
 }

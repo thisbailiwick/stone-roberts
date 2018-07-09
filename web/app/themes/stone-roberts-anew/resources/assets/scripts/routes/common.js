@@ -145,7 +145,7 @@ export default {
 		/* eslint-disable */
 		Barba.Pjax.start({
 			/* eslint-enable */
-			showFullscreenModal: true,
+			showFullscreenModal: false,
 		});
 
 	},

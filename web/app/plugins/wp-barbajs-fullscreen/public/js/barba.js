@@ -1837,6 +1837,7 @@ return /******/ (function(modules) { // webpackBootstrap
 		modal: null,
 		isFullscreen: false,
 		fullScreenChangeEvent: new CustomEvent('fullscreenChange'),
+		browserSupportsFullscreen: false,
 		fullscreenElement: function () {
 			return Fscreen.default.fullscreenElement !== null;
 		},
@@ -1853,6 +1854,7 @@ return /******/ (function(modules) { // webpackBootstrap
 		initFullScreen: function (options) {
 			//dom should already be loaded here
 			if (Fscreen.default.fullscreenEnabled) {
+				this.browserSupportsFullscreen = true;
 				document.querySelector('body').classList.add('fullscreen-capable');
 				this.setFullScreenToggle();
 				this.preference = options.showFullscreenModal;
@@ -1876,22 +1878,11 @@ return /******/ (function(modules) { // webpackBootstrap
 		goFullScreen: function () {
 			// if safari, hide all elements before toggling
 			var fullscreenElement = document.querySelector('.fullscreen');
-			// var fullscreenWrapper = fullscreenElement.querySelector('.fullscreen-wrapper');
-			// var barbaContainer = fullscreenWrapper.querySelector('.row.barba-container');
-			// fullscreenWrapper.style.visibility = 'hidden';
-			// barbaContainer.style.visibility = 'hidden';
-			// window.setTimeout(function () {
-				Fscreen.default.requestFullscreen(fullscreenElement);
-			// }, 800);
+			Fscreen.default.requestFullscreen(fullscreenElement);
 			if (this.preference === false) {
 				this.preference = true;
 				this.setFullscreenYesCookies();
 			}
-			// window.setTimeout(function () {
-			// 	fullscreenWrapper.style.visibility = 'visible';
-			// 	barbaContainer.style.visibility = 'visible';
-			// }, 1900);
-	
 		},
 		initFullscreenModal: function () {
 			if (this.preference === true) {
@@ -1939,7 +1930,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			document.querySelector('.fullscreen').insertAdjacentHTML('beforeend', modalHtml);
 			// check if user has cookies, permanent and session
 			var showModal = this.shouldShowModal();
-			if (false) {
+			if (showModal) {
 				this.modal = document.querySelector('.fullscreen-modal');
 				var buttonYes = this.modal.querySelector('.fullscreen-yes');
 				var buttonNo = this.modal.querySelector('.fullscreen-no');
