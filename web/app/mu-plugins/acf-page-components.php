@@ -186,7 +186,6 @@ HTML;
 							<span class="close"><i class="fas fa-times-circle"></i></span>
 							<div class="comparison-image-wrap">
 								<img class="comparison-image" src="{$image['url']}" alt="{$image['alt']}" data-width="{$content['width']}" data-height="{$content['height']}" />
-								<div class="info-text">{$artwork_info_text}<p>, <span class="width">{$content['width']}</span> x <span class="height">{$content['height']}</span></p></div>
 							</div>
 							<div style="background: url('{$compare_image_url['url']}') no-repeat center/cover transparent" data-file-width="{$compare_image_url['width']}" data-file-height="{$compare_image_url['height']}" class="compared-to" /></div>
 						</div>

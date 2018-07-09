@@ -8143,7 +8143,6 @@ Router.prototype.loadEvents = function loadEvents () {
 
 				function checkIfImagesLoaded(imagesCount) {
 					if (imagesCount === 0) {
-						console.log('PROCESSING IMAGES');
 						initArtwork();
 
 						//spin up zoomy, must be done after initArtwork

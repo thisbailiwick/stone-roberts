@@ -1542,6 +1542,8 @@ body:not(.template-projects) #thumbnail-trigger {
   -webkit-box-align: center;
       -ms-flex-align: center;
           align-items: center;
+  padding: 0;
+  border: 10px solid #383838;
   -webkit-box-orient: vertical;
   -webkit-box-direction: normal;
       -ms-flex-direction: column;
@@ -1557,24 +1559,19 @@ body:not(.template-projects) #thumbnail-trigger {
           justify-content: flex-end;
   margin-bottom: 29%;
   max-height: 100%;
-  padding-bottom: 3vh;
   position: absolute;
   top: 4%;
   z-index: 1;
 }
 
 .artwork_piece .image-wrap .piece-comparison .comparison-image-wrap .comparison-image {
+  border: 4px solid #fff;
   -ms-flex-negative: 1;
       flex-shrink: 1;
   height: auto;
   max-height: none;
   max-width: none;
   width: 100%;
-}
-
-.artwork_piece .image-wrap .piece-comparison .comparison-image-wrap .info-text p {
-  color: #0f0f0f;
-  display: inline;
 }
 
 .artwork_piece .image-wrap .piece-comparison .compared-to {
