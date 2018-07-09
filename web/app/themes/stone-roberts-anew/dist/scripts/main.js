@@ -4142,17 +4142,19 @@ if (__WEBPACK_IMPORTED_MODULE_0_js_cookie___default.a.get('splashseen') === unde
 
 
 		/* eslint-disable */
-		if (Barba.FullScreen.isEnabled()) {
+		if (Barba.FullScreen.browserSupportsFullscreen) {
 			Barba.FullScreen.goFullScreen();
+			window.setTimeout(function () {
+				document.body.classList.remove('show-splash');
+				window.setTimeout(function () {
+					document.body.classList.remove('show-splash-transition');
+					Object(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__["clearAllBodyScrollLocks"])(modal);
+				}, 250);
+			}, 1000);
+		}else{
+			document.body.classList.remove('show-splash', 'show-splash-transition');
 		}
 		/* eslint-enable */
-		window.setTimeout(function () {
-			document.body.classList.remove('show-splash');
-			window.setTimeout(function () {
-				document.body.classList.remove('show-splash-transition');
-				Object(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__["clearAllBodyScrollLocks"])(modal);
-			}, 250);
-		}, 1000);
 
 		__WEBPACK_IMPORTED_MODULE_0_js_cookie___default.a.set('splashseen', 'true', {expires: 365});
 	});
