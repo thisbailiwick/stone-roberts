@@ -153,7 +153,7 @@ export let zoomy = {
 					topPercentage = (position.y / (mouseMap.clientWidth * nakasentro.artworks[this.artworksIndex].originalDimensions.imageRatioHeight)) * 100;
 				} else {
 					topPercentage = (position.y / mouseMap.clientHeight) * 100;
-					leftPercentage = (position.x / ((mouseMap.clientHeight * nakasentro.artworks[this.artworksIndex].originalDimensions.imageRatioWidth) * this.scaleWidth)) * 100;
+					leftPercentage = (position.x / (mouseMap.clientHeight * nakasentro.artworks[this.artworksIndex].originalDimensions.imageRatioWidth)) * 100;
 				}
 			} else {
 				// image not centered
@@ -177,7 +177,7 @@ export let zoomy = {
 				? maxValue
 				: leftPercentage;
 
-			// console.log('leftPercentage, topPercentage: ' + leftPercentage, topPercentage);
+			console.log('leftPercentage, topPercentage: ' + leftPercentage, topPercentage);
 			this.mouseMapWrap.style.backgroundPosition = leftPercentage + "% " + topPercentage + "%";
 		// }
 	},
