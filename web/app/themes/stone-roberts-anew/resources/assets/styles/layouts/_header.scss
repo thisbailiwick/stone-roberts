@@ -4,6 +4,8 @@ header.banner {
   margin-bottom: 70px;
 
   .container {
+    display: flex;
+    justify-content: center;
     overflow: auto;
 
     .brand {
@@ -11,7 +13,8 @@ header.banner {
       display: block;
       height: 117px;
       line-height: 1em;
-      margin: 0;
+      margin: 0 auto;
+      max-width: 100%;
       text-align: center;
       padding: 4vh 0 9.5vh;
       font-size: 30px;
@@ -19,7 +22,7 @@ header.banner {
       position: static;
       top: 0;
       left: 0;
-      width: 100%;
+      width: 399px;
 
       span{
         display: block;

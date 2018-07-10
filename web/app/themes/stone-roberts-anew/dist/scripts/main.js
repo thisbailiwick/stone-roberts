@@ -8118,7 +8118,7 @@ Router.prototype.loadEvents = function loadEvents () {
 				// The Transition has just finished.
 
 				// init thumbnails
-				if (document.body.classList.contains('template-projects')) {
+				if (document.body.classList.contains('template-projects') || document.body.classList.contains('single-projects')) {
 					Object(__WEBPACK_IMPORTED_MODULE_6__thumbnail_nav__["setInitFalse"])();
 					Object(__WEBPACK_IMPORTED_MODULE_6__thumbnail_nav__["init"])(document.querySelector('.main'));
 				}

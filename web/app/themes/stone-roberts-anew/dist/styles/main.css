@@ -1292,6 +1292,10 @@ body.front.centered-image #back-to-top {
   visibility: visible;
 }
 
+.single-projects .center-scroll-arrows {
+  display: none;
+}
+
 #thumbnails-nav {
   background-color: rgba(0, 0, 0, 0.9);
   height: 100vh;
@@ -1941,6 +1945,12 @@ header.banner {
 }
 
 header.banner .container {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: center;
+      -ms-flex-pack: center;
+          justify-content: center;
   overflow: auto;
 }
 
@@ -1949,7 +1959,8 @@ header.banner .container .brand {
   display: block;
   height: 117px;
   line-height: 1em;
-  margin: 0;
+  margin: 0 auto;
+  max-width: 100%;
   text-align: center;
   padding: 4vh 0 9.5vh;
   font-size: 30px;
@@ -1957,7 +1968,7 @@ header.banner .container .brand {
   position: static;
   top: 0;
   left: 0;
-  width: 100%;
+  width: 399px;
 }
 
 header.banner .container .brand span {
