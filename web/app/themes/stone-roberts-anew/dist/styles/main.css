@@ -1509,6 +1509,10 @@ body:not(.template-projects) #thumbnail-trigger {
   cursor: pointer;
 }
 
+.artwork_piece .image-wrap .artwork-meta .actions div svg {
+  color: #b3b3b3;
+}
+
 .artwork_piece .image-wrap .piece-comparison {
   background: #fff;
   display: -webkit-box;
@@ -1753,7 +1757,7 @@ body:not(.template-projects) #thumbnail-trigger {
   content: '';
   height: 30px;
   width: 30px;
-  border: solid white;
+  border: solid #b3b3b3;
   border-width: 0 3px 3px 0;
   display: inline-block;
   padding: 3px;
