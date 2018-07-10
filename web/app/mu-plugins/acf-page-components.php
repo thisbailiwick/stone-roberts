@@ -193,9 +193,9 @@ HTML;
 					<div class="artwork-meta">
 						<div class="caption">{$content['caption_text']}</div>
 						<div class="actions">
-							<div class="zoom" data-large-image="{$image['url']}" data-zoom-unique-id="{$unique_id}"><i class="fas fa-search-plus"></i></div>
-							<div class="info" data-width="{$content['width']}" data-height="{$content['height']}" data-compare-height-inches="{$compare_image_height}" data-compare-width-inches="{$compare_image_width}"><i class="fas fa-info-circle"></i></div>
-							<div class="share"><i class="fas fa-share-square"></i></div>
+							<i class="zoom icon" data-large-image="{$image['url']}" data-zoom-unique-id="{$unique_id}"></i>
+							<i class="info icon" data-width="{$content['width']}" data-height="{$content['height']}" data-compare-height-inches="{$compare_image_height}" data-compare-width-inches="{$compare_image_width}"></i>
+							<i class="share icon"></i>
 						</div>
 					</div>
           </div>

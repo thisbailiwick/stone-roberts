@@ -755,7 +755,8 @@ body.front #body-overlay {
   z-index: -300;
 }
 
-body.front.page-template-template-projects .main {
+body.front.page-template-template-projects .main,
+body.front.single-projects .main {
   display: -webkit-box;
   display: -ms-flexbox;
   display: flex;
@@ -775,12 +776,14 @@ body.front.page-template-template-projects .main {
 }
 
 @media screen and (max-width: 767px) {
-  body.front.page-template-template-projects .main {
+  body.front.page-template-template-projects .main,
+  body.front.single-projects .main {
     width: 90%;
   }
 }
 
-body.front.page-template-template-projects .main > * {
+body.front.page-template-template-projects .main > *,
+body.front.single-projects .main > * {
   -webkit-transition-duration: .25s;
        -o-transition-duration: .25s;
           transition-duration: .25s;
@@ -789,11 +792,13 @@ body.front.page-template-template-projects .main > * {
   transition-property: opacity;
 }
 
-body.front.page-template-template-projects .main.centered-image > *:not(.centered-image-transition-duration) {
+body.front.page-template-template-projects .main.centered-image > *:not(.centered-image-transition-duration),
+body.front.single-projects .main.centered-image > *:not(.centered-image-transition-duration) {
   opacity: 0;
 }
 
-body.front.page-template-template-projects .main p {
+body.front.page-template-template-projects .main p,
+body.front.single-projects .main p {
   margin-top: 0;
 }
 
@@ -1470,7 +1475,7 @@ body:not(.template-projects) #thumbnail-trigger {
 .artwork_piece .image-wrap .caption {
   display: inline-block;
   margin-right: 1%;
-  width: calc(100% - 118px);
+  width: calc(100% - 158px);
 }
 
 .artwork_piece .image-wrap .artwork-meta {
@@ -1501,18 +1506,27 @@ body:not(.template-projects) #thumbnail-trigger {
   z-index: 20;
 }
 
-.artwork_piece .image-wrap .artwork-meta .actions div {
+.artwork_piece .image-wrap .artwork-meta .actions .icon {
   display: inline-block;
-  height: 30px;
+  height: 34px;
+  margin: 0 10px;
   width: 30px;
 }
 
-.artwork_piece .image-wrap .artwork-meta .actions div:hover {
+.artwork_piece .image-wrap .artwork-meta .actions .icon:hover {
   cursor: pointer;
 }
 
-.artwork_piece .image-wrap .artwork-meta .actions div svg {
-  color: #b3b3b3;
+.artwork_piece .image-wrap .artwork-meta .actions .info {
+  background: url("/app/themes/stone-roberts-anew/dist/images/artwork-scale.png") no-repeat center/contain transparent;
+}
+
+.artwork_piece .image-wrap .artwork-meta .actions .zoom {
+  background: url("/app/themes/stone-roberts-anew/dist/images/zoom.png") no-repeat center/contain transparent;
+}
+
+.artwork_piece .image-wrap .artwork-meta .actions .share {
+  background: url("/app/themes/stone-roberts-anew/dist/images/share.png") no-repeat center/contain transparent;
 }
 
 .artwork_piece .image-wrap .piece-comparison {
@@ -1967,7 +1981,7 @@ header.banner .container .nav-primary .nav li {
 }
 
 header.banner .fullscreen-toggle {
-  background-image: url("/app/themes/stone-roberts-anew/dist/images/fullscreen-1.png") !important;
+  background-image: url("/app/themes/stone-roberts-anew/dist/images/fullscreen-in.png") !important;
   left: 22px;
   right: unset;
   top: 26px;
@@ -1983,6 +1997,26 @@ header.banner .fullscreen-toggle {
 .home .hamburger,
 .home .nav-primary {
   display: none;
+}
+
+.fullscreen:-webkit-full-screen .fullscreen-toggle {
+  background-image: url("/app/themes/stone-roberts-anew/dist/images/fullscreen-out.png") !important;
+  display: block !important;
+}
+
+.fullscreen:-moz-full-screen .fullscreen-toggle {
+  background-image: url("/app/themes/stone-roberts-anew/dist/images/fullscreen-out.png") !important;
+  display: block !important;
+}
+
+.fullscreen:-ms-fullscreen .fullscreen-toggle {
+  background-image: url("/app/themes/stone-roberts-anew/dist/images/fullscreen-out.png") !important;
+  display: block !important;
+}
+
+.fullscreen:fullscreen .fullscreen-toggle {
+  background-image: url("/app/themes/stone-roberts-anew/dist/images/fullscreen-out.png") !important;
+  display: block !important;
 }
 
 .post-main-content figure {

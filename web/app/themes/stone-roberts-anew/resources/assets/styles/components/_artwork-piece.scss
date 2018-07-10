@@ -53,7 +53,7 @@
     .caption {
       display: inline-block;
       margin-right: 1%;
-      width: calc(100% - 118px);
+      width: calc(100% - 158px);
     }
     .artwork-meta {
       display: flex; // position: absolute;
@@ -73,17 +73,28 @@
         flex-shrink: 0;
         transition-duration: .5s;
         z-index: 20;
-        div {
+
+        .icon{
           display: inline-block;
-          height: 30px;
+          height: 34px;
+          margin: 0 10px;
           width: 30px;
+
           &:hover {
             cursor: pointer;
           }
+        }
 
-          svg{
-            color: $icons-color;
-          }
+        .info{
+          background: url($image-path + 'artwork-scale.png') no-repeat center/contain transparent;
+        }
+
+        .zoom{
+          background: url($image-path + 'zoom.png') no-repeat center/contain transparent;
+        }
+
+        .share{
+          background: url($image-path + 'share.png') no-repeat center/contain transparent;
         }
       }
     }

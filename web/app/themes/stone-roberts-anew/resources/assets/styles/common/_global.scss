@@ -93,7 +93,7 @@ body.front {
     z-index: -300
   }
 
-  &.page-template-template-projects {
+  &.page-template-template-projects, &.single-projects {
     .main {
       display: flex;
       flex-direction: column;

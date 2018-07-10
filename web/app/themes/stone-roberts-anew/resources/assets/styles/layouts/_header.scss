@@ -41,7 +41,7 @@ header.banner {
   }
 
   .fullscreen-toggle{
-    background-image: url($image-path + 'fullscreen-1.png') !important;
+    background-image: url($image-path + 'fullscreen-in.png') !important;
     left: 22px;
     right: unset;
     top: 26px;
@@ -58,5 +58,12 @@ header.banner {
 .home {
   .hamburger, .nav-primary {
     display: none;
+  }
+}
+
+.fullscreen:fullscreen{
+  .fullscreen-toggle{
+    background-image: url($image-path + 'fullscreen-out.png') !important;
+    display: block !important;
   }
 }
