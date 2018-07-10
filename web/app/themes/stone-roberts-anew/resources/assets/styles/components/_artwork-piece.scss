@@ -120,6 +120,7 @@
 
       .comparison-image-wrap {
         align-items: center;
+        box-shadow: -2px 1px 5px 0px #525356;
         padding: 0;
         border: 10px solid #383838;
         flex-direction: column;
@@ -134,7 +135,7 @@
         z-index: 1;
 
         .comparison-image {
-          border: 4px solid #fff;
+          border: 30px solid #fff;
           flex-shrink: 1;
           height: auto;
           max-height: none;
@@ -248,57 +249,60 @@
     }
 
     .artwork-meta {
-      $width-displayed: 40px;
-      background-color: hsla(0, 0%, 10%, 1);
-      align-items: center;
-      bottom: 0;
-      display: flex;
-      justify-content: space-between;
-      left: calc(100vw - #{$width-displayed});
-      padding: 0;
-      position: fixed;
-      transition-duration: $zoom-transition-duration;
-      transition-property: left;
-      width: 100vw;
-      z-index: 302;
+      display: none;
 
-      .artwork_piece {
-        width: auto;
-      }
 
-      &:before {
-        content: '';
-        height: 30px;
-        width: 30px;
-        border: solid $icons-color;
-        border-width: 0 3px 3px 0;
-        display: inline-block;
-        padding: 3px;
-        transform: rotate(135deg);
-        position: absolute;
-        left: 12px;
-        bottom: 14px;
-      }
-
-      &:hover {
-        left: 0;
-        padding-left: 1.2em;
-        padding-right: 1.2em;
-
-      }
-
-      .caption {
-        padding: 20px 20px 20px 41px;
-        width: 81%;
-
-        p {
-          text-align: center;
-        }
-      }
-
-      .actions {
-        position: static;
-      }
+      //$width-displayed: 40px;
+      //background-color: hsla(0, 0%, 10%, 1);
+      //align-items: center;
+      //bottom: 0;
+      //display: flex;
+      //justify-content: space-between;
+      //left: calc(100vw - #{$width-displayed});
+      //padding: 0;
+      //position: fixed;
+      //transition-duration: $zoom-transition-duration;
+      //transition-property: left;
+      //width: 100vw;
+      //z-index: 302;
+      //
+      //.artwork_piece {
+      //  width: auto;
+      //}
+      //
+      //&:before {
+      //  content: '';
+      //  height: 30px;
+      //  width: 30px;
+      //  border: solid $icons-color;
+      //  border-width: 0 3px 3px 0;
+      //  display: inline-block;
+      //  padding: 3px;
+      //  transform: rotate(135deg);
+      //  position: absolute;
+      //  left: 12px;
+      //  bottom: 14px;
+      //}
+      //
+      //&:hover {
+      //  left: 0;
+      //  padding-left: 1.2em;
+      //  padding-right: 1.2em;
+      //
+      //}
+      //
+      //.caption {
+      //  padding: 20px 20px 20px 41px;
+      //  width: 81%;
+      //
+      //  p {
+      //    text-align: center;
+      //  }
+      //}
+      //
+      //.actions {
+      //  position: static;
+      //}
     }
 
     &.width {

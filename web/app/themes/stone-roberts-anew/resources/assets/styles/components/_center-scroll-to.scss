@@ -29,13 +29,15 @@
 
   &.hide-next {
     .next {
-      visibility: hidden;
+      opacity: .15;
+      visibility: visible;
     }
   }
 
   &.hide-previous {
     .prev {
-      visibility: hidden;
+      opacity: .15;
+      visibility: visible;
     }
   }
 

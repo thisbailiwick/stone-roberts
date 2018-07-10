@@ -1005,7 +1005,9 @@ var nakasentro = {
 			// console.log('artwork.imageCentered: ' + artwork.imageCentered);
 			if (artwork.imageCentered === false && artwork.fullscreenImageCentered === false/* && this.recentlyAddedCenteredClasses === false*/) {
 				// if in fullscreen we want to add these events to handle scroll when centered and scroll events is not triggered due to fixed elements
-
+				/* eslint-disable */
+				share.closeShareModule(artwork.artworkWrap.querySelector('.dev-share-buttons'));
+				/* eslint-enable */
 				this.centerImage(artwork);
 			}
 
@@ -1719,6 +1721,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_body_scroll_lock__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_body_scroll_lock___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_body_scroll_lock__);
 
+
 var artworkInfo = {
 	showing: false,
 	buttons: null,
@@ -1731,6 +1734,7 @@ var artworkInfo = {
 				button: button,
 				artworkWrap: artworkWrap,
 				close: artworkWrap.querySelector(".piece-comparison-wrap .close"),
+				linkInputWrap: artworkWrap.querySelector('.link-input-wrap'),
 			};
 
 			// this.buttons.push(infoData);
@@ -1762,8 +1766,10 @@ var artworkInfo = {
 			Object(__WEBPACK_IMPORTED_MODULE_0_body_scroll_lock__["disableBodyScroll"])();
 		}
 		infoData.artworkWrap.classList.toggle("show-info");
-
-
+		window.setTimeout(function () {
+			infoData.linkInputWrap.focus(true);
+			infoData.linkInputWrap.select();
+		}, 400);
 
 		//toggle artwork info showing variable
 		artworkInfo.showing = !artworkInfo.showing;

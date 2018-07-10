@@ -1278,11 +1278,13 @@ body.front.centered-image #back-to-top {
 }
 
 .center-scroll-arrows.hide-next .next {
-  visibility: hidden;
+  opacity: .15;
+  visibility: visible;
 }
 
 .center-scroll-arrows.hide-previous .prev {
-  visibility: hidden;
+  opacity: .15;
+  visibility: visible;
 }
 
 #thumbnails-nav {
@@ -1559,6 +1561,8 @@ body:not(.template-projects) #thumbnail-trigger {
   -webkit-box-align: center;
       -ms-flex-align: center;
           align-items: center;
+  -webkit-box-shadow: -2px 1px 5px 0px #525356;
+          box-shadow: -2px 1px 5px 0px #525356;
   padding: 0;
   border: 10px solid #383838;
   -webkit-box-orient: vertical;
@@ -1582,7 +1586,7 @@ body:not(.template-projects) #thumbnail-trigger {
 }
 
 .artwork_piece .image-wrap .piece-comparison .comparison-image-wrap .comparison-image {
-  border: 4px solid #fff;
+  border: 30px solid #fff;
   -ms-flex-negative: 1;
       flex-shrink: 1;
   height: auto;
@@ -1725,67 +1729,7 @@ body:not(.template-projects) #thumbnail-trigger {
 }
 
 .artwork_piece.centered .artwork-meta {
-  background-color: #1a1a1a;
-  -webkit-box-align: center;
-      -ms-flex-align: center;
-          align-items: center;
-  bottom: 0;
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-pack: justify;
-      -ms-flex-pack: justify;
-          justify-content: space-between;
-  left: calc(100vw - 40px);
-  padding: 0;
-  position: fixed;
-  -webkit-transition-duration: 0.5s;
-       -o-transition-duration: 0.5s;
-          transition-duration: 0.5s;
-  -webkit-transition-property: left;
-  -o-transition-property: left;
-  transition-property: left;
-  width: 100vw;
-  z-index: 302;
-}
-
-.artwork_piece.centered .artwork-meta .artwork_piece {
-  width: auto;
-}
-
-.artwork_piece.centered .artwork-meta:before {
-  content: '';
-  height: 30px;
-  width: 30px;
-  border: solid #b3b3b3;
-  border-width: 0 3px 3px 0;
-  display: inline-block;
-  padding: 3px;
-  -webkit-transform: rotate(135deg);
-       -o-transform: rotate(135deg);
-          transform: rotate(135deg);
-  position: absolute;
-  left: 12px;
-  bottom: 14px;
-}
-
-.artwork_piece.centered .artwork-meta:hover {
-  left: 0;
-  padding-left: 1.2em;
-  padding-right: 1.2em;
-}
-
-.artwork_piece.centered .artwork-meta .caption {
-  padding: 20px 20px 20px 41px;
-  width: 81%;
-}
-
-.artwork_piece.centered .artwork-meta .caption p {
-  text-align: center;
-}
-
-.artwork_piece.centered .artwork-meta .actions {
-  position: static;
+  display: none;
 }
 
 .artwork_piece.centered.width .image-space-placeholder,

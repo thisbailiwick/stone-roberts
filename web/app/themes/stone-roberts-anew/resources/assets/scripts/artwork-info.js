@@ -1,4 +1,5 @@
-import { disableBodyScroll, clearAllBodyScrollLocks } from 'body-scroll-lock';
+import {disableBodyScroll, clearAllBodyScrollLocks} from 'body-scroll-lock';
+
 export let artworkInfo = {
 	showing: false,
 	buttons: null,
@@ -11,6 +12,7 @@ export let artworkInfo = {
 				button: button,
 				artworkWrap: artworkWrap,
 				close: artworkWrap.querySelector(".piece-comparison-wrap .close"),
+				linkInputWrap: artworkWrap.querySelector('.link-input-wrap'),
 			};
 
 			// this.buttons.push(infoData);
@@ -42,8 +44,10 @@ export let artworkInfo = {
 			disableBodyScroll();
 		}
 		infoData.artworkWrap.classList.toggle("show-info");
-
-
+		window.setTimeout(function () {
+			infoData.linkInputWrap.focus(true);
+			infoData.linkInputWrap.select();
+		}, 400);
 
 		//toggle artwork info showing variable
 		artworkInfo.showing = !artworkInfo.showing;

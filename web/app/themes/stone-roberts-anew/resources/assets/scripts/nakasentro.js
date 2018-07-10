@@ -591,7 +591,9 @@ export let nakasentro = {
 			// console.log('artwork.imageCentered: ' + artwork.imageCentered);
 			if (artwork.imageCentered === false && artwork.fullscreenImageCentered === false/* && this.recentlyAddedCenteredClasses === false*/) {
 				// if in fullscreen we want to add these events to handle scroll when centered and scroll events is not triggered due to fixed elements
-
+				/* eslint-disable */
+				share.closeShareModule(artwork.artworkWrap.querySelector('.dev-share-buttons'));
+				/* eslint-enable */
 				this.centerImage(artwork);
 			}
 

@@ -35,6 +35,9 @@ share = {
 	triggerShareModule: function() {
 		var shareWrap = this.parentNode.parentNode.parentNode.querySelector('.dev-share-buttons');
 		shareWrap.classList.toggle("show");
+		var linkInputWrap = shareWrap.querySelector('.link-input-wrap input');
+		linkInputWrap.focus();
+		linkInputWrap.select();
 		window.setTimeout(function(){
 			share.addNonAreaClickClose(shareWrap);
 		}, 100);
