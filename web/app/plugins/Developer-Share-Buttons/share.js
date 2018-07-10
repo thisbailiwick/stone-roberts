@@ -42,7 +42,6 @@ share = {
 
 	closeShareModule: function(shareWrap){
 		shareWrap.classList.remove('show');
-		// TODO: this is not working
 		document.removeEventListener('click', share.documentClickEvent, false);
 	},
 
