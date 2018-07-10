@@ -1557,9 +1557,9 @@ body:not(.template-projects) #thumbnail-trigger {
   -webkit-box-pack: end;
       -ms-flex-pack: end;
           justify-content: flex-end;
-  margin-bottom: 29%;
+  position: static;
+  margin: 0 0 5%;
   max-height: 100%;
-  position: absolute;
   top: 19%;
   z-index: 1;
 }

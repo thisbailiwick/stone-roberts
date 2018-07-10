@@ -122,9 +122,10 @@
         flex-grow: 0;
         display: flex;
         justify-content: flex-end;
-        margin-bottom: 29%;
+        //margin-bottom: 29%;
+        position: static;
+        margin: 0 0 5%;
         max-height: 100%;
-        position: absolute;
         top: 19%;
         z-index: 1;
 
