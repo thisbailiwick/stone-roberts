@@ -10,7 +10,7 @@ export let artworkInfo = {
 			let infoData = {
 				button: button,
 				artworkWrap: artworkWrap,
-				close: artworkWrap.querySelector(".close"),
+				close: artworkWrap.querySelector(".piece-comparison-wrap .close"),
 			};
 
 			// this.buttons.push(infoData);

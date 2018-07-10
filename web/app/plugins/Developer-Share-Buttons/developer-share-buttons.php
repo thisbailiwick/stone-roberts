@@ -542,7 +542,7 @@ if ( ! class_exists( 'DeveloperShareButtons' ) ) {
 			do_action( 'after_' . static::$slug_ );
 			$html .= ob_get_clean();
 
-			$html .= '</div>';
+			$html .= '<span class="close"><span class="fas fa-times-circle"></span></span></div>';
 
 			return $html;
 		}

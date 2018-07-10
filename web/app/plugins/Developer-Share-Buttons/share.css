@@ -29,6 +29,17 @@
     width: 0;
 }
 
+.dev-share-buttons .close{
+    font-size: 32px;
+    position: absolute;
+    top: 0.3em;
+    right: 0.3em;
+}
+
+.dev-share-buttons .close:hover{
+    cursor: pointer;
+}
+
 /* Hide the text. */
 .hide_text {
     display: block;
