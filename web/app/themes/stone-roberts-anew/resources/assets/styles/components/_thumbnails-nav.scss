@@ -53,15 +53,16 @@
 }
 
 #thumbnail-trigger{
-  $square-side-length: 10;
+  $square-side-length: 7;
   $square-margin-right: 3;
   $square-margin-bottom: 3;
   $wrap-width: ($square-margin-right + $square-side-length) * 3;
   $wrap-height: ($square-margin-bottom + $square-side-length) * 2;
   height: $wrap-height + px;
-  left: 10px;
+  left: unset;
+  top: 60px;
+  right: 21px;
   position: fixed;
-  bottom: 8px;
   transition-duration: .1s;
   transition-property: top;
   width: $wrap-width + px;
@@ -73,7 +74,7 @@
 
 
   >div{
-    background-color: #fff;
+    background-color: $icons-color;
     float: left;
     height: $square-side-length + px;
     margin: 0 $square-margin-right + px $square-margin-bottom + px 0;

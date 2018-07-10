@@ -719,11 +719,11 @@
 
 .hamburger {
   position: fixed;
-  left: 0;
-  top: 0;
+  top: 57px;
+  left: 8px;
   z-index: 307; }
   .hamburger .hamburger-inner, .hamburger .hamburger-inner::before, .hamburger .hamburger-inner::after {
-    background-color: #fff;
+    background-color: #b3b3b3;
     height: 2px;
     width: 30px; }
 

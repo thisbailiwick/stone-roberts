@@ -31,12 +31,12 @@
 
 .hamburger {
   position: fixed;
-  left: 0;
-  top: 0;
+  top: 57px;
+  left: 8px;
   z-index: 307;
 
   .hamburger-inner, .hamburger-inner::before, .hamburger-inner::after {
-    background-color: #fff;
+    background-color: hsla(0, 0%, 70%, 1.0);
     height: 2px;
     width: 30px;
   }

@@ -39,10 +39,20 @@ header.banner {
       }
     }
   }
+
+  .fullscreen-toggle{
+    background-image: url($image-path + 'fullscreen-1.png') !important;
+    left: 22px;
+    right: unset;
+    top: 26px;
+    width: 33px !important;
+  }
 }
 
 .hamburger{
   z-index: 307 !important;
+  top: 57px;
+  left: 8px;
 }
 
 .home {

@@ -1422,7 +1422,7 @@ function init() {
 		__WEBPACK_IMPORTED_MODULE_1_smoothscroll_polyfill___default.a.polyfill();
 
 		// add arrows
-		var arrows = "\n\t\t<div class=\"center-scroll-arrows\"><div class=\"prev\"><svg viewBox=\"0 0 24 24\"><path d=\"M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z\"></path></svg></div><div class=\"next\"><svg viewBox=\"0 0 24 24\"><path d=\"M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z\"></path></svg></div>\n\t";
+		var arrows = "\n\t\t<div class=\"center-scroll-arrows\"><div class=\"prev\"></div><div class=\"next\"></div>\n\t";
 		document.querySelector('.fullscreen').insertAdjacentHTML('beforeend', arrows);
 
 		centerScrollDiv = document.querySelector('.center-scroll-arrows');

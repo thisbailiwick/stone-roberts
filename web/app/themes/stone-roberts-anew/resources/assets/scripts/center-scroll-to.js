@@ -21,7 +21,7 @@ function init() {
 
 		// add arrows
 		const arrows = `
-		<div class="center-scroll-arrows"><div class="prev"><svg viewBox="0 0 24 24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path></svg></div><div class="next"><svg viewBox="0 0 24 24"><path d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path></svg></div>
+		<div class="center-scroll-arrows"><div class="prev"></div><div class="next"></div>
 	`;
 		document.querySelector('.fullscreen').insertAdjacentHTML('beforeend', arrows);
 
