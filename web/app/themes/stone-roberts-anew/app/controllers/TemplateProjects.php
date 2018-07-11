@@ -22,22 +22,11 @@
 	 $args['paged'] = get_query_var('paged') ? get_query_var('paged') : 1;
 
 	 // Instantiate custom query
-//	 $the_query = new WP_Query($args);
 	 $projects = get_posts($args);
 	 foreach($projects as $index => $project){
 	  	$projects[$index]->acf_content = get_fields($project->ID)['content'];
 	 }
 
-	 // Pagination fix
-//    $temp_query = $wp_query;
-//    $wp_query = NULL;
-//    $wp_query = $temp_query;
-
 	 return $projects;
 	}
-
-	public function testing() {
-	 return 'tessting';
-	}
-
  }

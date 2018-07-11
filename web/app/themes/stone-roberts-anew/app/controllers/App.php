@@ -9,6 +9,10 @@
 	 return get_bloginfo('name');
 	}
 
+	public function siteUrl() {
+	 return get_bloginfo('url');
+	}
+
 	public static function title() {
 	 if (is_home()) {
 		if ($home = get_option('page_for_posts', true)) {
