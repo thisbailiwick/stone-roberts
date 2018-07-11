@@ -1997,6 +1997,7 @@ header.banner .fullscreen-toggle {
   right: unset;
   top: 26px;
   width: 33px !important;
+  z-index: 301;
 }
 
 .hamburger {
