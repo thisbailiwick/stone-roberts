@@ -127,6 +127,12 @@
         &.piece-comparison-processed{
           visibility: visible !important;
         }
+
+        .close{
+          background: url($image-path + 'close.png') no-repeat center/contain transparent;
+          height: 18px;
+          width: 17px;
+        }
       }
 
       .comparison-image-wrap {

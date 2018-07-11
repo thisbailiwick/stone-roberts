@@ -1575,6 +1575,12 @@ body:not(.template-projects) #thumbnail-trigger {
   visibility: visible !important;
 }
 
+.artwork_piece .image-wrap .piece-comparison .piece-comparison-wrap .close {
+  background: url("/app/themes/stone-roberts-anew/dist/images/close.png") no-repeat center/contain transparent;
+  height: 18px;
+  width: 17px;
+}
+
 .artwork_piece .image-wrap .piece-comparison .comparison-image-wrap {
   -webkit-box-align: center;
       -ms-flex-align: center;

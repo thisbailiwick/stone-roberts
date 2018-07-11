@@ -183,7 +183,7 @@ HTML;
 					</div>
 					<div class="piece-comparison">
 						<div class="piece-comparison-wrap" style="visibility: hidden;">
-							<span class="close"><i class="fas fa-times-circle"></i></span>
+							<i class="close"></i>
 							<div class="comparison-image-wrap">
 								<img class="comparison-image" src="{$image['url']}" alt="{$image['alt']}" data-width="{$content['width']}" data-height="{$content['height']}" />
 							</div>
