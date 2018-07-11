@@ -1767,7 +1767,7 @@ var artworkInfo = {
 		}
 		infoData.artworkWrap.classList.toggle("show-info");
 		window.setTimeout(function () {
-			infoData.linkInputWrap.focus(true);
+			infoData.linkInputWrap.focus();
 			infoData.linkInputWrap.select();
 		}, 400);
 
