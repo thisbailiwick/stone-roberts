@@ -65,6 +65,191 @@
 /************************************************************************/
 /******/ ([
 /* 0 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "utilities", function() { return utilities; });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_ios_inner_height__ = __webpack_require__(17);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_ios_inner_height___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_ios_inner_height__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_vh_check__ = __webpack_require__(18);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_vh_check___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_vh_check__);
+
+
+
+var utilities = {
+	windowHeight: null,
+	windowWidth: null,
+	windowRatioWidth: null,
+	windowRatioHeight: null,
+	windowHalfHeight: null,
+	browserOrientation: null,
+	bodyOverlay: document.getElementById('body-overlay'),
+	init: function () {
+		__WEBPACK_IMPORTED_MODULE_1_vh_check___default()('vh-offset');
+		this.setViewportDimensions();
+		document.addEventListener('barbaFullscreenOnChange', this.fullScreenOnChangeEvent.bind(this), false);
+		// throw in closest polyfill
+		// https://developer.mozilla.org/en-US/docs/Web/API/Element/closest
+		if (!Element.prototype.matches) { Element.prototype.matches = Element.prototype.msMatchesSelector || Element.prototype.webkitMatchesSelector; }
+
+		if (!Element.prototype.closest)
+			{ Element.prototype.closest = function (s) {
+				var el = this;
+				if (!document.documentElement.contains(el)) { return null; }
+				do {
+					if (el.matches(s)) { return el; }
+					el = el.parentElement || el.parentNode;
+				} while (el !== null && el.nodeType === 1);
+				return null;
+			}; }
+	},
+	fullScreenOnChangeEvent: function () {
+		window.setTimeout(function () {
+			utilities.setViewportDimensions();
+		}, 250);
+	},
+	reset: function () {
+		this.windowHeight = null;
+		this.windowRatioHeight = null;
+		this.windowWidth = null;
+		this.windowRatioWidth = null;
+		this.windowHalfHeight = null;
+		this.browserOrientation = null;
+	},
+	getViewportDimensions: function () {
+		// TODO: will this work with fullscreen?
+		var w = window,
+			d = document,
+			e = d.documentElement,
+			g = d.getElementsByTagName("body")[0],
+			x = w.innerWidth || e.clientWidth || g.clientWidth,
+			y = /*innerHeight() || */w.innerHeight || e.clientHeight || g.clientHeight;
+			console.log(__WEBPACK_IMPORTED_MODULE_0_ios_inner_height___default()());
+		return {width: x, height: y};
+	},
+	setViewportDimensions: function () {
+		var viewportDimensions = this.getViewportDimensions();
+		this.windowHeight = viewportDimensions.height;
+		this.windowWidth = viewportDimensions.width;
+		this.windowRatioWidth = this.windowWidth / this.windowHeight;
+		this.windowRatioHeight = this.windowHeight / this.windowWidth;
+		this.windowHalfHeight = this.windowHeight / 2;
+		this.browserOrientation = this.getBrowserOrientation();
+	},
+	isElementVerticallyInViewport: function (el) {
+		var bounding = el.getBoundingClientRect();
+
+		return (
+			bounding.top >= 0 &&
+			bounding.top <= (__WEBPACK_IMPORTED_MODULE_0_ios_inner_height___default()() || document.documentElement.clientHeight)
+			||
+			bounding.bottom <= (__WEBPACK_IMPORTED_MODULE_0_ios_inner_height___default()() || document.documentElement.clientHeight) &&
+			bounding.bottom >= 0
+		);
+	},
+	isTouchDevice: function () {
+		return "ontouchstart" in document.documentElement;
+	},
+	getElementOffsetFromDoc: function (el) {
+		// https://stanko.github.io/javascript-get-element-offset/
+		var rect = el.getBoundingClientRect();
+
+		return {
+			top: rect.top + window.pageYOffset,
+			left: rect.left + window.pageXOffset,
+		};
+	},
+	getSiblingsWithClass: function (child, skipMe, elementClass) {
+		var r = [];
+		for (; child; child = child.nextSibling) {
+			if (child.nodeType == 1 && child != skipMe && child.classList.contains(elementClass)) {
+				r.push(child);
+			}
+		}
+		return r;
+	},
+
+	// return the first element which has class
+	getSiblingByClass: function (element, elementClass) {
+		return this.getSiblingsWithClass(element.parentNode.firstChild, element, elementClass)[0];
+	},
+
+	getImageSizeChangeTechnique: function (image, container, xPadding, yPadding) {
+		container = typeof container != 'undefined'
+			?
+			container
+			:
+			null;
+		xPadding = typeof xPadding != 'undefined'
+			?
+			xPadding
+			:
+			0;
+		yPadding = typeof yPadding != 'undefined'
+			?
+			yPadding
+			:
+			0;
+		var containerRatioWidth = null;
+		var containerRatioHeight = null;
+		if (container != null) {
+			containerRatioWidth = (container.clientWidth - xPadding) / (container.clientHeight - yPadding);
+		} else {
+			containerRatioWidth = this.windowRatioWidth;
+			containerRatioHeight = this.windowRatioHeight;
+
+		}
+
+		// figure out which way to change image size
+		var imageRatioWidth = image.naturalWidth / image.naturalHeight;
+		var imageRatioHeight = image.naturalHeight / image.naturalWidth;
+
+		if (imageRatioWidth > containerRatioWidth) {
+			return "width";
+		} else if (imageRatioHeight > containerRatioHeight) {
+			return "height";
+		}
+
+	},
+
+	getBrowserOrientation: function () {
+		return this.windowHeight > this.windowWidth
+			?
+			"portrait"
+			:
+			"landscape";
+	},
+
+	showOverlay: function () {
+		document.body.classList.add('show-body-overlay');
+	},
+
+	hideOverlay: function () {
+		document.body.classList.remove('show-body-overlay');
+	},
+
+	addCssToPage: function (styles, id) {
+		var style = document.createElement('style');
+		style.type = 'text/css';
+		style.innerHTML = styles;
+		style.setAttribute('id', id);
+		document.getElementsByTagName('head')[0].appendChild(style);
+	},
+	removeCssFromPage: function (ids) {
+		ids.forEach(function (id) {
+			var el = document.getElementById(id);
+			el.parentNode.removeChild(el);
+		});
+	},
+};
+
+utilities.init();
+
+
+
+/***/ }),
+/* 1 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -221,193 +406,20 @@ var enableBodyScroll = exports.enableBodyScroll = function enableBodyScroll(targ
 };
 
 /***/ }),
-/* 1 */
-/***/ (function(module, exports) {
-
-var utilities = {
-	windowHeight: null,
-	windowWidth: null,
-	windowRatioWidth: null,
-	windowRatioHeight: null,
-	windowHalfHeight: null,
-	browserOrientation: null,
-	bodyOverlay: document.getElementById('body-overlay'),
-	init: function () {
-		this.setViewportDimensions();
-		document.addEventListener('barbaFullscreenOnChange', this.fullScreenOnChangeEvent.bind(this), false);
-		// throw in closest polyfill
-		// https://developer.mozilla.org/en-US/docs/Web/API/Element/closest
-		if (!Element.prototype.matches) { Element.prototype.matches = Element.prototype.msMatchesSelector || Element.prototype.webkitMatchesSelector; }
-
-		if (!Element.prototype.closest)
-			{ Element.prototype.closest = function (s) {
-				var el = this;
-				if (!document.documentElement.contains(el)) { return null; }
-				do {
-					if (el.matches(s)) { return el; }
-					el = el.parentElement || el.parentNode;
-				} while (el !== null && el.nodeType === 1);
-				return null;
-			}; }
-	},
-	fullScreenOnChangeEvent: function () {
-		window.setTimeout(function () {
-			utilities.setViewportDimensions();
-		}, 250);
-	},
-	reset: function () {
-		this.windowHeight = null;
-		this.windowRatioHeight = null;
-		this.windowWidth = null;
-		this.windowRatioWidth = null;
-		this.windowHalfHeight = null;
-		this.browserOrientation = null;
-	},
-	getViewportDimensions: function () {
-		// TODO: will this work with fullscreen?
-		var w = window,
-			d = document,
-			e = d.documentElement,
-			g = d.getElementsByTagName("body")[0],
-			x = w.innerWidth || e.clientWidth || g.clientWidth,
-			y = w.innerHeight || e.clientHeight || g.clientHeight;
-
-		return {width: x, height: y};
-	},
-	setViewportDimensions: function () {
-		var viewportDimensions = this.getViewportDimensions();
-		this.windowHeight = viewportDimensions.height;
-		this.windowWidth = viewportDimensions.width;
-		this.windowRatioWidth = this.windowWidth / this.windowHeight;
-		this.windowRatioHeight = this.windowHeight / this.windowWidth;
-		this.windowHalfHeight = this.windowHeight / 2;
-		this.browserOrientation = this.getBrowserOrientation();
-	},
-	isElementVerticallyInViewport: function (el) {
-		var bounding = el.getBoundingClientRect();
-
-		return (
-			bounding.top >= 0 &&
-			bounding.top <= (window.innerHeight || document.documentElement.clientHeight)
-			||
-			bounding.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
-			bounding.bottom >= 0
-		);
-	},
-	isTouchDevice: function () {
-		return "ontouchstart" in document.documentElement;
-	},
-	getElementOffsetFromDoc: function (el) {
-		// https://stanko.github.io/javascript-get-element-offset/
-		var rect = el.getBoundingClientRect();
-
-		return {
-			top: rect.top + window.pageYOffset,
-			left: rect.left + window.pageXOffset,
-		};
-	},
-	getSiblingsWithClass: function (child, skipMe, elementClass) {
-		var r = [];
-		for (; child; child = child.nextSibling) {
-			if (child.nodeType == 1 && child != skipMe && child.classList.contains(elementClass)) {
-				r.push(child);
-			}
-		}
-		return r;
-	},
-
-	// return the first element which has class
-	getSiblingByClass: function (element, elementClass) {
-		return this.getSiblingsWithClass(element.parentNode.firstChild, element, elementClass)[0];
-	},
-
-	getImageSizeChangeTechnique: function (image, container, xPadding, yPadding) {
-		container = typeof container != 'undefined'
-			?
-			container
-			:
-			null;
-		xPadding = typeof xPadding != 'undefined'
-			?
-			xPadding
-			:
-			0;
-		yPadding = typeof yPadding != 'undefined'
-			?
-			yPadding
-			:
-			0;
-		var containerRatioWidth = null;
-		var containerRatioHeight = null;
-		if (container != null) {
-			containerRatioWidth = (container.clientWidth - xPadding) / (container.clientHeight - yPadding);
-		} else {
-			containerRatioWidth = this.windowRatioWidth;
-			containerRatioHeight = this.windowRatioHeight;
-
-		}
-
-		// figure out which way to change image size
-		var imageRatioWidth = image.naturalWidth / image.naturalHeight;
-		var imageRatioHeight = image.naturalHeight / image.naturalWidth;
-
-		if (imageRatioWidth > containerRatioWidth) {
-			return "width";
-		} else if (imageRatioHeight > containerRatioHeight) {
-			return "height";
-		}
-
-	},
-
-	getBrowserOrientation: function () {
-		return this.windowHeight > this.windowWidth
-			?
-			"portrait"
-			:
-			"landscape";
-	},
-
-	showOverlay: function () {
-		document.body.classList.add('show-body-overlay');
-	},
-
-	hideOverlay: function () {
-		document.body.classList.remove('show-body-overlay');
-	},
-
-	addCssToPage: function (styles, id) {
-		var style = document.createElement('style');
-		style.type = 'text/css';
-		style.innerHTML = styles;
-		style.setAttribute('id', id);
-		document.getElementsByTagName('head')[0].appendChild(style);
-	},
-	removeCssFromPage: function (ids) {
-		ids.forEach(function (id) {
-			var el = document.getElementById(id);
-			el.parentNode.removeChild(el);
-		});
-	},
-};
-
-utilities.init();
-
-module.exports = utilities;
-
-/***/ }),
 /* 2 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "nakasentro", function() { return nakasentro; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utilities__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utilities___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__utilities__);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utilities__ = __webpack_require__(0);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_underscore__ = __webpack_require__(12);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_underscore___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_underscore__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__center_scroll_to__ = __webpack_require__(5);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__thumbnail_nav__ = __webpack_require__(6);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__zoomy__ = __webpack_require__(4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__vh_fix__ = __webpack_require__(24);
+
 
 
 
@@ -440,16 +452,12 @@ var nakasentro = {
 		//reset values
 		this.reset();
 
-		this.isTouchDevice = __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.isTouchDevice();
+		this.isTouchDevice = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].isTouchDevice();
 
 		if (this.isTouchDevice === false) {
 
 			// setup values
 			this.setupValues(true);
-
-			// init-center-scroll-to
-
-			// nakasentro.checkArtworks(true);
 			// for when not in fullscreen
 			window.addEventListener('scroll', function () {
 					if (!this.isResizing && nakasentro.imagesProcessed === true) {
@@ -481,16 +489,19 @@ var nakasentro = {
 	mobileSetup: function (isInit) {
 		this.mainContentWidth = this.mainContentWrap.clientWidth;
 
-		this.setBodyClasses('orientation-' + __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.browserOrientation);
+		this.setBodyClasses('orientation-' + __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].browserOrientation);
+		var vhFixElements = [];
 		nakasentro.artworks_elements.forEach(function (artwork, index) {
 			var artworkElements = this.getArtworkElements(artwork, index);
 			if (isInit === false) {
 				this.resetImageValues(artworkElements);
 			}
-			__WEBPACK_IMPORTED_MODULE_0__utilities___default.a.setViewportDimensions();
+			__WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].setViewportDimensions();
 			var imageSizeChangeTechnique = this.setArtworkSizeChangeTechnique(artworkElements.artworkImage, artworkElements.artworkWrap);
 
 			window.addEventListener('resize', this.mobileResize.bind(artworkElements));
+			// setup up vh-fix for full viewport height bugginess
+			artworkElements.artworkImage.classList.add('vh-fix');
 
 			nakasentro.artworks.push({
 				artworksIndex: nakasentro.artworks.length,
@@ -511,8 +522,18 @@ var nakasentro = {
 			});
 
 			Object(__WEBPACK_IMPORTED_MODULE_3__thumbnail_nav__["addThumbnail"])(artworkElements.imgSrc, artworkElements.artworkImageWrap);
-		}, this);
 
+			vhFixElements.push(artworkElements.artworkImage);
+			// if (imageSizeChangeTechnique === 'height') {
+			// 	const testwindowheight = document.createTextNode(utilities.windowHeight);
+			// 	artworkElements.artworkWrap.insertBefore(testwindowheight, artworkElements.artworkWrap.firstChild);
+			// 	artworkElements.artworkImage.style.height = utilities.windowHeight + 'px';
+			// }
+		}, this);
+		// if (isInit === true) {
+			console.log(vhFixElements);
+			Object(__WEBPACK_IMPORTED_MODULE_5__vh_fix__["a" /* initialize */])(vhFixElements, 100, 'landscape');
+		// }
 		// add to thumbnails
 	},
 	mobileResize: __WEBPACK_IMPORTED_MODULE_1_underscore___default.a.debounce(function () {
@@ -531,7 +552,7 @@ var nakasentro = {
 
 		// nakasentro.debounceWindowResize();
 		nakasentro.artworks = Array();
-		__WEBPACK_IMPORTED_MODULE_0__utilities___default.a.setViewportDimensions();
+		__WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].setViewportDimensions();
 		nakasentro.setupValues();
 	},
 	removeFullDimensionsCenteredImageScrollEvents: function (removeAllWheel) {
@@ -634,7 +655,7 @@ var nakasentro = {
 		};
 	},
 	setArtworkSizeChangeTechnique: function (artworkImage, artworkWrap) {
-		var imageSizeChangeTechnique = __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.getImageSizeChangeTechnique(artworkImage);
+		var imageSizeChangeTechnique = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].getImageSizeChangeTechnique(artworkImage);
 		artworkWrap.classList.remove('width', 'height');
 		artworkWrap.classList.add(imageSizeChangeTechnique);
 		return imageSizeChangeTechnique;
@@ -648,7 +669,7 @@ var nakasentro = {
 
 		this.mainContentWidth = this.mainContentWrap.clientWidth;
 
-		this.setBodyClasses('orientation-' + __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.browserOrientation);
+		this.setBodyClasses('orientation-' + __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].browserOrientation);
 
 		nakasentro.artworks_elements.forEach(function (artwork, index) {
 			// let zoomWrap = artwork.querySelector('.zoom-wrap');
@@ -658,7 +679,7 @@ var nakasentro = {
 
 			if (isInit === false) {
 				this.resetImageValues(artworkElements);
-				__WEBPACK_IMPORTED_MODULE_0__utilities___default.a.removeCssFromPage([styleBlockId]);
+				__WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].removeCssFromPage([styleBlockId]);
 			}
 
 
@@ -674,8 +695,8 @@ var nakasentro = {
 			artworkElements.artworkImage.style.minHeight = artworkElements.artworkImage.clientHeight + 'px';
 			artworkElements.artworkImage.style.minWidth = artworkElements.artworkImage.clientWidth + 'px';
 
-			var imageVhValue = artworkElements.artworkImage.clientHeight / __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.windowHeight * 100;
-			var imageVwValue = artworkElements.artworkImage.clientWidth / __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.windowWidth * 100;
+			var imageVhValue = artworkElements.artworkImage.clientHeight / __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowHeight * 100;
+			var imageVwValue = artworkElements.artworkImage.clientWidth / __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowWidth * 100;
 			if (imageVhValue === 0) {
 				// debugger;
 				// console.log('———————————image values are zero on init!!!!');
@@ -683,7 +704,7 @@ var nakasentro = {
 			var imageVhValueToFull = 100 - imageVhValue;
 
 			// let imageSizeChangeTechnique = this.setArtworkSizeChangeTechnique(artworkElements.artworkImage, artworkWrap);
-			var imageSizeChangeTechnique = __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.getImageSizeChangeTechnique(artworkElements.artworkImage);
+			var imageSizeChangeTechnique = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].getImageSizeChangeTechnique(artworkElements.artworkImage);
 			artworkElements.artworkWrap.classList.remove('width', 'height');
 			artworkElements.artworkWrap.classList.add(imageSizeChangeTechnique);
 
@@ -691,7 +712,7 @@ var nakasentro = {
 			var imageRatioWidth = artworkElements.artworkImage.clientWidth / artworkElements.artworkImage.clientHeight;
 			var imageRatioHeight = artworkElements.artworkImage.clientHeight / artworkElements.artworkImage.clientWidth;
 
-			if (artworkElements.artworkImage.clientHeight >= __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.windowHeight) {
+			if (artworkElements.artworkImage.clientHeight >= __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowHeight) {
 				artworkElements.imageRatioHolder.style.height = artworkElements.artworkImage.clientHeight + 'px';
 				artworkElements.imageRatioHolder.style.width = artworkElements.artworkImage.clientWidth + 'px';
 			} else {
@@ -699,8 +720,8 @@ var nakasentro = {
 			}
 
 
-			var imageViewportWidthRatio = __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.windowWidth / artworkElements.artworkImage.clientWidth;
-			var imageViewportHeightRatio = __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.windowHeight / artworkElements.artworkImage.clientHeight;
+			var imageViewportWidthRatio = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowWidth / artworkElements.artworkImage.clientWidth;
+			var imageViewportHeightRatio = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowHeight / artworkElements.artworkImage.clientHeight;
 
 			artworkElements.mouseMapImage.setAttribute('scaleWidth', imageViewportWidthRatio);
 			artworkElements.mouseMapImage.setAttribute('scaleHeight', imageViewportHeightRatio);
@@ -710,10 +731,10 @@ var nakasentro = {
 			// get image max height
 			if (imageSizeChangeTechnique === 'width') {
 				// if imageSizeChangeTechnique is width we want to multiply the viewport width in px by the height/width ratio of the image
-				imageMaxHeight = __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.windowHeight * (artworkElements.artworkImage.clientHeight / artworkElements.artworkImage.clientWidth);
+				imageMaxHeight = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowHeight * (artworkElements.artworkImage.clientHeight / artworkElements.artworkImage.clientWidth);
 			} else {
 				// if imageSizeChangeTechnique is height we want to just use the viewport height amount.
-				imageMaxHeight = __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.windowHeight;
+				imageMaxHeight = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowHeight;
 			}
 
 			// get image max height
@@ -724,7 +745,7 @@ var nakasentro = {
 			// 	// if imageSizeChangeTechnique is height we want to just use the viewport height amount.
 			// 	const imageMaxWidth = utilities.windowWidth;
 			// }
-			var imageOffsetFromDocTop = __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.getElementOffsetFromDoc(artworkElements.artworkImage).top;
+			var imageOffsetFromDocTop = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].getElementOffsetFromDoc(artworkElements.artworkImage).top;
 			var imageMaxHeightCenterPointFromDocTop = imageMaxHeight / 2 + imageOffsetFromDocTop;
 
 			nakasentro.artworks.push({
@@ -835,7 +856,7 @@ var nakasentro = {
 			artworkElements.artworkImage.style.position = 'static';
 			artworkElements.centerImageWrap.style.height = 0;
 
-			__WEBPACK_IMPORTED_MODULE_0__utilities___default.a.addCssToPage(artworkStyles, styleBlockId);
+			__WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].addCssToPage(artworkStyles, styleBlockId);
 
 			// add to thumbnails
 			Object(__WEBPACK_IMPORTED_MODULE_3__thumbnail_nav__["addThumbnail"])(artworkElements.imgSrc, artworkElements.artworkImageWrap);
@@ -857,10 +878,10 @@ var nakasentro = {
 	},
 
 	debounceWindowResize: __WEBPACK_IMPORTED_MODULE_1_underscore___default.a.debounce(function () {
-		var currentViewportDimensions = __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.getViewportDimensions();
-		if (__WEBPACK_IMPORTED_MODULE_0__utilities___default.a.windowHeight !== currentViewportDimensions.height || __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.windowWidth !== currentViewportDimensions.width) {
+		var currentViewportDimensions = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].getViewportDimensions();
+		if (__WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowHeight !== currentViewportDimensions.height || __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowWidth !== currentViewportDimensions.width) {
 			nakasentro.artworks = Array();
-			__WEBPACK_IMPORTED_MODULE_0__utilities___default.a.setViewportDimensions();
+			__WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].setViewportDimensions();
 			nakasentro.setupValues();
 		}
 		document.body.classList.remove('viewport-resizing');
@@ -868,22 +889,21 @@ var nakasentro = {
 	}, 250),
 
 
-
 	setBodyClasses: function (classes) {
 		document.querySelector('body').classList.add(classes);
 	},
 
 	getPixelsToCenter: function (distanceFromTopOfViewport) {
-		var viewport_center = __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.windowHalfHeight;
+		var viewport_center = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowHalfHeight;
 		return viewport_center - distanceFromTopOfViewport;
 	},
 
 	getPercentageToCenter: function (toCenterPixels) {
-		return (toCenterPixels / __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.windowHeight * 100) * 1.39;
+		return (toCenterPixels / __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowHeight * 100) * 1.39;
 	},
 
 	getVhToCenter: function (toCenterPixels) {
-		return toCenterPixels / __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.windowHeight * 100;
+		return toCenterPixels / __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowHeight * 100;
 	},
 
 	getToCenterPixels: function (artwork) {
@@ -1170,7 +1190,7 @@ var nakasentro = {
 
 	checkArtworks: function () {
 		nakasentro.artworks.forEach(function (artwork) {
-			if (__WEBPACK_IMPORTED_MODULE_0__utilities___default.a.isElementVerticallyInViewport(artwork.artworkImage)) {
+			if (__WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].isElementVerticallyInViewport(artwork.artworkImage)) {
 				artwork.isInViewport = true;
 				nakasentro.possiblyCenterUncenterImage(artwork);
 			} else {
@@ -1196,9 +1216,8 @@ module.exports = jQuery;
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "zoomy", function() { return zoomy; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utilities__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utilities___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__utilities__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utilities__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_body_scroll_lock___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__mousePosition__ = __webpack_require__(11);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__nakasentro__ = __webpack_require__(2);
@@ -1209,7 +1228,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 var zoomy = {
 	pictures: Array(),
-	isTouchDevice: __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.isTouchDevice(),
+	isTouchDevice: __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].isTouchDevice(),
 	mouseMapEventsAdded: false,
 	mouseMapLessPixelsHalf: __WEBPACK_IMPORTED_MODULE_3__nakasentro__["nakasentro"].mouse_map_less_percentage / 2,
 	init: function () {
@@ -1383,7 +1402,6 @@ var zoomy = {
 				? maxValue
 				: leftPercentage;
 
-			console.log('leftPercentage, topPercentage: ' + leftPercentage, topPercentage);
 			this.mouseMapWrap.style.backgroundPosition = leftPercentage + "% " + topPercentage + "%";
 		// }
 	},
@@ -1398,7 +1416,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "init", function() { return init; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "scrollToElement", function() { return scrollToElement; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__nakasentro__ = __webpack_require__(2);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_smoothscroll_polyfill__ = __webpack_require__(21);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_smoothscroll_polyfill__ = __webpack_require__(23);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_smoothscroll_polyfill___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_smoothscroll_polyfill__);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_underscore__ = __webpack_require__(12);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_underscore___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_underscore__);
@@ -1633,7 +1651,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "addThumbnail", function() { return addThumbnail; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setInitFalse", function() { return setInitFalse; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__center_scroll_to__ = __webpack_require__(5);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_body_scroll_lock___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__);
 
 
@@ -1718,7 +1736,7 @@ function setInitFalse(){
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "artworkInfo", function() { return artworkInfo; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_body_scroll_lock__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_body_scroll_lock__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_body_scroll_lock___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_body_scroll_lock__);
 
 
@@ -1751,15 +1769,6 @@ var artworkInfo = {
 	// },
 	toggleInfo: function () {
 		var infoData = this;
-		// setTimeout(function () {
-		// 	window.scrollBy({
-		// 		top: -30,
-		// 		left: 0,
-		// 		behavior: 'auto'
-		// 	});
-		// }, 0);
-		// disable or enbale scrolling
-		// console.log(window.innerHeight);
 		if (artworkInfo.showing) {
 			Object(__WEBPACK_IMPORTED_MODULE_0_body_scroll_lock__["clearAllBodyScrollLocks"])();
 		} else {
@@ -1783,7 +1792,7 @@ var artworkInfo = {
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "stAudio", function() { return stAudio; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_howler__ = __webpack_require__(19);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_howler__ = __webpack_require__(21);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_howler___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_howler__);
 
 
@@ -3919,7 +3928,7 @@ var mousePosition = {
   }
 }());
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(9), __webpack_require__(20)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(9), __webpack_require__(22)(module)))
 
 /***/ }),
 /* 13 */
@@ -4116,8 +4125,8 @@ process.umask = function() { return 0; };
 /***/ (function(module, exports, __webpack_require__) {
 
 __webpack_require__(15);
-__webpack_require__(1);
-__webpack_require__(17);
+__webpack_require__(0);
+__webpack_require__(19);
 __webpack_require__(7);
 __webpack_require__(8);
 __webpack_require__(10);
@@ -4126,8 +4135,8 @@ __webpack_require__(4);
 __webpack_require__(6);
 __webpack_require__(2);
 __webpack_require__(5);
-__webpack_require__(22);
-module.exports = __webpack_require__(41);
+__webpack_require__(25);
+module.exports = __webpack_require__(44);
 
 
 /***/ }),
@@ -4138,7 +4147,7 @@ module.exports = __webpack_require__(41);
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_js_cookie__ = __webpack_require__(16);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_js_cookie___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_js_cookie__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_body_scroll_lock___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__);
 
 
@@ -4346,13 +4355,153 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
 
 /***/ }),
 /* 17 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+/**
+ * @module ios-inner-height
+ *
+ * @description Get proper window.innerHeight from iOS devices,
+ * excluding URL control and menu bar.
+ *
+ * @return {function} Callable function to retrieve the
+ * cached `window.innerHeight` measurement, specific to the
+ * device's current orientation.
+ */
+module.exports = (function () {
+	// Non-iOS browsers return window.innerHeight per usual.
+	// No caching here since browsers can be resized, and setting
+	// up resize-triggered cache invalidation is not in scope.
+	/* istanbul ignore if  */
+	if (!navigator.userAgent.match(/iphone|ipod|ipad/i)) {
+		/**
+		 * Avoids conditional logic in the implementation
+		 * @return {number} - window's innerHeight measurement in pixels
+		 */
+		return function () {
+			return window.innerHeight;
+		};
+	}
+
+	// Store initial orientation
+	var axis = Math.abs(window.orientation);
+	// And hoist cached dimensions
+	var dims = {w: 0, h: 0};
+
+	/**
+	 * Creates an element with a height of 100vh since iOS accurately
+	 * reports vp height (but not window.innerHeight). Then destroy it.
+	 * @return {null}
+	 */
+	var createRuler = function () {
+		var ruler = document.createElement('div');
+
+		ruler.style.position = 'fixed';
+		ruler.style.height = '100vh';
+		ruler.style.width = 0;
+		ruler.style.top = 0;
+
+		document.documentElement.appendChild(ruler);
+
+		// Set cache conscientious of device orientation
+		dims.w = axis === 90 ? ruler.offsetHeight : window.innerWidth;
+		dims.h = axis === 90 ? window.innerWidth : ruler.offsetHeight;
+
+		// Clean up after ourselves
+		document.documentElement.removeChild(ruler);
+		ruler = null;
+	};
+
+	// Measure once
+	createRuler();
+
+	/**
+	 * Returns window's cached innerHeight measurement
+	 * based on viewport height and device orientation
+	 * @return {number} - window's innerHeight measurement in pixels
+	 */
+	return function () {
+		if (Math.abs(window.orientation) !== 90) {
+			return dims.h;
+		}
+		return dims.w;
+	};
+})();
+
+
+/***/ }),
+/* 18 */
+/***/ (function(module, exports, __webpack_require__) {
+
+(function (global, factory) {
+   true ? module.exports = factory() :
+  typeof define === 'function' && define.amd ? define(factory) :
+  (global.vhCheck = factory());
+}(this, (function () { 'use strict';
+
+  function testVh() {
+    // test with fixed
+    var fixedTest = document.createElement('div');
+    fixedTest.style.cssText = 'position: fixed; top: 0; bottom: 0;';
+    document.documentElement.insertBefore(
+      fixedTest,
+      document.documentElement.firstChild
+    );
+    // test with vh
+    var vhTest = document.createElement('div');
+    vhTest.style.cssText = 'position: fixed; top: 0; height: 100vh';
+    document.documentElement.insertBefore(
+      vhTest,
+      document.documentElement.firstChild
+    );
+    // in iOS vh will be bigger
+    var topBottom = fixedTest.offsetHeight;
+    var vh = vhTest.offsetHeight;
+    var offset = vh - topBottom;
+    // clean
+    document.documentElement.removeChild(fixedTest);
+    document.documentElement.removeChild(vhTest);
+    return offset;
+  }
+
+  function updateCssVar(cssVarName, offset) {
+    document.documentElement.style.setProperty('--' + cssVarName, offset + 'px');
+  }
+
+  function vhCheck(cssVarName) {
+    // configurable CSS var
+    cssVarName = typeof cssVarName === 'string' ? cssVarName : 'vh-offset';
+    var offset = testVh();
+    // usefulness check
+    if (!offset) return false;
+    updateCssVar(cssVarName, offset);
+    // Listen for orientation changes
+    window.addEventListener(
+      'orientationchange',
+      function() {
+        var newOffset = testVh();
+        updateCssVar(cssVarName, newOffset);
+      },
+      false
+    );
+    return true;
+  }
+
+  return vhCheck;
+
+})));
+
+
+/***/ }),
+/* 19 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utilities__ = __webpack_require__(1);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utilities___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0__utilities__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_reframe_js__ = __webpack_require__(18);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utilities__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_reframe_js__ = __webpack_require__(20);
 
 
 
@@ -4374,7 +4523,7 @@ window.onYouTubeIframeAPIReady = function () {
 	iframes.map(function(iframe){
 		var iframeWrap = iframe.closest('.iframe-wrap');
 		var uniqueId = iframe.getAttribute('id');
-		var button = __WEBPACK_IMPORTED_MODULE_0__utilities___default.a.getSiblingByClass(iframeWrap, 'play-button');
+		var button = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].getSiblingByClass(iframeWrap, 'play-button');
 		players[uniqueId] = new YT.Player(uniqueId, {});
 
 		button.addEventListener('click', function(){
@@ -4387,7 +4536,7 @@ window.onYouTubeIframeAPIReady = function () {
 /* eslint-enable */
 
 /***/ }),
-/* 18 */
+/* 20 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -4427,7 +4576,7 @@ function reframe(target, cName) {
 
 
 /***/ }),
-/* 19 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -7386,7 +7535,7 @@ function reframe(target, cName) {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(9)))
 
 /***/ }),
-/* 20 */
+/* 22 */
 /***/ (function(module, exports) {
 
 module.exports = function(module) {
@@ -7414,7 +7563,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 21 */
+/* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* smoothscroll v0.4.0 - 2018 - Dustan Kasten, Jeremias Menichelli - MIT License */
@@ -7859,31 +8008,125 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 22 */
+/* 24 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return initialize; });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utilities__ = __webpack_require__(0);
+
+
+/**
+ * Regex tested and matched against the following userAgents:
+ * iPhone
+ *   Mozilla/5.0 (iPhone; CPU iPhone OS 10_3 like Mac OS X)
+ *   AppleWebKit/602.1.50 (KHTML, like Gecko)
+ *   CriOS/56.0.2924.75 Mobile/14E5239e Safari/602.1
+ * iPad
+ *   Mozilla/5.0 (iPad; CPU OS 9_0 like Mac OS X)
+ *   AppleWebKit/600.1.4 (KHTML, like Gecko)
+ *   CriOS/45.0.2454.89 Mobile/13A344 Safari/600.1.4 (000205)
+ */
+
+var iOSChromeDetected = /CriOS/.test(navigator.userAgent);
+var statusBarHeight = 20;
+var portraitHeight = screen.height - statusBarHeight;
+var landscapeHeight = screen.width - statusBarHeight;
+var initialViewportHeight = window.innerHeight;
+var orientationToFix = null;
+
+function getHeight(element) {
+	var computedHeightString = getComputedStyle(element).height;
+	var elementHeight = Number(computedHeightString.replace('px', ''));
+	return elementHeight;
+}
+
+function calculateVh(elementHeight) {
+	var approximateVh = (elementHeight / initialViewportHeight) * 100;
+	var elementVh = Math.round(approximateVh);
+	return elementVh;
+}
+
+function setDataAttribute(elementVh, element) {
+	var dataAttributeValue = "" + elementVh;
+	element.setAttribute('data-vh', dataAttributeValue);
+}
+
+function setHeight(element) {
+	var orientation = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].getBrowserOrientation();
+	if(orientation === orientationToFix) {
+		var vhRatio = Number(element.dataset.vh / 100);
+		if (orientation === 'landscape') {
+			element.style.height = (vhRatio * landscapeHeight) + "px";
+		} else {
+			element.style.height = (vhRatio * portraitHeight) + "px";
+		}
+	}else{
+		element.style.height = '';
+	}
+}
+
+function initializeElement(element) {
+	console.log(element);
+	var elementVh = this;
+	if (elementVh === null) {
+		var elementHeight = getHeight(element);
+		elementVh = calculateVh(elementHeight);
+	}
+	setDataAttribute(elementVh, element);
+	setHeight(element);
+}
+
+function initialize(elements, desiredElementVh, orientationToFixValue) {
+	if ( elements === void 0 ) elements = null;
+	if ( desiredElementVh === void 0 ) desiredElementVh = null;
+	if ( orientationToFixValue === void 0 ) orientationToFixValue = null;
+
+	orientationToFix = orientationToFixValue;
+	if (iOSChromeDetected) {
+		if (elements === null) {
+			elements = Array.from(document.getElementsByClassName('vh-fix'));
+		}
+
+		elements.forEach(initializeElement, desiredElementVh);
+
+		window.onload = function () {
+			window.addEventListener('orientationchange', function () {
+				elements.forEach(setHeight);
+			});
+		};
+	}
+}
+
+
+
+
+/***/ }),
+/* 25 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* WEBPACK VAR INJECTION */(function(jQuery) {/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__util_Router__ = __webpack_require__(23);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__routes_common__ = __webpack_require__(25);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__routes_home__ = __webpack_require__(30);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__routes_about__ = __webpack_require__(31);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__fortawesome_fontawesome__ = __webpack_require__(32);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__fortawesome_fontawesome_free_solid_faSearchPlus__ = __webpack_require__(33);
+/* WEBPACK VAR INJECTION */(function(jQuery) {/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__util_Router__ = __webpack_require__(26);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__routes_common__ = __webpack_require__(28);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__routes_home__ = __webpack_require__(33);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__routes_about__ = __webpack_require__(34);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__fortawesome_fontawesome__ = __webpack_require__(35);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__fortawesome_fontawesome_free_solid_faSearchPlus__ = __webpack_require__(36);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__fortawesome_fontawesome_free_solid_faSearchPlus___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_5__fortawesome_fontawesome_free_solid_faSearchPlus__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__fortawesome_fontawesome_free_solid_faInfoCircle__ = __webpack_require__(34);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__fortawesome_fontawesome_free_solid_faInfoCircle__ = __webpack_require__(37);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__fortawesome_fontawesome_free_solid_faInfoCircle___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_6__fortawesome_fontawesome_free_solid_faInfoCircle__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__fortawesome_fontawesome_free_solid_faShareSquare__ = __webpack_require__(35);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__fortawesome_fontawesome_free_solid_faShareSquare__ = __webpack_require__(38);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__fortawesome_fontawesome_free_solid_faShareSquare___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_7__fortawesome_fontawesome_free_solid_faShareSquare__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__fortawesome_fontawesome_free_solid_faTimesCircle__ = __webpack_require__(36);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__fortawesome_fontawesome_free_solid_faTimesCircle__ = __webpack_require__(39);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__fortawesome_fontawesome_free_solid_faTimesCircle___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_8__fortawesome_fontawesome_free_solid_faTimesCircle__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__fortawesome_fontawesome_free_brands_faFacebook__ = __webpack_require__(37);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__fortawesome_fontawesome_free_brands_faFacebook__ = __webpack_require__(40);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__fortawesome_fontawesome_free_brands_faFacebook___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_9__fortawesome_fontawesome_free_brands_faFacebook__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__fortawesome_fontawesome_free_brands_faTwitter__ = __webpack_require__(38);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__fortawesome_fontawesome_free_brands_faTwitter__ = __webpack_require__(41);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__fortawesome_fontawesome_free_brands_faTwitter___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_10__fortawesome_fontawesome_free_brands_faTwitter__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__fortawesome_fontawesome_free_solid_faEnvelope__ = __webpack_require__(39);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__fortawesome_fontawesome_free_solid_faEnvelope__ = __webpack_require__(42);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__fortawesome_fontawesome_free_solid_faEnvelope___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_11__fortawesome_fontawesome_free_solid_faEnvelope__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__fortawesome_fontawesome_free_solid_faCopy__ = __webpack_require__(40);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__fortawesome_fontawesome_free_solid_faCopy__ = __webpack_require__(43);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__fortawesome_fontawesome_free_solid_faCopy___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_12__fortawesome_fontawesome_free_solid_faCopy__);
 // import external dependencies
 // import 'jquery';
@@ -7930,11 +8173,11 @@ jQuery(document).ready(function () { return routes.loadEvents(); });
 /* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(3)))
 
 /***/ }),
-/* 23 */
+/* 26 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__camelCase__ = __webpack_require__(24);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__camelCase__ = __webpack_require__(27);
 
 
 /**
@@ -7998,7 +8241,7 @@ Router.prototype.loadEvents = function loadEvents () {
 
 
 /***/ }),
-/* 24 */
+/* 27 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -8014,7 +8257,7 @@ Router.prototype.loadEvents = function loadEvents () {
 
 
 /***/ }),
-/* 25 */
+/* 28 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -8023,7 +8266,7 @@ Router.prototype.loadEvents = function loadEvents () {
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__zoomy__ = __webpack_require__(4);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__nakasentro__ = __webpack_require__(2);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__artwork_info__ = __webpack_require__(7);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__mu_plugins_menu_vertical_push_menu_vertical_push__ = __webpack_require__(26);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__mu_plugins_menu_vertical_push_menu_vertical_push__ = __webpack_require__(29);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__thumbnail_nav__ = __webpack_require__(6);
 
 
@@ -8043,19 +8286,6 @@ Router.prototype.loadEvents = function loadEvents () {
 			// init menu-vertical-push
 			__WEBPACK_IMPORTED_MODULE_5__mu_plugins_menu_vertical_push_menu_vertical_push__["a" /* init */]();
 			// addBackToTop({zIndex: 2});
-
-			// Detects if device is on iOS
-			var isIos = function () {
-				var userAgent = window.navigator.userAgent.toLowerCase();
-				return /iphone|ipad|ipod/.test(userAgent);
-			};
-// Detects if device is in standalone mode
-			var isInStandaloneMode = function () { return ('standalone' in window.navigator) && (window.navigator.standalone); };
-
-// Checks if should display install popup notification:
-			if (isIos() && !isInStandaloneMode()) {
-				this.setState({showInstallMessage: true});
-			}
 		};
 
 		var playVideo = function () {
@@ -8184,14 +8414,14 @@ Router.prototype.loadEvents = function loadEvents () {
 /* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(3)))
 
 /***/ }),
-/* 26 */
+/* 29 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = init;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_hamburgers__ = __webpack_require__(27);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_hamburgers__ = __webpack_require__(30);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_hamburgers___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_hamburgers__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__ = __webpack_require__(29);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__ = __webpack_require__(32);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_body_scroll_lock___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__);
 
 
@@ -8264,10 +8494,10 @@ var outerHeight = function (el) {
 };
 
 /***/ }),
-/* 27 */
+/* 30 */
 /***/ (function(module, exports, __webpack_require__) {
 
-/* WEBPACK VAR INJECTION */(function(__dirname) {var path = __webpack_require__(28);
+/* WEBPACK VAR INJECTION */(function(__dirname) {var path = __webpack_require__(31);
 
 module.exports = {
   includePaths: [
@@ -8278,7 +8508,7 @@ module.exports = {
 /* WEBPACK VAR INJECTION */}.call(exports, "/"))
 
 /***/ }),
-/* 28 */
+/* 31 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(process) {// Copyright Joyent, Inc. and other Node contributors.
@@ -8509,7 +8739,7 @@ var substr = 'ab'.substr(-1) === 'b'
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(13)))
 
 /***/ }),
-/* 29 */
+/* 32 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -8666,7 +8896,7 @@ var enableBodyScroll = exports.enableBodyScroll = function enableBodyScroll(targ
 };
 
 /***/ }),
-/* 30 */
+/* 33 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -8681,7 +8911,7 @@ var enableBodyScroll = exports.enableBodyScroll = function enableBodyScroll(targ
 
 
 /***/ }),
-/* 31 */
+/* 34 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -8693,7 +8923,7 @@ var enableBodyScroll = exports.enableBodyScroll = function enableBodyScroll(targ
 
 
 /***/ }),
-/* 32 */
+/* 35 */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -10515,55 +10745,55 @@ var config = api$1.config;
 /* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(13)))
 
 /***/ }),
-/* 33 */
+/* 36 */
 /***/ (function(module, exports) {
 
 module.exports = { prefix: 'fas', iconName: 'search-plus', icon: [512, 512, [], "f00e", "M304 192v32c0 6.6-5.4 12-12 12h-56v56c0 6.6-5.4 12-12 12h-32c-6.6 0-12-5.4-12-12v-56h-56c-6.6 0-12-5.4-12-12v-32c0-6.6 5.4-12 12-12h56v-56c0-6.6 5.4-12 12-12h32c6.6 0 12 5.4 12 12v56h56c6.6 0 12 5.4 12 12zm201 284.7L476.7 505c-9.4 9.4-24.6 9.4-33.9 0L343 405.3c-4.5-4.5-7-10.6-7-17V372c-35.3 27.6-79.7 44-128 44C93.1 416 0 322.9 0 208S93.1 0 208 0s208 93.1 208 208c0 48.3-16.4 92.7-44 128h16.3c6.4 0 12.5 2.5 17 7l99.7 99.7c9.3 9.4 9.3 24.6 0 34zM344 208c0-75.2-60.8-136-136-136S72 132.8 72 208s60.8 136 136 136 136-60.8 136-136z"] };
 
 /***/ }),
-/* 34 */
+/* 37 */
 /***/ (function(module, exports) {
 
 module.exports = { prefix: 'fas', iconName: 'info-circle', icon: [512, 512, [], "f05a", "M256 8C119.043 8 8 119.083 8 256c0 136.997 111.043 248 248 248s248-111.003 248-248C504 119.083 392.957 8 256 8zm0 110c23.196 0 42 18.804 42 42s-18.804 42-42 42-42-18.804-42-42 18.804-42 42-42zm56 254c0 6.627-5.373 12-12 12h-88c-6.627 0-12-5.373-12-12v-24c0-6.627 5.373-12 12-12h12v-64h-12c-6.627 0-12-5.373-12-12v-24c0-6.627 5.373-12 12-12h64c6.627 0 12 5.373 12 12v100h12c6.627 0 12 5.373 12 12v24z"] };
 
 /***/ }),
-/* 35 */
+/* 38 */
 /***/ (function(module, exports) {
 
 module.exports = { prefix: 'fas', iconName: 'share-square', icon: [576, 512, [], "f14d", "M568.482 177.448L424.479 313.433C409.3 327.768 384 317.14 384 295.985v-71.963c-144.575.97-205.566 35.113-164.775 171.353 4.483 14.973-12.846 26.567-25.006 17.33C155.252 383.105 120 326.488 120 269.339c0-143.937 117.599-172.5 264-173.312V24.012c0-21.174 25.317-31.768 40.479-17.448l144.003 135.988c10.02 9.463 10.028 25.425 0 34.896zM384 379.128V448H64V128h50.916a11.99 11.99 0 0 0 8.648-3.693c14.953-15.568 32.237-27.89 51.014-37.676C185.708 80.83 181.584 64 169.033 64H48C21.49 64 0 85.49 0 112v352c0 26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48v-88.806c0-8.288-8.197-14.066-16.011-11.302a71.83 71.83 0 0 1-34.189 3.377c-7.27-1.046-13.8 4.514-13.8 11.859z"] };
 
 /***/ }),
-/* 36 */
+/* 39 */
 /***/ (function(module, exports) {
 
 module.exports = { prefix: 'fas', iconName: 'times-circle', icon: [512, 512, [], "f057", "M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm121.6 313.1c4.7 4.7 4.7 12.3 0 17L338 377.6c-4.7 4.7-12.3 4.7-17 0L256 312l-65.1 65.6c-4.7 4.7-12.3 4.7-17 0L134.4 338c-4.7-4.7-4.7-12.3 0-17l65.6-65-65.6-65.1c-4.7-4.7-4.7-12.3 0-17l39.6-39.6c4.7-4.7 12.3-4.7 17 0l65 65.7 65.1-65.6c4.7-4.7 12.3-4.7 17 0l39.6 39.6c4.7 4.7 4.7 12.3 0 17L312 256l65.6 65.1z"] };
 
 /***/ }),
-/* 37 */
+/* 40 */
 /***/ (function(module, exports) {
 
 module.exports = { prefix: 'fab', iconName: 'facebook', icon: [448, 512, [], "f09a", "M448 56.7v398.5c0 13.7-11.1 24.7-24.7 24.7H309.1V306.5h58.2l8.7-67.6h-67v-43.2c0-19.6 5.4-32.9 33.5-32.9h35.8v-60.5c-6.2-.8-27.4-2.7-52.2-2.7-51.6 0-87 31.5-87 89.4v49.9h-58.4v67.6h58.4V480H24.7C11.1 480 0 468.9 0 455.3V56.7C0 43.1 11.1 32 24.7 32h398.5c13.7 0 24.8 11.1 24.8 24.7z"] };
 
 /***/ }),
-/* 38 */
+/* 41 */
 /***/ (function(module, exports) {
 
 module.exports = { prefix: 'fab', iconName: 'twitter', icon: [512, 512, [], "f099", "M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"] };
 
 /***/ }),
-/* 39 */
+/* 42 */
 /***/ (function(module, exports) {
 
 module.exports = { prefix: 'fas', iconName: 'envelope', icon: [512, 512, [], "f0e0", "M502.3 190.8c3.9-3.1 9.7-.2 9.7 4.7V400c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V195.6c0-5 5.7-7.8 9.7-4.7 22.4 17.4 52.1 39.5 154.1 113.6 21.1 15.4 56.7 47.8 92.2 47.6 35.7.3 72-32.8 92.3-47.6 102-74.1 131.6-96.3 154-113.7zM256 320c23.2.4 56.6-29.2 73.4-41.4 132.7-96.3 142.8-104.7 173.4-128.7 5.8-4.5 9.2-11.5 9.2-18.9v-19c0-26.5-21.5-48-48-48H48C21.5 64 0 85.5 0 112v19c0 7.4 3.4 14.3 9.2 18.9 30.6 23.9 40.7 32.4 173.4 128.7 16.8 12.2 50.2 41.8 73.4 41.4z"] };
 
 /***/ }),
-/* 40 */
+/* 43 */
 /***/ (function(module, exports) {
 
 module.exports = { prefix: 'fas', iconName: 'copy', icon: [448, 512, [], "f0c5", "M320 448v40c0 13.255-10.745 24-24 24H24c-13.255 0-24-10.745-24-24V120c0-13.255 10.745-24 24-24h72v296c0 30.879 25.121 56 56 56h168zm0-344V0H152c-13.255 0-24 10.745-24 24v368c0 13.255 10.745 24 24 24h272c13.255 0 24-10.745 24-24V128H344c-13.2 0-24-10.8-24-24zm120.971-31.029L375.029 7.029A24 24 0 0 0 358.059 0H352v96h96v-6.059a24 24 0 0 0-7.029-16.97z"] };
 
 /***/ }),
-/* 41 */
+/* 44 */
 /***/ (function(module, exports) {
 
 // removed by extract-text-webpack-plugin

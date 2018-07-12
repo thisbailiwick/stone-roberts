@@ -1,8 +1,9 @@
-import utilities from './utilities';
+import {utilities} from './utilities';
 import _ from 'underscore';
 import {init as centerScrollToInit} from './center-scroll-to';
 import {addThumbnail} from './thumbnail-nav';
 import {zoomy} from './zoomy';
+import {initialize as vhFixInit} from './vh-fix';
 
 export let nakasentro = {
 	fullscreen: document.querySelector('.fullscreen'),
@@ -36,10 +37,6 @@ export let nakasentro = {
 
 			// setup values
 			this.setupValues(true);
-
-			// init-center-scroll-to
-
-			// nakasentro.checkArtworks(true);
 			// for when not in fullscreen
 			window.addEventListener('scroll', function () {
 					if (!this.isResizing && nakasentro.imagesProcessed === true) {
@@ -72,6 +69,7 @@ export let nakasentro = {
 		this.mainContentWidth = this.mainContentWrap.clientWidth;
 
 		this.setBodyClasses('orientation-' + utilities.browserOrientation);
+		let vhFixElements = [];
 		nakasentro.artworks_elements.forEach(function (artwork, index) {
 			let artworkElements = this.getArtworkElements(artwork, index);
 			if (isInit === false) {
@@ -81,6 +79,8 @@ export let nakasentro = {
 			let imageSizeChangeTechnique = this.setArtworkSizeChangeTechnique(artworkElements.artworkImage, artworkElements.artworkWrap);
 
 			window.addEventListener('resize', this.mobileResize.bind(artworkElements));
+			// setup up vh-fix for full viewport height bugginess
+			artworkElements.artworkImage.classList.add('vh-fix');
 
 			nakasentro.artworks.push({
 				artworksIndex: nakasentro.artworks.length,
@@ -101,8 +101,18 @@ export let nakasentro = {
 			});
 
 			addThumbnail(artworkElements.imgSrc, artworkElements.artworkImageWrap);
-		}, this);
 
+			vhFixElements.push(artworkElements.artworkImage);
+			// if (imageSizeChangeTechnique === 'height') {
+			// 	const testwindowheight = document.createTextNode(utilities.windowHeight);
+			// 	artworkElements.artworkWrap.insertBefore(testwindowheight, artworkElements.artworkWrap.firstChild);
+			// 	artworkElements.artworkImage.style.height = utilities.windowHeight + 'px';
+			// }
+		}, this);
+		// if (isInit === true) {
+			console.log(vhFixElements);
+			vhFixInit(vhFixElements, 100, 'landscape');
+		// }
 		// add to thumbnails
 	},
 	mobileResize: _.debounce(function () {
@@ -456,7 +466,6 @@ export let nakasentro = {
 		document.body.classList.remove('viewport-resizing');
 		nakasentro.isResizing = false;
 	}, 250),
-
 
 
 	setBodyClasses: function (classes) {

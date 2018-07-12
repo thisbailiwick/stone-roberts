@@ -1,4 +1,4 @@
-import utilities from './utilities';
+import {utilities} from './utilities';
 import reframe from 'reframe.js';
 
 // add youtube api script to the page

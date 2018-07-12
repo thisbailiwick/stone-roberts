@@ -1,3 +1,6 @@
+import innerHeight from 'ios-inner-height';
+import vhCheck from 'vh-check';
+
 let utilities = {
 	windowHeight: null,
 	windowWidth: null,
@@ -7,6 +10,7 @@ let utilities = {
 	browserOrientation: null,
 	bodyOverlay: document.getElementById('body-overlay'),
 	init: function () {
+		vhCheck('vh-offset');
 		this.setViewportDimensions();
 		document.addEventListener('barbaFullscreenOnChange', this.fullScreenOnChangeEvent.bind(this), false);
 		// throw in closest polyfill
@@ -44,8 +48,8 @@ let utilities = {
 			e = d.documentElement,
 			g = d.getElementsByTagName("body")[0],
 			x = w.innerWidth || e.clientWidth || g.clientWidth,
-			y = w.innerHeight || e.clientHeight || g.clientHeight;
-
+			y = /*innerHeight() || */w.innerHeight || e.clientHeight || g.clientHeight;
+			console.log(innerHeight());
 		return {width: x, height: y};
 	},
 	setViewportDimensions: function () {
@@ -62,9 +66,9 @@ let utilities = {
 
 		return (
 			bounding.top >= 0 &&
-			bounding.top <= (window.innerHeight || document.documentElement.clientHeight)
+			bounding.top <= (innerHeight() || document.documentElement.clientHeight)
 			||
-			bounding.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+			bounding.bottom <= (innerHeight() || document.documentElement.clientHeight) &&
 			bounding.bottom >= 0
 		);
 	},
@@ -166,4 +170,4 @@ let utilities = {
 
 utilities.init();
 
-module.exports = utilities;
+export {utilities};

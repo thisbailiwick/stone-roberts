@@ -666,6 +666,10 @@ textarea,
  *    `:before` to contain the top-margins of child elements.
  */
 
+:root {
+  --vh-offset: 0px;
+}
+
 .cf:before,
 .cf:after {
   content: " ";
@@ -1465,7 +1469,6 @@ body:not(.template-projects) #thumbnail-trigger {
           flex-grow: 0;
   -ms-flex-negative: 0;
       flex-shrink: 0;
-  max-height: 100vh;
   position: static;
   -webkit-transition-duration: 0.5s;
        -o-transition-duration: 0.5s;
@@ -1825,7 +1828,10 @@ body.is-touch .artwork_piece.width .main-img {
 }
 
 body.is-touch .artwork_piece.height .main-img {
+  /* If you need to support browser without CSS var support */
   height: 100vh;
+  /* enable vh fix */
+  height: calc(100vh - var(--vh-offset));
   width: auto;
 }
 
@@ -1858,7 +1864,10 @@ body.orientation-landscape.zoomed .artwork-meta {
   }
 
   body .artwork_piece.height .main-img {
+    /* If you need to support browser without CSS var support */
     height: 100vh;
+    /* enable vh fix */
+    height: calc(100vh - var(--vh-offset));
     width: auto;
   }
 }

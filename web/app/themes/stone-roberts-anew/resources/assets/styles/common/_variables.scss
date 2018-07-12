@@ -65,7 +65,10 @@ $lg-only: (min: map-get($lg, min), max: 100000px);
 
     &.height {
       .main-img {
+        /* If you need to support browser without CSS var support */
         height: 100vh;
+        /* enable vh fix */
+        height: calc(100vh - var(--vh-offset));
         width: auto;
       }
     }

@@ -29,15 +29,6 @@ export let artworkInfo = {
 	// },
 	toggleInfo: function () {
 		let infoData = this;
-		// setTimeout(function () {
-		// 	window.scrollBy({
-		// 		top: -30,
-		// 		left: 0,
-		// 		behavior: 'auto'
-		// 	});
-		// }, 0);
-		// disable or enbale scrolling
-		// console.log(window.innerHeight);
 		if (artworkInfo.showing) {
 			clearAllBodyScrollLocks();
 		} else {

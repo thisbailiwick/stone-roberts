@@ -39,7 +39,7 @@
       .main-img {
         flex-grow: 0;
         flex-shrink: 0;
-        max-height: 100vh;
+        //max-height: 100vh;
         position: static;
         transition-duration: $zoom-transition-duration;
       }

@@ -1,4 +1,4 @@
-import utilities from './utilities';
+import {utilities} from './utilities';
 import {disableBodyScroll, clearAllBodyScrollLocks} from 'body-scroll-lock';
 import {mousePosition} from './mousePosition';
 import {nakasentro} from './nakasentro';
@@ -177,7 +177,6 @@ export let zoomy = {
 				? maxValue
 				: leftPercentage;
 
-			console.log('leftPercentage, topPercentage: ' + leftPercentage, topPercentage);
 			this.mouseMapWrap.style.backgroundPosition = leftPercentage + "% " + topPercentage + "%";
 		// }
 	},
