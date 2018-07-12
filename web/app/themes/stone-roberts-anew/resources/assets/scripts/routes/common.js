@@ -6,6 +6,7 @@ import {artworkInfo} from '../artwork-info';
 import * as initMenuVerticalPush from '../../../../../../mu-plugins/menu-vertical-push/menu-vertical-push';
 import {init as thumbnailInit, setInitFalse as setThumbnailInitFalse} from '../thumbnail-nav';
 import reframe from "reframe.js";
+import {processYouTubeIframes/*, youTubeIframeAPIReady*/} from '../youtube';
 
 export default {
 	init() {
@@ -16,18 +17,6 @@ export default {
 			initMenuVerticalPush.init();
 			// addBackToTop({zIndex: 2});
 		};
-
-		let playVideo = function () {
-			this.closest('.video').classList.add('playing');
-
-		};
-
-		let playButtons = document.querySelectorAll(".video .play-button");
-		playButtons.forEach(function (button) {
-			button.addEventListener("click", playVideo.bind(button), {
-				once: true,
-			}, false);
-		});
 
 		function debounce(func, wait, immediate) {
 			let timeout;
@@ -122,10 +111,28 @@ export default {
 					moreInfo.init();
 				}
 
+				// process Vimeo Iframes
 				const vimeoIframes = document.querySelectorAll('iframe[src*="player.vimeo"]');
 				if (vimeoIframes.length > 0) {
 					vimeoIframes.forEach(reframe);
 				}
+
+				// process YouTube iframes
+				console.log('processing youtube');
+				processYouTubeIframes();
+
+
+				let playVideo = function () {
+					this.closest('.video').classList.add('playing');
+
+				};
+				// set up video play button events
+				let playButtons = document.querySelectorAll(".video .play-button");
+				playButtons.forEach(function (button) {
+					button.addEventListener("click", playVideo.bind(button), {
+						once: true,
+					}, false);
+				});
 			},
 			onLeave: function () {
 				stAudio.stopAllPlayers();
