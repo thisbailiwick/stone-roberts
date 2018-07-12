@@ -4,9 +4,8 @@ import {zoomy} from '../zoomy';
 import {nakasentro} from '../nakasentro';
 import {artworkInfo} from '../artwork-info';
 import * as initMenuVerticalPush from '../../../../../../mu-plugins/menu-vertical-push/menu-vertical-push';
-// import {addBackToTop} from 'vanilla-back-to-top';
 import {init as thumbnailInit, setInitFalse as setThumbnailInitFalse} from '../thumbnail-nav';
-// import Cookies from 'js-cookie';
+import reframe from "reframe.js";
 
 export default {
 	init() {
@@ -121,6 +120,11 @@ export default {
 					nakasentro.init();
 					artworkInfo.init();
 					moreInfo.init();
+				}
+
+				const vimeoIframes = document.querySelectorAll('iframe[src*="player.vimeo"]');
+				if (vimeoIframes.length > 0) {
+					vimeoIframes.forEach(reframe);
 				}
 			},
 			onLeave: function () {

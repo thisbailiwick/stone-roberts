@@ -9,7 +9,7 @@
   transition-property: width, height;
   transition-duration: $zoom-transition-duration;
 
-  h3 {
+  .artwork-title {
     position: absolute;
     top: 0;
     left: 0;
@@ -74,7 +74,7 @@
         transition-duration: .5s;
         z-index: 20;
 
-        .icon{
+        .icon {
           display: inline-block;
           height: 34px;
           margin: 0 10px;
@@ -85,15 +85,15 @@
           }
         }
 
-        .info{
+        .info {
           background: url($image-path + 'artwork-scale.png') no-repeat center/contain transparent;
         }
 
-        .zoom{
+        .zoom {
           background: url($image-path + 'zoom.png') no-repeat center/contain transparent;
         }
 
-        .share{
+        .share {
           background: url($image-path + 'share.png') no-repeat center/contain transparent;
         }
       }
@@ -124,11 +124,11 @@
         padding: 0;
         width: 100%;
 
-        &.piece-comparison-processed{
+        &.piece-comparison-processed {
           visibility: visible !important;
         }
 
-        .close{
+        .close {
           background: url($image-path + 'close.png') no-repeat center/contain transparent;
           height: 18px;
           width: 17px;
@@ -179,7 +179,7 @@
         top: 20px;
         z-index: 5;
 
-        &:hover{
+        &:hover {
           cursor: pointer;
         }
       }
@@ -210,7 +210,7 @@
 
     .mouse-map-wrap {
       align-items: center;
-      background-color: hsla(0,0,20%,1);
+      background-color: hsla(0, 0, 20%, 1);
       background-origin: border-box;
       background-repeat: no-repeat;
       background-size: 100%;
@@ -267,7 +267,6 @@
 
     .artwork-meta {
       display: none;
-
 
       //$width-displayed: 40px;
       //background-color: hsla(0, 0%, 10%, 1);
@@ -356,13 +355,13 @@
       opacity: 1 !important;
     }
   }
-  
-  .actions .zoom{
+
+  .actions .zoom {
     display: none !important;
   }
 
-  &[zoom-enabled]{
-    .actions .zoom{
+  &[zoom-enabled] {
+    .actions .zoom {
       display: inline-block !important;
     }
   }
@@ -390,7 +389,7 @@ body {
       &.centered {
         opacity: 1 !important;
 
-        h3{
+        h3 {
           opacity: 0;
         }
       }
@@ -400,6 +399,10 @@ body {
     @include nonAnimatingMobile;
     &.zoomed {
       overflow: hidden;
+    }
+
+    .artwork-title {
+      left: 5%;
     }
   }
   &.viewport-resizing {
@@ -426,8 +429,10 @@ body {
 }
 
 body.template-projects {
-  header.banner {
-    margin-bottom: 121px;
+  @include breakpoint($md-lg-only) {
+    header.banner {
+      margin-bottom: 121px;
+    }
   }
 
   .page-header {

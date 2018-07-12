@@ -104,7 +104,6 @@ body.front {
       align-items: center;
       margin: 0 auto;
       max-width: $main-content-max-width;
-      width: 50%;
 
       @include breakpoint($xs) {
         width: 90%;

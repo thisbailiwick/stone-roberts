@@ -20,12 +20,13 @@ $image-path: $theme-path + 'images/';
 /*********************
 BREAKPOINTS
 *********************/
-
-$xs: (max: 767px);
-$sm: (min: 768px);
-$md: (min: 992px);
-$lg: (min: 1200px);
+$xs: (max: 414px);
+$sm: (min: 415px);
+$md: (min: 768px);
+$lg: (min: 1024px);
+$xs-sm-only: (min: map-get((min: 0px), min), max: map-get($md, min) - 1);
 $sm-only: (min: map-get($sm, min), max: map-get($md, min) - 1);
+$md-lg-only: (min: map-get($md, min), max: 100000px);
 $md-only: (min: map-get($md, min), max: map-get($lg, min) - 1);
 $lg-only: (min: map-get($lg, min), max: 100000px);
 

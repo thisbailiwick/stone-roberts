@@ -1864,6 +1864,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			} else {
 				//browser is not capable
 				document.querySelector('.fullscreen-toggle').style.display = 'none';
+				document.querySelector('body').classList.add('no-fullscreen');
 			}
 		},
 		setFullScreenToggle: function () {

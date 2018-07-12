@@ -3,6 +3,10 @@
 header.banner {
   margin-bottom: 70px;
 
+  @include breakpoint($xs-sm-only){
+    margin-bottom: 0;
+  }
+
   .container {
     display: flex;
     justify-content: center;
@@ -11,12 +15,12 @@ header.banner {
     .brand {
       background-color: $background;
       display: block;
-      height: 117px;
+      height: auto;
       line-height: 1em;
       margin: 0 auto;
       max-width: 100%;
       text-align: center;
-      padding: 4vh 0 9.5vh;
+      padding: 31px 0 0;
       font-size: 30px;
       font-weight: bold;
       position: static;
@@ -24,9 +28,15 @@ header.banner {
       left: 0;
       width: 399px;
 
+      @include breakpoint($xs-sm-only) {
+        width: calc( 100% - 131px );
+        margin: 84px 0 69px;
+        padding: 0;
+      }
+
       span{
         display: block;
-        background: url($image-path + 'logo.png') no-repeat center transparent;
+        background: url($image-path + 'logo.png') no-repeat center/contain transparent;
         height: 88px;
       }
     }
@@ -56,7 +66,7 @@ header.banner {
 .hamburger{
   z-index: 307 !important;
   top: 57px;
-  left: 8px;
+  left: 9px;
 }
 
 .home {
@@ -69,5 +79,13 @@ header.banner {
   .fullscreen-toggle{
     background-image: url($image-path + 'fullscreen-out.png') !important;
     display: block !important;
+  }
+}
+
+//if there is no fullscreen capabilities we have a different arrangment of nav icons
+.no-fullscreen{
+  .hamburger{
+      left: 1px;
+      top: -5px;
   }
 }

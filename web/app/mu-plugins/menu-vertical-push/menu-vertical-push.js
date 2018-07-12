@@ -2,6 +2,7 @@ import 'hamburgers';
 import {disableBodyScroll, clearAllBodyScrollLocks} from 'body-scroll-lock';
 
 const menuWrap = document.querySelector('header.banner');
+const navPrimary = menuWrap.querySelector('.nav-primary');
 let hamburger = null;
 // let menuWrapHeight = null;
 let ignoreHeightAmount = 0;
@@ -28,9 +29,9 @@ export function init() {
 	hamburger.addEventListener('click', function () {
 		toggleMenu();
 		if (!this.classList.contains('is-active')) {
-			disableBodyScroll();
+			disableBodyScroll(navPrimary);
 		} else {
-			clearAllBodyScrollLocks();
+			clearAllBodyScrollLocks(navPrimary);
 		}
 		this.classList.toggle('is-active');
 	}, false);
@@ -40,7 +41,7 @@ export function init() {
 
 const menuLinkClick = () => {
 	toggleMenu();
-	clearAllBodyScrollLocks();
+	clearAllBodyScrollLocks(navPrimary);
 	hamburger.classList.remove('is-active');
 };
 

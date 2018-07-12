@@ -166,7 +166,7 @@ HTML;
 	return <<<HTML
 		{$zoom_style}
 		<div id="{$unique_id}" class="{$content['acf_fc_layout']}"{$zoom_enabled_attribute}>
-			<h3>{$piece_title}</h3>
+			<h3 class="artwork-title">{$piece_title}</h3>
 			<div class="image-wrap">
       	<div class="image-centered-background"></div>
         	<div class="image-space-placeholder">

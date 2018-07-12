@@ -1,5 +1,5 @@
-#thumbnails-nav{
-  background-color: rgba(0,0,0,.9);
+#thumbnails-nav {
+  background-color: rgba(0, 0, 0, .9);
   height: 100vh;
   left: 0;
   opacity: 1;
@@ -12,7 +12,7 @@
   width: 100vw;
   z-index: 300;
 
-  h1{
+  h1 {
     font-size: 18px;
     letter-spacing: 3.7px;
     height: 8vw;
@@ -24,35 +24,35 @@
     align-items: center;
   }
 
-  .thumbnails-wrap{
+  .thumbnails-wrap {
     align-content: flex-start;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
   }
 
-  .thumbnail-wrap{
+  .thumbnail-wrap {
     height: 21vw;
     padding: 2vh;
     width: auto;
   }
 
-  .thumbnail{
+  .thumbnail {
     height: 100%;
     width: auto;
 
-    &:hover{
+    &:hover {
       cursor: pointer;
     }
   }
 
-  &.hide{
+  &.hide {
     opacity: 0;
     transform: translateX(-100vw);
   }
 }
 
-#thumbnail-trigger{
+#thumbnail-trigger {
   $square-side-length: 7;
   $square-margin-right: 3;
   $square-margin-bottom: 3;
@@ -68,20 +68,28 @@
   width: $wrap-width + px;
   z-index: 301;
 
-  &:hover{
+  &:hover {
     cursor: pointer;
   }
 
-
-  >div{
+  > div {
     background-color: $icons-color;
     float: left;
     height: $square-side-length + px;
     margin: 0 $square-margin-right + px $square-margin-bottom + px 0;
     width: $square-side-length + px;
   }
+
 }
 
-body:not(.template-projects) #thumbnail-trigger{
+body:not(.template-projects) #thumbnail-trigger {
   display: none;
+}
+
+// right now touch does not have any artwork piece button go to capability, so we realign the thumbnail nav
+.is-touch {
+  #thumbnail-trigger {
+    top: 10px;
+    right: 10px;
+  }
 }
