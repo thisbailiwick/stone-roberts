@@ -1,6 +1,7 @@
 share = {
 	windowObject: null,
 	documentClickEvent: null,
+	isTouch: !!(('ontouchend' in window) || (self._navigator && self._navigator.maxTouchPoints > 0) || (self._navigator && self._navigator.msMaxTouchPoints > 0)),
 	init: function () {
 		// trigger click to show share buttons
 		document.querySelectorAll(".actions .share").forEach(function (button) {
@@ -32,31 +33,33 @@ share = {
 		);
 	},
 
-	triggerShareModule: function() {
+	triggerShareModule: function () {
 		var shareWrap = this.parentNode.parentNode.parentNode.querySelector('.dev-share-buttons');
-		shareWrap.classList.toggle("show");
+		shareWrap.classList.add("show");
 		var linkInputWrap = shareWrap.querySelector('.link-input-wrap input');
-		linkInputWrap.focus();
-		linkInputWrap.select();
-		window.setTimeout(function(){
+		if (!share.isTouch) {
+			linkInputWrap.focus();
+			linkInputWrap.select();
+		}
+		window.setTimeout(function () {
 			share.addNonAreaClickClose(shareWrap);
 		}, 100);
 	},
 
-	closeShareModule: function(shareWrap){
+	closeShareModule: function (shareWrap) {
 		shareWrap.classList.remove('show');
 		document.removeEventListener('click', share.documentClickEvent, false);
 	},
 
-	addNonAreaClickClose: function(shareWrap){
+	addNonAreaClickClose: function (shareWrap) {
 		share.documentClickEvent = share.checkClickEvent.bind(shareWrap);
 		document.addEventListener('click', share.documentClickEvent, false);
 	},
-	checkClickEvent: function(e){
+	checkClickEvent: function (e) {
 		var shareWrapCurrent = e.target;
-		if(shareWrapCurrent.classList.contains('show') && shareWrapCurrent.classList.contains('dev-share-buttons')){
+		if (shareWrapCurrent.classList.contains('show') && shareWrapCurrent.classList.contains('dev-share-buttons') || shareWrapCurrent.parentNode.parentNode.parentNode.querySelector('.dev-share-buttons').classList.contains('show')) {
 
-		}else if(shareWrapCurrent.closest('.dev-share-buttons.show') === null){
+		} else if (shareWrapCurrent.closest('.dev-share-buttons.show') === null) {
 			// this is also not the child of a dev share button which is open
 			share.closeShareModule(this);
 		}

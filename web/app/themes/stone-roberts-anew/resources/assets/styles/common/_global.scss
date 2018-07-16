@@ -50,9 +50,7 @@ textarea, input, button, .mobile-nav-link {
   margin: 0 auto;
   padding: 0;
 }
-html{
-  background: $background;
-}
+
 body.front {
   background: $background;
   overflow: scroll;
@@ -96,6 +94,27 @@ body.front {
     z-index: -300
   }
 
+  .main{
+    margin: 0 auto;
+    max-width: $main-content-max-width;
+
+
+
+    .alignleft{
+      margin-bottom: $image-margin-vertical;
+      margin-right: $image-margin-horizontal;
+    }
+
+    .alignright{
+      margin-bottom: $image-margin-vertical;
+      margin-left: $image-margin-horizontal;
+    }
+
+    @include breakpoint($xs) {
+      width: 90%;
+    }
+  }
+
   &.page-template-template-projects, &.single-projects {
     .main {
       display: flex;
@@ -104,10 +123,6 @@ body.front {
       align-items: center;
       margin: 0 auto;
       max-width: $main-content-max-width;
-
-      @include breakpoint($xs) {
-        width: 90%;
-      }
 
       > * {
         transition-duration: .25s;

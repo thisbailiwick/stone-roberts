@@ -1,12 +1,12 @@
 .nav-primary {
   background: $background;
-  transform: translateY(-100vh);
+  transform: translateY(-120vh);
   position: fixed;
   z-index: 19;
   height: 100vh;
   width: 100vw;
   margin: 0 auto;
-  padding: 13vh;
+  padding: 24px 13vh;
   max-height: 100vh;
   max-width: none;
   overflow: scroll;
@@ -71,7 +71,7 @@
     .nav-item-header {
       display: flex;
       flex-direction: column;
-      flex-grow: 1;
+      flex-grow: 0;
       font-size: 18px;
       justify-content: flex-end;
       margin-bottom: 13px;

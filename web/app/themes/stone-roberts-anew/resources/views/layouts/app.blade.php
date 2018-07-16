@@ -1,7 +1,7 @@
 <!doctype html>
 <html @php language_attributes() @endphp>
 	@include('partials.head')
-	<body @php body_class() @endphp>
+	<body @php body_class('front') @endphp>
 		<div class="fullscreen">
 			<div class="fullscreen-wrapper">
 				@php do_action('get_header') @endphp

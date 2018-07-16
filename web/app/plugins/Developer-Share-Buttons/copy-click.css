@@ -38,6 +38,7 @@
     height: 100%;
     left: 0;
     top: 0;
+    visibility: hidden;
 }
 
 .dev-share-buttons__item--copy.success .dev-share-buttons__text--copy{

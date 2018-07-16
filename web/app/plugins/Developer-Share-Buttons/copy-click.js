@@ -1,5 +1,5 @@
 var copyClick = {
-  copyElements: document.querySelectorAll(".dev-share-buttons__item--copy .copy-content-element"),
+  copyElements: document.querySelectorAll(".dev-share-buttons__item--copy"),
   init: function() {
     this.copyElements.forEach(function(contentElement) {
       contentElement.addEventListener(
@@ -10,7 +10,10 @@ var copyClick = {
     }, this);
   },
   copyElementText: function(e) {
+  	console.log('running ocpoy');
+
     e.preventDefault();
+    e.stopPropagation();
     var contentElement = this;
 
     var selection = window.getSelection();

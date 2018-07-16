@@ -1,7 +1,7 @@
 <!doctype html>
 <html <?php language_attributes() ?>>
 	<?php echo $__env->make('partials.head', array_except(get_defined_vars(), array('__data', '__path')))->render(); ?>
-	<body <?php body_class() ?>>
+	<body <?php body_class('front') ?>>
 		<div class="fullscreen">
 			<div class="fullscreen-wrapper">
 				<?php do_action('get_header') ?>

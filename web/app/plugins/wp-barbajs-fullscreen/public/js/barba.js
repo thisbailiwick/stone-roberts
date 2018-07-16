@@ -1870,7 +1870,11 @@ return /******/ (function(modules) { // webpackBootstrap
 		setFullScreenToggle: function () {
 			document.querySelector('.fullscreen-toggle').addEventListener('click', function (e) {
 				e.preventDefault();
-				FullScreen.goFullScreen();
+				if (FullScreen.isFullscreen) {
+					Fscreen.default.exitFullscreen();
+				} else {
+					FullScreen.goFullScreen();
+				}
 			});
 		},
 	

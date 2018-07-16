@@ -717,10 +717,6 @@ button,
   padding: 0;
 }
 
-html {
-  background: #262626;
-}
-
 body.front {
   background: #262626;
   overflow: scroll;
@@ -759,6 +755,27 @@ body.front #body-overlay {
   z-index: -300;
 }
 
+body.front .main {
+  margin: 0 auto;
+  max-width: 600px;
+}
+
+body.front .main .alignleft {
+  margin-bottom: 0.55em;
+  margin-right: 1.4em;
+}
+
+body.front .main .alignright {
+  margin-bottom: 0.55em;
+  margin-left: 1.4em;
+}
+
+@media screen and (max-width: 414px) {
+  body.front .main {
+    width: 90%;
+  }
+}
+
 body.front.page-template-template-projects .main,
 body.front.single-projects .main {
   display: -webkit-box;
@@ -776,13 +793,6 @@ body.front.single-projects .main {
           align-items: center;
   margin: 0 auto;
   max-width: 600px;
-}
-
-@media screen and (max-width: 414px) {
-  body.front.page-template-template-projects .main,
-  body.front.single-projects .main {
-    width: 90%;
-  }
 }
 
 body.front.page-template-template-projects .main > *,
@@ -928,15 +938,15 @@ body.front.centered-image #back-to-top {
 
 .nav-primary {
   background: #262626;
-  -webkit-transform: translateY(-100vh);
-       -o-transform: translateY(-100vh);
-          transform: translateY(-100vh);
+  -webkit-transform: translateY(-120vh);
+       -o-transform: translateY(-120vh);
+          transform: translateY(-120vh);
   position: fixed;
   z-index: 19;
   height: 100vh;
   width: 100vw;
   margin: 0 auto;
-  padding: 13vh;
+  padding: 24px 13vh;
   max-height: 100vh;
   max-width: none;
   overflow: scroll;
@@ -1033,9 +1043,9 @@ body.front.centered-image #back-to-top {
   -webkit-box-direction: normal;
       -ms-flex-direction: column;
           flex-direction: column;
-  -webkit-box-flex: 1;
-      -ms-flex-positive: 1;
-          flex-grow: 1;
+  -webkit-box-flex: 0;
+      -ms-flex-positive: 0;
+          flex-grow: 0;
   font-size: 18px;
   -webkit-box-pack: end;
       -ms-flex-pack: end;
@@ -1934,11 +1944,16 @@ body.template-projects .page-header {
   position: absolute;
 }
 
-.dev-share-buttons a {
+.dev-share-buttons a,
+.dev-share-buttons .dev-share-buttons__text--copy svg {
   font-size: 32px;
   display: inline-block;
   padding: 10px;
-  margin: 0 5px;
+  margin: 32px 5px 0;
+}
+
+.dev-share-buttons svg {
+  color: #b3b3b3;
 }
 
 .dev-share-buttons .link-input-wrap {
@@ -1951,11 +1966,21 @@ body.template-projects .page-header {
   left: 0;
   position: absolute;
   width: 100%;
-  top: 40%;
+  top: 35%;
 }
 
 .dev-share-buttons .link-input-wrap input {
   width: 50%;
+}
+
+.dev-share-buttons .close {
+  background: url("/app/themes/stone-roberts-anew/dist/images/close.png") no-repeat center/contain transparent;
+  height: 18px;
+  width: 17px;
+}
+
+.dev-share-buttons .close svg {
+  display: none;
 }
 
 .body_text p:last-child {
@@ -2105,10 +2130,19 @@ header.banner .fullscreen-toggle {
   top: -5px;
 }
 
+body.home .main {
+  max-width: unset;
+  width: 100vw;
+}
+
 .post-main-content figure {
   display: block;
   margin-left: auto;
   margin-right: auto;
+}
+
+html {
+  background: transparent;
 }
 
 body#tinymce {

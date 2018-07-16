@@ -72,8 +72,11 @@ export let nakasentro = {
 		let vhFixElements = [];
 		nakasentro.artworks_elements.forEach(function (artwork, index) {
 			let artworkElements = this.getArtworkElements(artwork, index);
+
+			let styleBlockId = artworkElements.artworkUniqueId + '-artwork-centered-style';
 			if (isInit === false) {
 				this.resetImageValues(artworkElements);
+				utilities.removeCssFromPage([styleBlockId]);
 			}
 			utilities.setViewportDimensions();
 			let imageSizeChangeTechnique = this.setArtworkSizeChangeTechnique(artworkElements.artworkImage, artworkElements.artworkWrap);
@@ -99,6 +102,19 @@ export let nakasentro = {
 				isInViewport: false,
 				imgSrc: artworkElements.imgSrc,
 			});
+
+			let imageViewportWidthRatio = utilities.windowWidth / artworkElements.artworkImage.clientWidth;
+			let imageViewportHeightRatio = utilities.windowHeight / artworkElements.artworkImage.clientHeight;
+
+			if (artworkElements.artworkImage.clientHeight >= utilities.windowHeight) {
+				artworkElements.imageRatioHolder.style.height = artworkElements.artworkImage.clientHeight + 'px';
+				artworkElements.imageRatioHolder.style.width = artworkElements.artworkImage.clientWidth + 'px';
+			} else {
+				let imageRatioHeight = artworkElements.artworkImage.clientHeight / artworkElements.artworkImage.clientWidth;
+				artworkElements.imageRatioHolder.style.paddingBottom = 100 * imageRatioHeight + '%';
+			}
+
+			this.addStylesToDocument(styleBlockId, artworkElements, imageViewportHeightRatio, imageViewportWidthRatio);
 
 			addThumbnail(artworkElements.imgSrc, artworkElements.artworkImageWrap);
 
@@ -239,6 +255,57 @@ export let nakasentro = {
 		artworkWrap.classList.add(imageSizeChangeTechnique);
 		return imageSizeChangeTechnique;
 	},
+	addStylesToDocument: function (styleBlockId, artworkElements, imageViewportHeightRatio, imageViewportWidthRatio) {
+		let styleBlock = document.getElementById(styleBlockId);
+		if (styleBlock !== null) {
+			styleBlock.remove();
+		}
+
+		// create styles for .main-img and .mouse-map width and height
+
+		let artworkStyles = '#' + artworkElements.artworkUniqueId + ' .main-img, #' + artworkElements.artworkUniqueId + ' .mouse-map-wrap {width: ' + artworkElements.artworkImage.clientWidth + 'px; height: ' + artworkElements.artworkImage.clientHeight + 'px;}';
+
+
+		const mouseMapWidth = artworkElements.artworkImage.clientWidth - (nakasentro.mouse_map_less_percentage * artworkElements.artworkImage.clientWidth);
+		const mouseMapHeight = artworkElements.artworkImage.clientHeight - (nakasentro.mouse_map_less_percentage * artworkElements.artworkImage.clientHeight);
+
+		artworkStyles += '#' + artworkElements.artworkUniqueId + ' .mouse-map {width: ' + mouseMapWidth + 'px; height: ' + mouseMapHeight + 'px;}';
+
+		// create styles for .main-img and .mouse-map scale amount when image dimension change is height
+		artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.height .main-img {transform: scale(' + imageViewportHeightRatio + ', ' + imageViewportHeightRatio + ')}';
+
+		// create styles for .main-img and .mouse-map scale amount when image dimension change is width
+		artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.width .main-img {transform: scale(' + imageViewportWidthRatio + ', ' + imageViewportWidthRatio + ')}';
+
+		// pixel amounts for mousemap elements when image has width setting type
+		const mouseMapZoomWidthPixelWidth = artworkElements.artworkImage.clientWidth * imageViewportWidthRatio;
+		const mouseMapZoomWidthPixelHeight = artworkElements.artworkImage.clientHeight * imageViewportWidthRatio;
+
+		// pizel amounts for mousemap elements when image has height setting type
+		const mouseMapZoomHeightPixelHeight = artworkElements.artworkImage.clientHeight * imageViewportHeightRatio;
+		const mouseMapZoomHeightPixelWidth = artworkElements.artworkImage.clientWidth * imageViewportHeightRatio;
+
+
+		// create zoom value style for when the image is scaled full width/height and therefor the original zoom value is scaled up also
+		artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.width .mouse-map-wrap { width: ' + mouseMapZoomWidthPixelWidth + 'px; height: ' + mouseMapZoomWidthPixelHeight + 'px;}';
+
+		artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.height .mouse-map-wrap { width: ' + mouseMapZoomHeightPixelWidth + 'px; height: ' + mouseMapZoomHeightPixelHeight + 'px;}';
+
+		artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.width .mouse-map { width: ' + (mouseMapZoomWidthPixelWidth - (nakasentro.mouse_map_less_percentage * mouseMapZoomWidthPixelWidth)) + 'px; height: ' + (mouseMapZoomWidthPixelHeight - (nakasentro.mouse_map_less_percentage * mouseMapZoomWidthPixelHeight)) + 'px;}';
+
+		artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.height .mouse-map { width: ' + (mouseMapZoomHeightPixelWidth - (nakasentro.mouse_map_less_percentage * mouseMapZoomHeightPixelWidth)) + 'px; height: ' + (mouseMapZoomHeightPixelHeight - (nakasentro.mouse_map_less_percentage * mouseMapZoomHeightPixelHeight)) + 'px;}';
+
+
+		// remove temporary max height for image after processing
+		artworkElements.artworkImage.style.maxHeight = 'none';
+
+
+		artworkElements.artworkImage.style.position = 'static';
+		artworkElements.centerImageWrap.style.height = 0;
+
+		utilities.addCssToPage(artworkStyles, styleBlockId);
+	},
+
 	setupValues: function (isInit) {
 		nakasentro.imagesProcessed = false;
 		isInit = typeof isInit === 'boolean'
@@ -372,70 +439,7 @@ export let nakasentro = {
 			nakasentro.artworks[index].wheelEvent = nakasentro.fullscreenHandleZoomyDivScroll.bind(nakasentro.artworks[index]);
 			nakasentro.artworks[index].keydownEvent = nakasentro.handlePossibleScrollKeyEvent.bind(nakasentro.artworks[index]);
 
-			// let artworkStyles = '';
-			// if (utilities.browserOrientation === 'portrait') {
-			// 	artworkStyles = '#' + artworkElements.artworkUniqueId + ' .main-img, #' + artworkElements.artworkUniqueId + ' .zoomy-wrap, #' + artworkElements.artworkUniqueId + ' .image-space-placeholder, #' + artworkElements.artworkUniqueId + ' .image-center-wrap {width: ' + artworkImage.clientWidth + 'px; height: ' + artworkImage.clientHeight + 'px; }';
-
-			// let artworkStyles = '#' + artworkElements.artworkUniqueId + '.centered.height .main-img, #' + artworkElements.artworkUniqueId + '.centered.height .zoomy-wrap {transform: scale(' + imageViewportHeightRatio + ', ' + imageViewportHeightRatio + ')}';
-			// artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.width .main-img, #' + artworkElements.artworkUniqueId + '.centered.width .zoomy-wrap {transform: scale(' + imageViewportWidthRatio + ', ' + imageViewportWidthRatio + ')}';
-
-			let styleBlock = document.getElementById(styleBlockId);
-			if (styleBlock !== null) {
-				styleBlock.remove();
-			}
-			// console.log(artworkElements.artworkUniqueId, imageViewportHeightRatio, imageViewportWidthRatio);
-			// let artworkStyles = '#' + artworkElements.artworkUniqueId + '.centered.height .main-img, #' + artworkElements.artworkUniqueId + '.centered.height .zoomy-wrap {transform: scale(' + imageViewportHeightRatio + ', ' + imageViewportHeightRatio + ')}';
-			// artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.width .main-img, #' + artworkElements.artworkUniqueId + '.centered.width .zoomy-wrap {transform: scale(' + imageViewportWidthRatio + ', ' + imageViewportWidthRatio + ')}';
-
-			// create styles for .main-img and .mouse-map width and height
-
-			let artworkStyles = '#' + artworkElements.artworkUniqueId + ' .main-img, #' + artworkElements.artworkUniqueId + ' .mouse-map-wrap {width: ' + artworkElements.artworkImage.clientWidth + 'px; height: ' + artworkElements.artworkImage.clientHeight + 'px;}';
-
-
-			const mouseMapWidth = artworkElements.artworkImage.clientWidth - (nakasentro.mouse_map_less_percentage * artworkElements.artworkImage.clientWidth);
-			const mouseMapHeight = artworkElements.artworkImage.clientHeight - (nakasentro.mouse_map_less_percentage * artworkElements.artworkImage.clientHeight);
-
-			artworkStyles += '#' + artworkElements.artworkUniqueId + ' .mouse-map {width: ' + mouseMapWidth + 'px; height: ' + mouseMapHeight + 'px;}';
-
-			// create styles for .main-img and .mouse-map scale amount when image dimension change is height
-			artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.height .main-img {transform: scale(' + imageViewportHeightRatio + ', ' + imageViewportHeightRatio + ')}';
-
-			// create styles for .main-img and .mouse-map scale amount when image dimension change is width
-			artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.width .main-img {transform: scale(' + imageViewportWidthRatio + ', ' + imageViewportWidthRatio + ')}';
-
-			// const baseZoomSetting = parseInt(artworkElements.mouseMapWrap.getAttribute('zoom-setting'));
-			// pixel amounts for mousemap elements when image has width setting type
-			const mouseMapZoomWidthPixelWidth = artworkElements.artworkImage.clientWidth * imageViewportWidthRatio;
-			const mouseMapZoomWidthPixelHeight = artworkElements.artworkImage.clientHeight * imageViewportWidthRatio;
-
-			// pizel amounts for mousemap elements when image has height setting type
-			const mouseMapZoomHeightPixelHeight = artworkElements.artworkImage.clientHeight * imageViewportHeightRatio;
-			const mouseMapZoomHeightPixelWidth = artworkElements.artworkImage.clientWidth * imageViewportHeightRatio;
-			// const mouseMapWrapScaleWidth = imageViewportWidthRatio - 1;
-			// const mouseMapWrapScaleHeight = imageViewportHeightRatio - 1;
-
-			// const scaledZoomValueWidth =  baseZoomSetting - ((baseZoomSetting * imageViewportWidthRatio) - baseZoomSetting);
-			// const scaledZoomValueHeight = baseZoomSetting - ((baseZoomSetting * imageViewportHeightRatio) - baseZoomSetting);
-
-
-			// create zoom value style for when the image is scaled full width/height and therefor the original zoom value is scaled up also
-			artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.width .mouse-map-wrap { width: ' + mouseMapZoomWidthPixelWidth + 'px; height: ' + mouseMapZoomWidthPixelHeight + 'px;}';
-
-			artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.height .mouse-map-wrap { width: ' + mouseMapZoomHeightPixelWidth + 'px; height: ' + mouseMapZoomHeightPixelHeight + 'px;}';
-
-			artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.width .mouse-map { width: ' + (mouseMapZoomWidthPixelWidth - (nakasentro.mouse_map_less_percentage * mouseMapZoomWidthPixelWidth)) + 'px; height: ' + (mouseMapZoomWidthPixelHeight - (nakasentro.mouse_map_less_percentage * mouseMapZoomWidthPixelHeight)) + 'px;}';
-
-			artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.height .mouse-map { width: ' + (mouseMapZoomHeightPixelWidth - (nakasentro.mouse_map_less_percentage * mouseMapZoomHeightPixelWidth)) + 'px; height: ' + (mouseMapZoomHeightPixelHeight - (nakasentro.mouse_map_less_percentage * mouseMapZoomHeightPixelHeight)) + 'px;}';
-
-
-			// remove temporary max height for image after processing
-			artworkElements.artworkImage.style.maxHeight = 'none';
-
-
-			artworkElements.artworkImage.style.position = 'static';
-			artworkElements.centerImageWrap.style.height = 0;
-
-			utilities.addCssToPage(artworkStyles, styleBlockId);
+			this.addStylesToDocument(styleBlockId, artworkElements, imageViewportHeightRatio, imageViewportWidthRatio);
 
 			// add to thumbnails
 			addThumbnail(artworkElements.imgSrc, artworkElements.artworkImageWrap);
