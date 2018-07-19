@@ -340,6 +340,7 @@ HTML;
  }
 
  function get_video_embed_html($layout_type, $video_iframe, $video_host, $image_url, $caption, $id_tag) {
+  $image_url = get_photon_url($image_url);
 	return <<<HTML
 			<div class="{$layout_type}" id="{$id_tag}" video-host="{$video_host}">
 				<div class="wrap">
