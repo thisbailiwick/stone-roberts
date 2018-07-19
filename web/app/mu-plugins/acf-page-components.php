@@ -177,7 +177,7 @@ HTML;
           		<img class="main-img" src="{$image_url}" alt="{$image['alt']}" data-width="{$image['width']}" data-height="{$image['height']}"/>
           	</div>
           	<div class="zoomy-wrap">
-          		<div class="mouse-map-wrap" style="background-image: url('{$image['url']}');"{$zoom_attribute}{$zoom_enabled_attribute}>
+          		<div class="mouse-map-wrap" style="background-image: url('{$image_url}');"{$zoom_attribute}{$zoom_enabled_attribute}>
 								<div class="mouse-map"></div>
 							</div>
             	{$dev_share_buttons}
