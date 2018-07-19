@@ -451,7 +451,7 @@ HTML;
 
  function get_photon_url($url){
 	if (function_exists('jetpack_photon_url')) {
-		$url = apply_filters('jetpack_photon_url', $url);
+		$url = apply_filters('jetpack_photon_url', get_bloginfo('url') . $url);
 	}
 
 	return $url;
