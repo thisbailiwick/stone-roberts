@@ -79,7 +79,7 @@
 		add_action('admin_init', array($this, 'admin_init'));
 		add_action('admin_menu', array($this, 'admin_menu'));
 		add_action('wp_enqueue_scripts', array($this, 'enqueue_style'));
-		add_action('wp_enqueue_scripts', array($this, 'share_api_script'));
+//		add_action('wp_enqueue_scripts', array($this, 'share_api_script'));
 		add_action('wp_enqueue_scripts', array($this, 'share_scripts'));
 
 		add_shortcode(static::$slug_, array($this, 'shortcode'));
@@ -131,24 +131,11 @@
 		* @return void
 		*/
 	 function enqueue_style() {
-		$load_css = false;
-		if (apply_filters(static::$slug_ . '_css', $load_css)) {
-		 wp_enqueue_style(static::$slug, plugin_dir_url(__FILE__) . 'style.css', false, static::$version);
-		}
-		wp_enqueue_style(static::$slug . '-copy-click', plugin_dir_url(__FILE__) . 'copy-click.css', false, static::$version);
-		wp_enqueue_style(static::$slug . '-share', plugin_dir_url(__FILE__) . 'share.css', false, static::$version);
-	 }
-
-	 /**
-		* Enqueues the share api script
-		*
-		* @return void
-		*/
-	 function share_api_script() {
-		$share_api = false;
-		if (apply_filters(static::$slug_ . '_share_api', $share_api)) {
-		 wp_enqueue_script(static::$slug . '-share-api', plugin_dir_url(__FILE__) . 'share-api.js', false, static::$version, true);
-		}
+//		$load_css = false;
+//		if (apply_filters(static::$slug_ . '_css', $load_css)) {
+//		 wp_enqueue_style(static::$slug, plugin_dir_url(__FILE__) . 'style.css', false, static::$version);
+//		}
+		wp_enqueue_style(static::$slug . '-main', plugin_dir_url(__FILE__) . 'dist/main.css', false, static::$version);
 	 }
 
 	 /**
@@ -157,8 +144,7 @@
 		* @return void
 		*/
 	 function share_scripts() {
-		wp_enqueue_script(static::$slug . '-copy-click', plugin_dir_url(__FILE__) . 'copy-click.js', false, static::$version, true);
-		wp_enqueue_script(static::$slug . '-share', plugin_dir_url(__FILE__) . 'share.js', false, static::$version, true);
+		wp_enqueue_script(static::$slug . '-bundle', plugin_dir_url(__FILE__) . 'dist/developer-share-buttons-bundle.js', false, static::$version, true);
 	 }
 
 	 /**
@@ -495,11 +481,11 @@
 			 $icon = '<i class="fab fa-' . $service['id'] . '"></i>';
 			}
 //					echo '<h1>'.$icon.'</h1>';
-			if ($service['id'] === 'copy') {
-			 $html = sprintf($before_link . '<div class="%2$s__item %2$s__item--%3$s">%5$s<span class="hide_text %2$s__text %2$s__text--%3$s">%4$s</span>%6$s %7$s </div> ', $url, $css_class, $service['id'], $share_text . $service['title'], $before_text, $after_text, $icon);
-			} else {
+//			if ($service['id'] === 'copy') {
+//			 $html = sprintf($before_link . '<div class="%2$s__item %2$s__item--%3$s">%5$s<span class="hide_text %2$s__text %2$s__text--%3$s">%4$s</span>%6$s %7$s </div> ', $url, $css_class, $service['id'], $share_text . $service['title'], $before_text, $after_text, $icon);
+//			} else {
 			 $html = sprintf($before_link . '<a target="_blank" href="%1$s" class="%2$s__item %2$s__item--%3$s">%5$s<span class="hide_text %2$s__text %2$s__text--%3$s">%4$s</span>%6$s %7$s </a> ', $url, $css_class, $service['id'], $share_text . $service['title'], $before_text, $after_text, $icon);
-			}
+//			}
 
 			return $html;
 		 }

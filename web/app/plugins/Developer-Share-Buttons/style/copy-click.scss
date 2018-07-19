@@ -1,0 +1,43 @@
+.dev-share-buttons__text--copy {
+  position: relative;
+  text-indent: unset !important;
+  white-space: nowrap !important;
+}
+
+.dev-share-buttons__item--copy input {
+  display: block;
+  width: 400px;
+  max-width: 100%;
+}
+
+.dev-share-buttons__item--copy {
+  position: relative;
+}
+
+.dev-share-buttons__item--copy {
+  &.success svg {
+    display: none;
+  }
+
+  .copy-content-element {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    opacity: 0;
+    top: 0;
+  }
+}
+
+.dev-share-buttons__item--copy.success {
+  .dev-share-buttons__text--copy {
+    left: 0;
+    overflow: visible;
+    position: absolute;
+    top: 0;
+  }
+
+  .copy-content-element {
+    display: block;
+  }
+}

@@ -137,13 +137,16 @@ HTML;
 
  function html_artwork_piece($content, $unique_id, $post) {
 	$image = $content['artwork_piece'];
+	$image_url = get_photon_url($image['url']);
 	$permalink = get_permalink($post->ID);
 	$artwork_info_text = trim($content['artwork_info_text']);
 	$compare_image_height = get_field('compare_height_in_inches', 'options')['compare_height_in_inches'];
 	$compare_image_width = get_field('compare_width_in_inches', 'options')['compare_width_in_inches'];
-	$compare_image_url = get_field('compare_background_image', 'options');
+	$compare_image = get_field('compare_background_image', 'options');
+	$compare_image_url = get_photon_url($compare_image['url']);
 	$piece_title = $post->post_title;
-	$dev_share_buttons = get_dev_share_buttons(array('facebook', 'twitter', 'email', 'copy'), $permalink, $post->post_title, '', $image['url'], $post->ID);
+	$dev_share_buttons = get_dev_share_buttons(array('facebook', 'twitter', 'email', 'copy'), $permalink, $post->post_title, '', $image_url, $post->ID);
+
 
 	// get zoom settings based on values set in wp admin
 	// TODO: move to this to naksentro.js where we're setting other css styles
@@ -151,9 +154,9 @@ HTML;
 	$zoom_enabled_attribute = '';
 	$zoom_style = '';
 	$zoom_attribute = '';
-	if($zoom_setting !== 'disabled') {
+	if ($zoom_setting !== 'disabled') {
 	 $zoom_enabled_attribute = ' zoom-enabled';
-		$zoom_style = <<<HTML
+	 $zoom_style = <<<HTML
 		<style type="text/css">
 			#{$unique_id}.zoomed .mouse-map-wrap{
 				background-size: {$zoom_setting}px auto;
@@ -161,7 +164,7 @@ HTML;
 		</style>
 HTML;
 
-		$zoom_attribute = ' zoom-setting="' . $zoom_setting . '"';
+	 $zoom_attribute = ' zoom-setting="' . $zoom_setting . '"';
 	}
 	return <<<HTML
 		{$zoom_style}
@@ -171,7 +174,7 @@ HTML;
       	<div class="image-centered-background"></div>
         	<div class="image-space-placeholder">
         		<div class="center-image-wrap">
-          		<img class="main-img" src="{$image['url']}" alt="{$image['alt']}" data-width="{$image['width']}" data-height="{$image['height']}"/>
+          		<img class="main-img" src="{$image_url}" alt="{$image['alt']}" data-width="{$image['width']}" data-height="{$image['height']}"/>
           	</div>
           	<div class="zoomy-wrap">
           		<div class="mouse-map-wrap" style="background-image: url('{$image['url']}');"{$zoom_attribute}{$zoom_enabled_attribute}>
@@ -185,15 +188,15 @@ HTML;
 						<div class="piece-comparison-wrap" style="visibility: hidden;">
 							<i class="close"></i>
 							<div class="comparison-image-wrap">
-								<img class="comparison-image" src="{$image['url']}" alt="{$image['alt']}" data-width="{$content['width']}" data-height="{$content['height']}" />
+								<img class="comparison-image" src="{$image_url}" alt="{$image['alt']}" data-width="{$content['width']}" data-height="{$content['height']}" />
 							</div>
-							<div style="background: url('{$compare_image_url['url']}') no-repeat center/cover transparent" data-file-width="{$compare_image_url['width']}" data-file-height="{$compare_image_url['height']}" class="compared-to" /></div>
+							<div style="background: url('{$compare_image_url}') no-repeat center/cover transparent" data-file-width="{$compare_image['width']}" data-file-height="{$compare_image['height']}" class="compared-to" /></div>
 						</div>
 					</div>
 					<div class="artwork-meta">
 						<div class="caption">{$content['caption_text']}</div>
 						<div class="actions">
-							<i class="zoom icon" data-large-image="{$image['url']}" data-zoom-unique-id="{$unique_id}"></i>
+							<i class="zoom icon" data-large-image="{$image_url}" data-zoom-unique-id="{$unique_id}"></i>
 							<i class="info icon" data-width="{$content['width']}" data-height="{$content['height']}" data-compare-height-inches="{$compare_image_height}" data-compare-width-inches="{$compare_image_width}"></i>
 							<i class="share icon"></i>
 						</div>
@@ -444,4 +447,12 @@ HTML;
 		</ul>
 HTML;
 
+ }
+
+ function get_photon_url($url){
+	if (function_exists('jetpack_photon_url')) {
+		$url = apply_filters('jetpack_photon_url', $url);
+	}
+
+	return $url;
  }

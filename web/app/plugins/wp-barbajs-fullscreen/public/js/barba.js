@@ -1880,7 +1880,11 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 		replaceBodyClasses: function () {
 			var body = document.getElementsByTagName('body')[0];
-			body.className = Dom.currentBodyClasses;
+			var additional_classes = '';
+			if(FullScreen.browserSupportsFullscreen === false){
+				additional_classes = ' no-fullscreen'
+			}
+			body.className = Dom.currentBodyClasses + additional_classes;
 		},
 		// all fullscreen requests should go through this function
 		goFullScreen: function () {

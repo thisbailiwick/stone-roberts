@@ -25,8 +25,10 @@ function init(parentElement) {
 		thumbnailsWrap = thumbnailsNav.querySelector('.thumbnails-wrap');
 
 
-		// add trigger divs
-		const thumbnailTriggerHtml = `
+		const thumbnailTrigger = fullscreenWrapper.querySelector('#thumbnail-trigger');
+		if (thumbnailTrigger === null) {
+			// add trigger divs
+			const thumbnailTriggerHtml = `
 			<div id="thumbnail-trigger">
 				<div></div>
 				<div></div>
@@ -37,8 +39,9 @@ function init(parentElement) {
 			</div>
 		`;
 
-		document.querySelector('.fullscreen-wrapper').insertAdjacentHTML('afterbegin', thumbnailTriggerHtml);
-		thumbnailsTrigger = document.getElementById('thumbnail-trigger');
+			document.querySelector('.fullscreen-wrapper').insertAdjacentHTML('afterbegin', thumbnailTriggerHtml);
+			thumbnailsTrigger = document.getElementById('thumbnail-trigger');
+		}
 
 		thumbnailsTrigger.addEventListener('click', function () {
 			if (fullscreenWrapper.classList.contains('showing-thumbnails')) {
@@ -84,7 +87,7 @@ function addThumbnail(imgSrc, associatedDomElement) {
 
 }
 
-function setInitFalse(){
+function setInitFalse() {
 	initSetup = false;
 }
 
