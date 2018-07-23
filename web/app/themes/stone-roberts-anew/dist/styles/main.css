@@ -2227,6 +2227,10 @@ header.banner .fullscreen-toggle {
   top: -5px;
 }
 
+footer.content-info {
+  padding: 30px 0;
+}
+
 body.home .main {
   max-width: unset;
   width: 100vw;
