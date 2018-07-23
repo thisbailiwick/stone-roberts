@@ -1539,10 +1539,6 @@ body:not(.template-projects) #thumbnail-trigger {
           animation: loadingH 1.5s cubic-bezier(0.17, 0.37, 0.43, 0.67) infinite;
 }
 
-.artwork_piece.loaded .loading-image {
-  display: none;
-}
-
 .artwork_piece .artwork-title {
   position: absolute;
   top: 0;
@@ -1582,11 +1578,13 @@ body:not(.template-projects) #thumbnail-trigger {
 }
 
 .artwork_piece .image-wrap .image-space-placeholder .main-img {
+  background-color: #363636;
   -webkit-box-flex: 0;
       -ms-flex-positive: 0;
           flex-grow: 0;
   -ms-flex-negative: 0;
       flex-shrink: 0;
+  min-height: 125px;
   position: static;
   -webkit-transition-duration: 0.5s;
        -o-transition-duration: 0.5s;
@@ -1841,6 +1839,10 @@ body:not(.template-projects) #thumbnail-trigger {
   -o-transition-property: background-size, width, height, -o-transform;
   transition-property: transform, background-size, width, height;
   transition-property: transform, background-size, width, height, -webkit-transform, -o-transform;
+}
+
+.artwork_piece.loaded .loading-image {
+  display: none;
 }
 
 .artwork_piece.zoomed .mouse-map-wrap {

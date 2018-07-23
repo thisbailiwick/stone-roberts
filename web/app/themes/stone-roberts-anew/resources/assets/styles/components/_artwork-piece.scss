@@ -40,10 +40,6 @@
       animation: loadingH 1.5s cubic-bezier(.17, .37, .43, .67) infinite;
     }
   }
-  
-  &.loaded .loading-image{
-    display: none;
-  }
 
   .artwork-title {
     position: absolute;
@@ -73,8 +69,10 @@
       }
 
       .main-img {
+        background-color: $background-lighter;
         flex-grow: 0;
         flex-shrink: 0;
+        min-height: 125px;
         //max-height: 100vh;
         position: static;
         transition-duration: $zoom-transition-duration;
@@ -273,6 +271,17 @@
       }
     }
   }
+
+  &.loaded {
+    .loading-image {
+      display: none;
+    }
+
+    .main-img {
+
+    }
+  }
+
   &.zoomed {
     .mouse-map-wrap {
       opacity: 1;
