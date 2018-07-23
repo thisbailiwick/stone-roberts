@@ -122,7 +122,6 @@ export default {
 				}
 
 				// process YouTube iframes
-				console.log('processing youtube');
 				processYouTubeIframes();
 
 
@@ -147,7 +146,9 @@ export default {
 		/* eslint-disable */
 		Barba.Pjax.start({
 			/* eslint-enable */
-			showFullscreenModal: false,
+			showFullscreenModal: true,
+			manualModal: true,
+			manualFullScreenToggle: true,
 		});
 
 	},

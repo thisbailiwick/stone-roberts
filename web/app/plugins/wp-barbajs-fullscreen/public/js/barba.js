@@ -1833,7 +1833,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	
 	var FullScreen = {
 		currentUrl: null,
+		// use modal
 		preference: false,
+		// use manual calling of modal
 		modal: null,
 		isFullscreen: false,
 		fullScreenChangeEvent: new CustomEvent('fullscreenChange'),
@@ -1858,6 +1860,10 @@ return /******/ (function(modules) { // webpackBootstrap
 				document.querySelector('body').classList.add('fullscreen-capable');
 				this.setFullScreenToggle();
 				this.preference = options.showFullscreenModal;
+				if (this.preference === true) {
+					this.manualModal = options.manualModal;
+					this.manualFullScreenToggle = options.manualFullScreenToggle;
+				}
 				this.initFullscreenModal();
 	
 				Fscreen.default.addEventListener('fullscreenchange', FullScreen.fullScreenOnChangeEvent.bind(FullScreen), false);
@@ -1881,11 +1887,12 @@ return /******/ (function(modules) { // webpackBootstrap
 		replaceBodyClasses: function () {
 			var body = document.getElementsByTagName('body')[0];
 			var additional_classes = '';
-			if(FullScreen.browserSupportsFullscreen === false){
+			if (FullScreen.browserSupportsFullscreen === false) {
 				additional_classes = ' no-fullscreen'
 			}
 			body.className = Dom.currentBodyClasses + additional_classes;
 		},
+	
 		// all fullscreen requests should go through this function
 		goFullScreen: function () {
 			var fullscreenElement = document.querySelector('.fullscreen');
@@ -1895,11 +1902,27 @@ return /******/ (function(modules) { // webpackBootstrap
 				this.setFullscreenYesCookies();
 			}
 		},
+	
 		initFullscreenModal: function () {
 			if (this.preference === true) {
 				FullScreen.applyFullscreenModal();
 			}
 		},
+	
+		toggleModal: function () {
+			this.modal.classList.toggle('show');
+		},
+	
+		showModal: function () {
+			this.modal = document.querySelector('.fullscreen-modal');
+			var buttonYes = this.modal.querySelector('.fullscreen-yes');
+			var buttonNo = this.modal.querySelector('.fullscreen-no');
+	
+			this.toggleModal();
+	
+			this.setModalButtonEvents(buttonYes, buttonNo);
+		},
+	
 		applyFullscreenModal: function () {
 			// create fullscreen modal html
 			var modalHtml = '\
@@ -1941,16 +1964,12 @@ return /******/ (function(modules) { // webpackBootstrap
 			document.querySelector('.fullscreen').insertAdjacentHTML('beforeend', modalHtml);
 			// check if user has cookies, permanent and session
 			var showModal = this.shouldShowModal();
-			if (showModal) {
-				this.modal = document.querySelector('.fullscreen-modal');
-				var buttonYes = this.modal.querySelector('.fullscreen-yes');
-				var buttonNo = this.modal.querySelector('.fullscreen-no');
 	
-				this.modal.classList.toggle('show');
-	
-				this.setModalButtonEvents(buttonYes, buttonNo)
+			if (showModal && this.manualModal === false) {
+				this.showModal();
 			}
 		},
+	
 		shouldShowModal: function () {
 			// check if session cookie
 			var sessionCookie = Cookies.get('fullscreen-session');
@@ -1970,27 +1989,52 @@ return /******/ (function(modules) { // webpackBootstrap
 			return true;
 	
 		},
+	
 		setModalButtonEvents: function (buttonYes, buttonNo) {
 			buttonYes.addEventListener('click', this.fullscreenYes.bind(this));
 			buttonNo.addEventListener('click', this.fullscreenNo.bind(this));
 		},
+	
 		fullscreenYes: function () {
-			//hide modal
-			this.modal.classList.toggle('show');
-			Fscreen.default.requestFullscreen(document.querySelector('.fullscreen'));
+			if (this.manualFullScreenToggle === false) {
+				//hide modal
+				this.toggleModal();
+				Fscreen.default.requestFullscreen(document.querySelector('.fullscreen'));
+			} else {
+				// trigger custom yes event
+				document.dispatchEvent(
+					new CustomEvent('barbaFullScreenPreferenceYes', {
+						bubbles: false,
+						cancelable: false
+					})
+				);
+			}
 			this.setFullscreenYesCookies();
 		},
+	
 		fullscreenNo: function () {
-			//hide modal
-			this.modal.classList.toggle('show');
+			if (this.manualFullScreenToggle === false) {
+				//hide modal
+				this.toggleModal();
+			} else {
+				// trigger custom no event
+				document.dispatchEvent(
+					new CustomEvent('barbaFullScreenPreferenceNo', {
+						bubbles: false,
+						cancelable: false
+					})
+				);
+			}
 			this.setFullscreenNoCookies();
 		},
+	
 		setFullscreenYesCookies: function () {
 			// set permanent
 			Cookies.set('fullscreen-permanent', true, {expires: 365});
 			// set session
 			Cookies.set('fullscreen-session', true);
 		},
+	
 		setFullscreenNoCookies: function () {
 			// set permanent
 			Cookies.set('fullscreen-permanent', false, {expires: 365});
@@ -2184,7 +2228,9 @@ return /******/ (function(modules) { // webpackBootstrap
 	  start: function(options) {
 	  	options = typeof options !== 'undefined' ? options : {};
 	  	options = {
-		    showFullscreenModal: typeof options.showFullscreenModal !== 'undefined' ? options.showFullscreenModal : false
+		    showFullscreenModal: typeof options.showFullscreenModal !== 'undefined' ? options.showFullscreenModal : false,
+			  manualModal: typeof options.manualModal !== 'undefined' ? options.manualModal : false,
+			  manualFullScreenToggle: typeof options.manualFullScreenToggle !== 'undefined' ? options.manualFullScreenToggle : false,
 	    };
 	
 	    this.init(options);
