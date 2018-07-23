@@ -2269,6 +2269,7 @@ body.front .fullscreen {
 
 body.front .fullscreen .fullscreen-modal {
   background-color: rgba(0, 0, 0, 0.8);
+  z-index: 400;
 }
 
 body.front .fullscreen .main > * {

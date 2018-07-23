@@ -4263,26 +4263,47 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 
 var modal = document.getElementById('splash-modal');
+
+function barbaFullScreenPreferenceYes() {
+	/* eslint-disable */
+	Barba.FullScreen.toggleModal();
+	Barba.FullScreen.goFullScreen();
+	/* eslint-enable */
+
+	window.setTimeout(function () {
+		document.body.classList.remove('show-splash');
+		window.setTimeout(function () {
+			document.body.classList.remove('show-splash-transition');
+			Object(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__["clearAllBodyScrollLocks"])(modal);
+		}, 250);
+	}, 1000);
+}
+
+function barbaFullScreenPreferenceNo() {
+	/* eslint-disable */
+	Barba.FullScreen.toggleModal();
+	/* eslint-enable */
+	document.body.classList.remove('show-splash');
+	Object(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__["clearAllBodyScrollLocks"])(modal);
+}
+
 if (__WEBPACK_IMPORTED_MODULE_0_js_cookie___default.a.get('splashseen') === undefined) {
+
 	Object(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__["disableBodyScroll"])(modal);
 	document.body.classList.add('show-splash', 'show-splash-transition');
 	modal.addEventListener('click', function () {
-
-
 		/* eslint-disable */
 		if (Barba.FullScreen.browserSupportsFullscreen) {
-			Barba.FullScreen.goFullScreen();
-			window.setTimeout(function () {
-				document.body.classList.remove('show-splash');
-				window.setTimeout(function () {
-					document.body.classList.remove('show-splash-transition');
-					Object(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__["clearAllBodyScrollLocks"])(modal);
-				}, 250);
-			}, 1000);
-		}else{
+			Barba.FullScreen.showModal();
+			/* eslint-enable */
+
+			document.addEventListener('barbaFullScreenPreferenceYes', barbaFullScreenPreferenceYes, false);
+			document.addEventListener('barbaFullScreenPreferenceNo', barbaFullScreenPreferenceNo, false);
+
+
+		} else {
 			document.body.classList.remove('show-splash', 'show-splash-transition');
 		}
-		/* eslint-enable */
 
 		__WEBPACK_IMPORTED_MODULE_0_js_cookie___default.a.set('splashseen', 'true', {expires: 365});
 	});
@@ -9571,7 +9592,6 @@ Router.prototype.loadEvents = function loadEvents () {
 				}
 
 				// process YouTube iframes
-				console.log('processing youtube');
 				Object(__WEBPACK_IMPORTED_MODULE_8__youtube__["processYouTubeIframes"])();
 
 
@@ -9596,7 +9616,9 @@ Router.prototype.loadEvents = function loadEvents () {
 		/* eslint-disable */
 		Barba.Pjax.start({
 			/* eslint-enable */
-			showFullscreenModal: false,
+			showFullscreenModal: true,
+			manualModal: true,
+			manualFullScreenToggle: true,
 		});
 
 	},
