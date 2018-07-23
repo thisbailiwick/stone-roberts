@@ -9,6 +9,42 @@
   transition-property: width, height;
   transition-duration: $zoom-transition-duration;
 
+  @keyframes loadingH {
+    0% {
+      width: 15px;
+    }
+    50% {
+      width: 75px;
+      padding: 4px;
+    }
+    100% {
+      width: 15px;
+    }
+  }
+
+  .line {
+    border-radius: 15px;
+    display: inline-block;
+    height: 15px;
+    background-color: $icons-color;
+    width: 100%;
+  }
+
+  .loading-image {
+    display: block;
+    position: absolute;
+    top: 50%;
+    width: 100%;
+
+    .line {
+      animation: loadingH 1.5s cubic-bezier(.17, .37, .43, .67) infinite;
+    }
+  }
+  
+  &.loaded .loading-image{
+    display: none;
+  }
+
   .artwork-title {
     position: absolute;
     top: 0;
@@ -395,12 +431,12 @@ body {
       }
     }
 
-    #thumbnail-trigger, .hamburger, .center-scroll-arrows, .fullscreen-toggle{
+    #thumbnail-trigger, .hamburger, .center-scroll-arrows, .fullscreen-toggle {
       opacity: .1;
       transition-duration: .25s;
     }
 
-    #thumbnail-trigger:hover, .hamburger:hover, .center-scroll-arrows:hover, .fullscreen-toggle:hover{
+    #thumbnail-trigger:hover, .hamburger:hover, .center-scroll-arrows:hover, .fullscreen-toggle:hover {
       opacity: 1;
     }
   }

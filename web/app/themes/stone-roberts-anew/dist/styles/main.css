@@ -1473,6 +1473,76 @@ body:not(.template-projects) #thumbnail-trigger {
           transition-duration: 0.5s;
 }
 
+@-webkit-keyframes loadingH {
+  0% {
+    width: 15px;
+  }
+
+  50% {
+    width: 75px;
+    padding: 4px;
+  }
+
+  100% {
+    width: 15px;
+  }
+}
+
+@-o-keyframes loadingH {
+  0% {
+    width: 15px;
+  }
+
+  50% {
+    width: 75px;
+    padding: 4px;
+  }
+
+  100% {
+    width: 15px;
+  }
+}
+
+@keyframes loadingH {
+  0% {
+    width: 15px;
+  }
+
+  50% {
+    width: 75px;
+    padding: 4px;
+  }
+
+  100% {
+    width: 15px;
+  }
+}
+
+.artwork_piece .line {
+  border-radius: 15px;
+  display: inline-block;
+  height: 15px;
+  background-color: #b3b3b3;
+  width: 100%;
+}
+
+.artwork_piece .loading-image {
+  display: block;
+  position: absolute;
+  top: 50%;
+  width: 100%;
+}
+
+.artwork_piece .loading-image .line {
+  -webkit-animation: loadingH 1.5s cubic-bezier(0.17, 0.37, 0.43, 0.67) infinite;
+       -o-animation: loadingH 1.5s cubic-bezier(0.17, 0.37, 0.43, 0.67) infinite;
+          animation: loadingH 1.5s cubic-bezier(0.17, 0.37, 0.43, 0.67) infinite;
+}
+
+.artwork_piece.loaded .loading-image {
+  display: none;
+}
+
 .artwork_piece .artwork-title {
   position: absolute;
   top: 0;

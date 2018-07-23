@@ -9531,11 +9531,14 @@ Router.prototype.loadEvents = function loadEvents () {
 				// wait for images to load before spinning up the artwork animation
 				var images = document.querySelectorAll('.main .artwork_piece .main-img');
 				var imagesCount = images.length;
+
 				images.forEach(function (img) {
 					if (img.complete === true) {
+						img.closest('.artwork_piece').classList.add('loaded');
 						imagesCount--;
 					} else {
 						img.addEventListener('load', function () {
+							img.closest('.artwork_piece').classList.add('loaded');
 							imagesCount--;
 							checkIfImagesLoaded(imagesCount);
 						});
@@ -9546,6 +9549,7 @@ Router.prototype.loadEvents = function loadEvents () {
 
 				function checkIfImagesLoaded(imagesCount) {
 					if (imagesCount === 0) {
+						console.log('images loaded');
 						initArtwork();
 
 						//spin up zoomy, must be done after initArtwork

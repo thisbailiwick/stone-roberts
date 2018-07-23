@@ -82,11 +82,14 @@ export default {
 				// wait for images to load before spinning up the artwork animation
 				let images = document.querySelectorAll('.main .artwork_piece .main-img');
 				let imagesCount = images.length;
+
 				images.forEach(function (img) {
 					if (img.complete === true) {
+						img.closest('.artwork_piece').classList.add('loaded');
 						imagesCount--;
 					} else {
 						img.addEventListener('load', function () {
+							img.closest('.artwork_piece').classList.add('loaded');
 							imagesCount--;
 							checkIfImagesLoaded(imagesCount);
 						});
@@ -97,6 +100,7 @@ export default {
 
 				function checkIfImagesLoaded(imagesCount) {
 					if (imagesCount === 0) {
+						console.log('images loaded');
 						initArtwork();
 
 						//spin up zoomy, must be done after initArtwork
