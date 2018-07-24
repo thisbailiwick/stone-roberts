@@ -361,7 +361,7 @@ export let nakasentro = {
 				this.resetImageValues(artworkElements);
 				utilities.removeCssFromPage([styleBlockId]);
 			}
-			
+
 			let {newHeight, newWidth, imageRatioWidth, imageRatioHeight} = this.getNewImageDimensions(artworkElements);
 
 			artworkElements.artworkImage.style.minHeight = newHeight + 'px';

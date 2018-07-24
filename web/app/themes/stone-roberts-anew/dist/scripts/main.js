@@ -782,7 +782,7 @@ var nakasentro = {
 				this.resetImageValues(artworkElements);
 				__WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].removeCssFromPage([styleBlockId]);
 			}
-			
+
 			var ref = this.getNewImageDimensions(artworkElements);
 			var newHeight = ref.newHeight;
 			var newWidth = ref.newWidth;
@@ -4300,8 +4300,8 @@ function barbaFullScreenPreferenceYes() {
 	window.setTimeout(function () {
 		document.body.classList.remove('show-splash');
 		window.setTimeout(function () {
-			document.body.classList.remove('show-splash-transition');
 			Object(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__["clearAllBodyScrollLocks"])(modal);
+			document.body.classList.remove('show-splash', 'show-splash-transition');
 		}, 250);
 	}, 1000);
 }
@@ -4310,12 +4310,11 @@ function barbaFullScreenPreferenceNo() {
 	/* eslint-disable */
 	Barba.FullScreen.toggleModal();
 	/* eslint-enable */
-	document.body.classList.remove('show-splash');
 	Object(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__["clearAllBodyScrollLocks"])(modal);
+	document.body.classList.remove('show-splash', 'show-splash-transition');
 }
 
 if (__WEBPACK_IMPORTED_MODULE_0_js_cookie___default.a.get('splashseen') === undefined) {
-
 	Object(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__["disableBodyScroll"])(modal);
 	document.body.classList.add('show-splash', 'show-splash-transition');
 	modal.addEventListener('click', function () {
@@ -4326,8 +4325,6 @@ if (__WEBPACK_IMPORTED_MODULE_0_js_cookie___default.a.get('splashseen') === unde
 
 			document.addEventListener('barbaFullScreenPreferenceYes', barbaFullScreenPreferenceYes, false);
 			document.addEventListener('barbaFullScreenPreferenceNo', barbaFullScreenPreferenceNo, false);
-
-
 		} else {
 			document.body.classList.remove('show-splash', 'show-splash-transition');
 		}

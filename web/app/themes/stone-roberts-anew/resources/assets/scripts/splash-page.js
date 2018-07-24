@@ -12,8 +12,8 @@ function barbaFullScreenPreferenceYes() {
 	window.setTimeout(function () {
 		document.body.classList.remove('show-splash');
 		window.setTimeout(function () {
-			document.body.classList.remove('show-splash-transition');
 			clearAllBodyScrollLocks(modal);
+			document.body.classList.remove('show-splash', 'show-splash-transition');
 		}, 250);
 	}, 1000);
 }
@@ -22,12 +22,11 @@ function barbaFullScreenPreferenceNo() {
 	/* eslint-disable */
 	Barba.FullScreen.toggleModal();
 	/* eslint-enable */
-	document.body.classList.remove('show-splash');
 	clearAllBodyScrollLocks(modal);
+	document.body.classList.remove('show-splash', 'show-splash-transition');
 }
 
 if (Cookies.get('splashseen') === undefined) {
-
 	disableBodyScroll(modal);
 	document.body.classList.add('show-splash', 'show-splash-transition');
 	modal.addEventListener('click', function () {
@@ -38,8 +37,6 @@ if (Cookies.get('splashseen') === undefined) {
 
 			document.addEventListener('barbaFullScreenPreferenceYes', barbaFullScreenPreferenceYes, false);
 			document.addEventListener('barbaFullScreenPreferenceNo', barbaFullScreenPreferenceNo, false);
-
-
 		} else {
 			document.body.classList.remove('show-splash', 'show-splash-transition');
 		}
