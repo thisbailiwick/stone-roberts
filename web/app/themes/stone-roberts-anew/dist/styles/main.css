@@ -1659,6 +1659,7 @@ body:not(.template-projects) #thumbnail-trigger {
   display: flex;
   left: 0;
   margin: 0;
+  opacity: 0;
   padding: 0;
   position: fixed;
   right: 0;
@@ -1769,6 +1770,7 @@ body:not(.template-projects) #thumbnail-trigger {
 }
 
 .artwork_piece.show-info .piece-comparison {
+  opacity: 1;
   -webkit-transform: translateY(0vh);
        -o-transform: translateY(0vh);
           transform: translateY(0vh);
