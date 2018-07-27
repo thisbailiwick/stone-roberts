@@ -1,5 +1,6 @@
 import innerHeight from 'ios-inner-height';
 import vhCheck from 'vh-check';
+import _ from 'underscore';
 
 let utilities = {
 	windowHeight: null,
@@ -12,7 +13,10 @@ let utilities = {
 	init: function () {
 		vhCheck('vh-offset');
 		this.setViewportDimensions();
+		// add browser orientation class to body
+    this.addBrowserOrientationClass();
 		document.addEventListener('barbaFullscreenOnChange', this.fullScreenOnChangeEvent.bind(this), false);
+    window.addEventListener('resize', this.windowResize);
 		// throw in closest polyfill
 		// https://developer.mozilla.org/en-US/docs/Web/API/Element/closest
 		if (!Element.prototype.matches) Element.prototype.matches = Element.prototype.msMatchesSelector || Element.prototype.webkitMatchesSelector;
@@ -28,19 +32,19 @@ let utilities = {
 				return null;
 			};
 	},
+  addBrowserOrientationClass(){
+    document.body.classList.add('orientation-' + this.browserOrientation);
+  },
 	fullScreenOnChangeEvent: function () {
 		window.setTimeout(function () {
 			utilities.setViewportDimensions();
+			utilities.addBrowserOrientationClass();
 		}, 250);
 	},
-	reset: function () {
-		this.windowHeight = null;
-		this.windowRatioHeight = null;
-		this.windowWidth = null;
-		this.windowRatioWidth = null;
-		this.windowHalfHeight = null;
-		this.browserOrientation = null;
-	},
+  windowResize: _.debounce(function () {
+    utilities.setViewportDimensions();
+    utilities.addBrowserOrientationClass();
+  }, 250),
 	getViewportDimensions: function () {
 		// TODO: will this work with fullscreen?
 		var w = window,
@@ -49,7 +53,6 @@ let utilities = {
 			g = d.getElementsByTagName("body")[0],
 			x = w.innerWidth || e.clientWidth || g.clientWidth,
 			y = /*innerHeight() || */w.innerHeight || e.clientHeight || g.clientHeight;
-			console.log(innerHeight());
 		return {width: x, height: y};
 	},
 	setViewportDimensions: function () {

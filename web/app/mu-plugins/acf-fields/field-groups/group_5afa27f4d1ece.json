@@ -192,8 +192,32 @@
         },
         {
             "key": "field_5b3fcc5e9d82e",
-            "label": "Splash Page Image",
-            "name": "splash_page_image",
+            "label": "Splash Page Image Landscape",
+            "name": "splash_page_image_landscape",
+            "type": "image",
+            "instructions": "",
+            "required": 0,
+            "conditional_logic": 0,
+            "wrapper": {
+                "width": "",
+                "class": "",
+                "id": ""
+            },
+            "return_format": "array",
+            "preview_size": "thumbnail",
+            "library": "all",
+            "min_width": "",
+            "min_height": "",
+            "min_size": "",
+            "max_width": "",
+            "max_height": "",
+            "max_size": "",
+            "mime_types": ""
+        },
+        {
+            "key": "field_5b5b3fb7129be",
+            "label": "Splash Page Image Portrait",
+            "name": "splash_page_image_portrait",
             "type": "image",
             "instructions": "",
             "required": 0,
@@ -232,5 +256,5 @@
     "hide_on_screen": "",
     "active": 1,
     "description": "",
-    "modified": 1531328461
+    "modified": 1532706764
 }

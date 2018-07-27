@@ -129,10 +129,25 @@
 
  // add splash page div to footer
 add_action('wp_footer', function(){
- 	$image_src = get_bloginfo('url') . get_field('splash_page_image', 'options')['url'];
+ 	$image_src_landscape = get_bloginfo('url') . get_field('splash_page_image_landscape', 'options')['url'];
+ 	$image_src_portrait = get_bloginfo('url') . get_field('splash_page_image_portrait', 'options')['url'];
+
+ 	$modal_styles = <<<HTML
+        <style type="text/css">
+            body.orientation-landscape #splash-modal{
+                background-image: url('{$image_src_landscape}');
+            }
+            
+            body.orientation-portrait #splash-modal{
+            background-image: url('{$image_src_portrait}');
+            }
+        </style> 
+HTML;
+
 
  	echo <<<HTML
-		<div id="splash-modal" style="background-image: url('{$image_src}');"></div>
+ 	    {$modal_styles}
+		<div id="splash-modal"></div>
 HTML;
 
 

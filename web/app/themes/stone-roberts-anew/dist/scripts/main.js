@@ -1,4 +1,660 @@
 /******/ (function(modules) { // webpackBootstrap
+/******/ 	function hotDisposeChunk(chunkId) {
+/******/ 		delete installedChunks[chunkId];
+/******/ 	}
+/******/ 	var parentHotUpdateCallback = window["webpackHotUpdate"];
+/******/ 	window["webpackHotUpdate"] = 
+/******/ 	function webpackHotUpdateCallback(chunkId, moreModules) { // eslint-disable-line no-unused-vars
+/******/ 		hotAddUpdateChunk(chunkId, moreModules);
+/******/ 		if(parentHotUpdateCallback) parentHotUpdateCallback(chunkId, moreModules);
+/******/ 	} ;
+/******/ 	
+/******/ 	function hotDownloadUpdateChunk(chunkId) { // eslint-disable-line no-unused-vars
+/******/ 		var head = document.getElementsByTagName("head")[0];
+/******/ 		var script = document.createElement("script");
+/******/ 		script.type = "text/javascript";
+/******/ 		script.charset = "utf-8";
+/******/ 		script.src = __webpack_require__.p + "" + chunkId + "." + hotCurrentHash + ".hot-update.js";
+/******/ 		;
+/******/ 		head.appendChild(script);
+/******/ 	}
+/******/ 	
+/******/ 	function hotDownloadManifest(requestTimeout) { // eslint-disable-line no-unused-vars
+/******/ 		requestTimeout = requestTimeout || 10000;
+/******/ 		return new Promise(function(resolve, reject) {
+/******/ 			if(typeof XMLHttpRequest === "undefined")
+/******/ 				return reject(new Error("No browser support"));
+/******/ 			try {
+/******/ 				var request = new XMLHttpRequest();
+/******/ 				var requestPath = __webpack_require__.p + "" + hotCurrentHash + ".hot-update.json";
+/******/ 				request.open("GET", requestPath, true);
+/******/ 				request.timeout = requestTimeout;
+/******/ 				request.send(null);
+/******/ 			} catch(err) {
+/******/ 				return reject(err);
+/******/ 			}
+/******/ 			request.onreadystatechange = function() {
+/******/ 				if(request.readyState !== 4) return;
+/******/ 				if(request.status === 0) {
+/******/ 					// timeout
+/******/ 					reject(new Error("Manifest request to " + requestPath + " timed out."));
+/******/ 				} else if(request.status === 404) {
+/******/ 					// no update available
+/******/ 					resolve();
+/******/ 				} else if(request.status !== 200 && request.status !== 304) {
+/******/ 					// other failure
+/******/ 					reject(new Error("Manifest request to " + requestPath + " failed."));
+/******/ 				} else {
+/******/ 					// success
+/******/ 					try {
+/******/ 						var update = JSON.parse(request.responseText);
+/******/ 					} catch(e) {
+/******/ 						reject(e);
+/******/ 						return;
+/******/ 					}
+/******/ 					resolve(update);
+/******/ 				}
+/******/ 			};
+/******/ 		});
+/******/ 	}
+/******/
+/******/ 	
+/******/ 	
+/******/ 	var hotApplyOnUpdate = true;
+/******/ 	var hotCurrentHash = "7b977082b5cb970914df"; // eslint-disable-line no-unused-vars
+/******/ 	var hotRequestTimeout = 10000;
+/******/ 	var hotCurrentModuleData = {};
+/******/ 	var hotCurrentChildModule; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentParents = []; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentParentsTemp = []; // eslint-disable-line no-unused-vars
+/******/ 	
+/******/ 	function hotCreateRequire(moduleId) { // eslint-disable-line no-unused-vars
+/******/ 		var me = installedModules[moduleId];
+/******/ 		if(!me) return __webpack_require__;
+/******/ 		var fn = function(request) {
+/******/ 			if(me.hot.active) {
+/******/ 				if(installedModules[request]) {
+/******/ 					if(installedModules[request].parents.indexOf(moduleId) < 0)
+/******/ 						installedModules[request].parents.push(moduleId);
+/******/ 				} else {
+/******/ 					hotCurrentParents = [moduleId];
+/******/ 					hotCurrentChildModule = request;
+/******/ 				}
+/******/ 				if(me.children.indexOf(request) < 0)
+/******/ 					me.children.push(request);
+/******/ 			} else {
+/******/ 				console.warn("[HMR] unexpected require(" + request + ") from disposed module " + moduleId);
+/******/ 				hotCurrentParents = [];
+/******/ 			}
+/******/ 			return __webpack_require__(request);
+/******/ 		};
+/******/ 		var ObjectFactory = function ObjectFactory(name) {
+/******/ 			return {
+/******/ 				configurable: true,
+/******/ 				enumerable: true,
+/******/ 				get: function() {
+/******/ 					return __webpack_require__[name];
+/******/ 				},
+/******/ 				set: function(value) {
+/******/ 					__webpack_require__[name] = value;
+/******/ 				}
+/******/ 			};
+/******/ 		};
+/******/ 		for(var name in __webpack_require__) {
+/******/ 			if(Object.prototype.hasOwnProperty.call(__webpack_require__, name) && name !== "e") {
+/******/ 				Object.defineProperty(fn, name, ObjectFactory(name));
+/******/ 			}
+/******/ 		}
+/******/ 		fn.e = function(chunkId) {
+/******/ 			if(hotStatus === "ready")
+/******/ 				hotSetStatus("prepare");
+/******/ 			hotChunksLoading++;
+/******/ 			return __webpack_require__.e(chunkId).then(finishChunkLoading, function(err) {
+/******/ 				finishChunkLoading();
+/******/ 				throw err;
+/******/ 			});
+/******/ 	
+/******/ 			function finishChunkLoading() {
+/******/ 				hotChunksLoading--;
+/******/ 				if(hotStatus === "prepare") {
+/******/ 					if(!hotWaitingFilesMap[chunkId]) {
+/******/ 						hotEnsureUpdateChunk(chunkId);
+/******/ 					}
+/******/ 					if(hotChunksLoading === 0 && hotWaitingFiles === 0) {
+/******/ 						hotUpdateDownloaded();
+/******/ 					}
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 		return fn;
+/******/ 	}
+/******/ 	
+/******/ 	function hotCreateModule(moduleId) { // eslint-disable-line no-unused-vars
+/******/ 		var hot = {
+/******/ 			// private stuff
+/******/ 			_acceptedDependencies: {},
+/******/ 			_declinedDependencies: {},
+/******/ 			_selfAccepted: false,
+/******/ 			_selfDeclined: false,
+/******/ 			_disposeHandlers: [],
+/******/ 			_main: hotCurrentChildModule !== moduleId,
+/******/ 	
+/******/ 			// Module API
+/******/ 			active: true,
+/******/ 			accept: function(dep, callback) {
+/******/ 				if(typeof dep === "undefined")
+/******/ 					hot._selfAccepted = true;
+/******/ 				else if(typeof dep === "function")
+/******/ 					hot._selfAccepted = dep;
+/******/ 				else if(typeof dep === "object")
+/******/ 					for(var i = 0; i < dep.length; i++)
+/******/ 						hot._acceptedDependencies[dep[i]] = callback || function() {};
+/******/ 				else
+/******/ 					hot._acceptedDependencies[dep] = callback || function() {};
+/******/ 			},
+/******/ 			decline: function(dep) {
+/******/ 				if(typeof dep === "undefined")
+/******/ 					hot._selfDeclined = true;
+/******/ 				else if(typeof dep === "object")
+/******/ 					for(var i = 0; i < dep.length; i++)
+/******/ 						hot._declinedDependencies[dep[i]] = true;
+/******/ 				else
+/******/ 					hot._declinedDependencies[dep] = true;
+/******/ 			},
+/******/ 			dispose: function(callback) {
+/******/ 				hot._disposeHandlers.push(callback);
+/******/ 			},
+/******/ 			addDisposeHandler: function(callback) {
+/******/ 				hot._disposeHandlers.push(callback);
+/******/ 			},
+/******/ 			removeDisposeHandler: function(callback) {
+/******/ 				var idx = hot._disposeHandlers.indexOf(callback);
+/******/ 				if(idx >= 0) hot._disposeHandlers.splice(idx, 1);
+/******/ 			},
+/******/ 	
+/******/ 			// Management API
+/******/ 			check: hotCheck,
+/******/ 			apply: hotApply,
+/******/ 			status: function(l) {
+/******/ 				if(!l) return hotStatus;
+/******/ 				hotStatusHandlers.push(l);
+/******/ 			},
+/******/ 			addStatusHandler: function(l) {
+/******/ 				hotStatusHandlers.push(l);
+/******/ 			},
+/******/ 			removeStatusHandler: function(l) {
+/******/ 				var idx = hotStatusHandlers.indexOf(l);
+/******/ 				if(idx >= 0) hotStatusHandlers.splice(idx, 1);
+/******/ 			},
+/******/ 	
+/******/ 			//inherit from previous dispose call
+/******/ 			data: hotCurrentModuleData[moduleId]
+/******/ 		};
+/******/ 		hotCurrentChildModule = undefined;
+/******/ 		return hot;
+/******/ 	}
+/******/ 	
+/******/ 	var hotStatusHandlers = [];
+/******/ 	var hotStatus = "idle";
+/******/ 	
+/******/ 	function hotSetStatus(newStatus) {
+/******/ 		hotStatus = newStatus;
+/******/ 		for(var i = 0; i < hotStatusHandlers.length; i++)
+/******/ 			hotStatusHandlers[i].call(null, newStatus);
+/******/ 	}
+/******/ 	
+/******/ 	// while downloading
+/******/ 	var hotWaitingFiles = 0;
+/******/ 	var hotChunksLoading = 0;
+/******/ 	var hotWaitingFilesMap = {};
+/******/ 	var hotRequestedFilesMap = {};
+/******/ 	var hotAvailableFilesMap = {};
+/******/ 	var hotDeferred;
+/******/ 	
+/******/ 	// The update info
+/******/ 	var hotUpdate, hotUpdateNewHash;
+/******/ 	
+/******/ 	function toModuleId(id) {
+/******/ 		var isNumber = (+id) + "" === id;
+/******/ 		return isNumber ? +id : id;
+/******/ 	}
+/******/ 	
+/******/ 	function hotCheck(apply) {
+/******/ 		if(hotStatus !== "idle") throw new Error("check() is only allowed in idle status");
+/******/ 		hotApplyOnUpdate = apply;
+/******/ 		hotSetStatus("check");
+/******/ 		return hotDownloadManifest(hotRequestTimeout).then(function(update) {
+/******/ 			if(!update) {
+/******/ 				hotSetStatus("idle");
+/******/ 				return null;
+/******/ 			}
+/******/ 			hotRequestedFilesMap = {};
+/******/ 			hotWaitingFilesMap = {};
+/******/ 			hotAvailableFilesMap = update.c;
+/******/ 			hotUpdateNewHash = update.h;
+/******/ 	
+/******/ 			hotSetStatus("prepare");
+/******/ 			var promise = new Promise(function(resolve, reject) {
+/******/ 				hotDeferred = {
+/******/ 					resolve: resolve,
+/******/ 					reject: reject
+/******/ 				};
+/******/ 			});
+/******/ 			hotUpdate = {};
+/******/ 			var chunkId = 0;
+/******/ 			{ // eslint-disable-line no-lone-blocks
+/******/ 				/*globals chunkId */
+/******/ 				hotEnsureUpdateChunk(chunkId);
+/******/ 			}
+/******/ 			if(hotStatus === "prepare" && hotChunksLoading === 0 && hotWaitingFiles === 0) {
+/******/ 				hotUpdateDownloaded();
+/******/ 			}
+/******/ 			return promise;
+/******/ 		});
+/******/ 	}
+/******/ 	
+/******/ 	function hotAddUpdateChunk(chunkId, moreModules) { // eslint-disable-line no-unused-vars
+/******/ 		if(!hotAvailableFilesMap[chunkId] || !hotRequestedFilesMap[chunkId])
+/******/ 			return;
+/******/ 		hotRequestedFilesMap[chunkId] = false;
+/******/ 		for(var moduleId in moreModules) {
+/******/ 			if(Object.prototype.hasOwnProperty.call(moreModules, moduleId)) {
+/******/ 				hotUpdate[moduleId] = moreModules[moduleId];
+/******/ 			}
+/******/ 		}
+/******/ 		if(--hotWaitingFiles === 0 && hotChunksLoading === 0) {
+/******/ 			hotUpdateDownloaded();
+/******/ 		}
+/******/ 	}
+/******/ 	
+/******/ 	function hotEnsureUpdateChunk(chunkId) {
+/******/ 		if(!hotAvailableFilesMap[chunkId]) {
+/******/ 			hotWaitingFilesMap[chunkId] = true;
+/******/ 		} else {
+/******/ 			hotRequestedFilesMap[chunkId] = true;
+/******/ 			hotWaitingFiles++;
+/******/ 			hotDownloadUpdateChunk(chunkId);
+/******/ 		}
+/******/ 	}
+/******/ 	
+/******/ 	function hotUpdateDownloaded() {
+/******/ 		hotSetStatus("ready");
+/******/ 		var deferred = hotDeferred;
+/******/ 		hotDeferred = null;
+/******/ 		if(!deferred) return;
+/******/ 		if(hotApplyOnUpdate) {
+/******/ 			// Wrap deferred object in Promise to mark it as a well-handled Promise to
+/******/ 			// avoid triggering uncaught exception warning in Chrome.
+/******/ 			// See https://bugs.chromium.org/p/chromium/issues/detail?id=465666
+/******/ 			Promise.resolve().then(function() {
+/******/ 				return hotApply(hotApplyOnUpdate);
+/******/ 			}).then(
+/******/ 				function(result) {
+/******/ 					deferred.resolve(result);
+/******/ 				},
+/******/ 				function(err) {
+/******/ 					deferred.reject(err);
+/******/ 				}
+/******/ 			);
+/******/ 		} else {
+/******/ 			var outdatedModules = [];
+/******/ 			for(var id in hotUpdate) {
+/******/ 				if(Object.prototype.hasOwnProperty.call(hotUpdate, id)) {
+/******/ 					outdatedModules.push(toModuleId(id));
+/******/ 				}
+/******/ 			}
+/******/ 			deferred.resolve(outdatedModules);
+/******/ 		}
+/******/ 	}
+/******/ 	
+/******/ 	function hotApply(options) {
+/******/ 		if(hotStatus !== "ready") throw new Error("apply() is only allowed in ready status");
+/******/ 		options = options || {};
+/******/ 	
+/******/ 		var cb;
+/******/ 		var i;
+/******/ 		var j;
+/******/ 		var module;
+/******/ 		var moduleId;
+/******/ 	
+/******/ 		function getAffectedStuff(updateModuleId) {
+/******/ 			var outdatedModules = [updateModuleId];
+/******/ 			var outdatedDependencies = {};
+/******/ 	
+/******/ 			var queue = outdatedModules.slice().map(function(id) {
+/******/ 				return {
+/******/ 					chain: [id],
+/******/ 					id: id
+/******/ 				};
+/******/ 			});
+/******/ 			while(queue.length > 0) {
+/******/ 				var queueItem = queue.pop();
+/******/ 				var moduleId = queueItem.id;
+/******/ 				var chain = queueItem.chain;
+/******/ 				module = installedModules[moduleId];
+/******/ 				if(!module || module.hot._selfAccepted)
+/******/ 					continue;
+/******/ 				if(module.hot._selfDeclined) {
+/******/ 					return {
+/******/ 						type: "self-declined",
+/******/ 						chain: chain,
+/******/ 						moduleId: moduleId
+/******/ 					};
+/******/ 				}
+/******/ 				if(module.hot._main) {
+/******/ 					return {
+/******/ 						type: "unaccepted",
+/******/ 						chain: chain,
+/******/ 						moduleId: moduleId
+/******/ 					};
+/******/ 				}
+/******/ 				for(var i = 0; i < module.parents.length; i++) {
+/******/ 					var parentId = module.parents[i];
+/******/ 					var parent = installedModules[parentId];
+/******/ 					if(!parent) continue;
+/******/ 					if(parent.hot._declinedDependencies[moduleId]) {
+/******/ 						return {
+/******/ 							type: "declined",
+/******/ 							chain: chain.concat([parentId]),
+/******/ 							moduleId: moduleId,
+/******/ 							parentId: parentId
+/******/ 						};
+/******/ 					}
+/******/ 					if(outdatedModules.indexOf(parentId) >= 0) continue;
+/******/ 					if(parent.hot._acceptedDependencies[moduleId]) {
+/******/ 						if(!outdatedDependencies[parentId])
+/******/ 							outdatedDependencies[parentId] = [];
+/******/ 						addAllToSet(outdatedDependencies[parentId], [moduleId]);
+/******/ 						continue;
+/******/ 					}
+/******/ 					delete outdatedDependencies[parentId];
+/******/ 					outdatedModules.push(parentId);
+/******/ 					queue.push({
+/******/ 						chain: chain.concat([parentId]),
+/******/ 						id: parentId
+/******/ 					});
+/******/ 				}
+/******/ 			}
+/******/ 	
+/******/ 			return {
+/******/ 				type: "accepted",
+/******/ 				moduleId: updateModuleId,
+/******/ 				outdatedModules: outdatedModules,
+/******/ 				outdatedDependencies: outdatedDependencies
+/******/ 			};
+/******/ 		}
+/******/ 	
+/******/ 		function addAllToSet(a, b) {
+/******/ 			for(var i = 0; i < b.length; i++) {
+/******/ 				var item = b[i];
+/******/ 				if(a.indexOf(item) < 0)
+/******/ 					a.push(item);
+/******/ 			}
+/******/ 		}
+/******/ 	
+/******/ 		// at begin all updates modules are outdated
+/******/ 		// the "outdated" status can propagate to parents if they don't accept the children
+/******/ 		var outdatedDependencies = {};
+/******/ 		var outdatedModules = [];
+/******/ 		var appliedUpdate = {};
+/******/ 	
+/******/ 		var warnUnexpectedRequire = function warnUnexpectedRequire() {
+/******/ 			console.warn("[HMR] unexpected require(" + result.moduleId + ") to disposed module");
+/******/ 		};
+/******/ 	
+/******/ 		for(var id in hotUpdate) {
+/******/ 			if(Object.prototype.hasOwnProperty.call(hotUpdate, id)) {
+/******/ 				moduleId = toModuleId(id);
+/******/ 				var result;
+/******/ 				if(hotUpdate[id]) {
+/******/ 					result = getAffectedStuff(moduleId);
+/******/ 				} else {
+/******/ 					result = {
+/******/ 						type: "disposed",
+/******/ 						moduleId: id
+/******/ 					};
+/******/ 				}
+/******/ 				var abortError = false;
+/******/ 				var doApply = false;
+/******/ 				var doDispose = false;
+/******/ 				var chainInfo = "";
+/******/ 				if(result.chain) {
+/******/ 					chainInfo = "\nUpdate propagation: " + result.chain.join(" -> ");
+/******/ 				}
+/******/ 				switch(result.type) {
+/******/ 					case "self-declined":
+/******/ 						if(options.onDeclined)
+/******/ 							options.onDeclined(result);
+/******/ 						if(!options.ignoreDeclined)
+/******/ 							abortError = new Error("Aborted because of self decline: " + result.moduleId + chainInfo);
+/******/ 						break;
+/******/ 					case "declined":
+/******/ 						if(options.onDeclined)
+/******/ 							options.onDeclined(result);
+/******/ 						if(!options.ignoreDeclined)
+/******/ 							abortError = new Error("Aborted because of declined dependency: " + result.moduleId + " in " + result.parentId + chainInfo);
+/******/ 						break;
+/******/ 					case "unaccepted":
+/******/ 						if(options.onUnaccepted)
+/******/ 							options.onUnaccepted(result);
+/******/ 						if(!options.ignoreUnaccepted)
+/******/ 							abortError = new Error("Aborted because " + moduleId + " is not accepted" + chainInfo);
+/******/ 						break;
+/******/ 					case "accepted":
+/******/ 						if(options.onAccepted)
+/******/ 							options.onAccepted(result);
+/******/ 						doApply = true;
+/******/ 						break;
+/******/ 					case "disposed":
+/******/ 						if(options.onDisposed)
+/******/ 							options.onDisposed(result);
+/******/ 						doDispose = true;
+/******/ 						break;
+/******/ 					default:
+/******/ 						throw new Error("Unexception type " + result.type);
+/******/ 				}
+/******/ 				if(abortError) {
+/******/ 					hotSetStatus("abort");
+/******/ 					return Promise.reject(abortError);
+/******/ 				}
+/******/ 				if(doApply) {
+/******/ 					appliedUpdate[moduleId] = hotUpdate[moduleId];
+/******/ 					addAllToSet(outdatedModules, result.outdatedModules);
+/******/ 					for(moduleId in result.outdatedDependencies) {
+/******/ 						if(Object.prototype.hasOwnProperty.call(result.outdatedDependencies, moduleId)) {
+/******/ 							if(!outdatedDependencies[moduleId])
+/******/ 								outdatedDependencies[moduleId] = [];
+/******/ 							addAllToSet(outdatedDependencies[moduleId], result.outdatedDependencies[moduleId]);
+/******/ 						}
+/******/ 					}
+/******/ 				}
+/******/ 				if(doDispose) {
+/******/ 					addAllToSet(outdatedModules, [result.moduleId]);
+/******/ 					appliedUpdate[moduleId] = warnUnexpectedRequire;
+/******/ 				}
+/******/ 			}
+/******/ 		}
+/******/ 	
+/******/ 		// Store self accepted outdated modules to require them later by the module system
+/******/ 		var outdatedSelfAcceptedModules = [];
+/******/ 		for(i = 0; i < outdatedModules.length; i++) {
+/******/ 			moduleId = outdatedModules[i];
+/******/ 			if(installedModules[moduleId] && installedModules[moduleId].hot._selfAccepted)
+/******/ 				outdatedSelfAcceptedModules.push({
+/******/ 					module: moduleId,
+/******/ 					errorHandler: installedModules[moduleId].hot._selfAccepted
+/******/ 				});
+/******/ 		}
+/******/ 	
+/******/ 		// Now in "dispose" phase
+/******/ 		hotSetStatus("dispose");
+/******/ 		Object.keys(hotAvailableFilesMap).forEach(function(chunkId) {
+/******/ 			if(hotAvailableFilesMap[chunkId] === false) {
+/******/ 				hotDisposeChunk(chunkId);
+/******/ 			}
+/******/ 		});
+/******/ 	
+/******/ 		var idx;
+/******/ 		var queue = outdatedModules.slice();
+/******/ 		while(queue.length > 0) {
+/******/ 			moduleId = queue.pop();
+/******/ 			module = installedModules[moduleId];
+/******/ 			if(!module) continue;
+/******/ 	
+/******/ 			var data = {};
+/******/ 	
+/******/ 			// Call dispose handlers
+/******/ 			var disposeHandlers = module.hot._disposeHandlers;
+/******/ 			for(j = 0; j < disposeHandlers.length; j++) {
+/******/ 				cb = disposeHandlers[j];
+/******/ 				cb(data);
+/******/ 			}
+/******/ 			hotCurrentModuleData[moduleId] = data;
+/******/ 	
+/******/ 			// disable module (this disables requires from this module)
+/******/ 			module.hot.active = false;
+/******/ 	
+/******/ 			// remove module from cache
+/******/ 			delete installedModules[moduleId];
+/******/ 	
+/******/ 			// when disposing there is no need to call dispose handler
+/******/ 			delete outdatedDependencies[moduleId];
+/******/ 	
+/******/ 			// remove "parents" references from all children
+/******/ 			for(j = 0; j < module.children.length; j++) {
+/******/ 				var child = installedModules[module.children[j]];
+/******/ 				if(!child) continue;
+/******/ 				idx = child.parents.indexOf(moduleId);
+/******/ 				if(idx >= 0) {
+/******/ 					child.parents.splice(idx, 1);
+/******/ 				}
+/******/ 			}
+/******/ 		}
+/******/ 	
+/******/ 		// remove outdated dependency from module children
+/******/ 		var dependency;
+/******/ 		var moduleOutdatedDependencies;
+/******/ 		for(moduleId in outdatedDependencies) {
+/******/ 			if(Object.prototype.hasOwnProperty.call(outdatedDependencies, moduleId)) {
+/******/ 				module = installedModules[moduleId];
+/******/ 				if(module) {
+/******/ 					moduleOutdatedDependencies = outdatedDependencies[moduleId];
+/******/ 					for(j = 0; j < moduleOutdatedDependencies.length; j++) {
+/******/ 						dependency = moduleOutdatedDependencies[j];
+/******/ 						idx = module.children.indexOf(dependency);
+/******/ 						if(idx >= 0) module.children.splice(idx, 1);
+/******/ 					}
+/******/ 				}
+/******/ 			}
+/******/ 		}
+/******/ 	
+/******/ 		// Not in "apply" phase
+/******/ 		hotSetStatus("apply");
+/******/ 	
+/******/ 		hotCurrentHash = hotUpdateNewHash;
+/******/ 	
+/******/ 		// insert new code
+/******/ 		for(moduleId in appliedUpdate) {
+/******/ 			if(Object.prototype.hasOwnProperty.call(appliedUpdate, moduleId)) {
+/******/ 				modules[moduleId] = appliedUpdate[moduleId];
+/******/ 			}
+/******/ 		}
+/******/ 	
+/******/ 		// call accept handlers
+/******/ 		var error = null;
+/******/ 		for(moduleId in outdatedDependencies) {
+/******/ 			if(Object.prototype.hasOwnProperty.call(outdatedDependencies, moduleId)) {
+/******/ 				module = installedModules[moduleId];
+/******/ 				if(module) {
+/******/ 					moduleOutdatedDependencies = outdatedDependencies[moduleId];
+/******/ 					var callbacks = [];
+/******/ 					for(i = 0; i < moduleOutdatedDependencies.length; i++) {
+/******/ 						dependency = moduleOutdatedDependencies[i];
+/******/ 						cb = module.hot._acceptedDependencies[dependency];
+/******/ 						if(cb) {
+/******/ 							if(callbacks.indexOf(cb) >= 0) continue;
+/******/ 							callbacks.push(cb);
+/******/ 						}
+/******/ 					}
+/******/ 					for(i = 0; i < callbacks.length; i++) {
+/******/ 						cb = callbacks[i];
+/******/ 						try {
+/******/ 							cb(moduleOutdatedDependencies);
+/******/ 						} catch(err) {
+/******/ 							if(options.onErrored) {
+/******/ 								options.onErrored({
+/******/ 									type: "accept-errored",
+/******/ 									moduleId: moduleId,
+/******/ 									dependencyId: moduleOutdatedDependencies[i],
+/******/ 									error: err
+/******/ 								});
+/******/ 							}
+/******/ 							if(!options.ignoreErrored) {
+/******/ 								if(!error)
+/******/ 									error = err;
+/******/ 							}
+/******/ 						}
+/******/ 					}
+/******/ 				}
+/******/ 			}
+/******/ 		}
+/******/ 	
+/******/ 		// Load self accepted modules
+/******/ 		for(i = 0; i < outdatedSelfAcceptedModules.length; i++) {
+/******/ 			var item = outdatedSelfAcceptedModules[i];
+/******/ 			moduleId = item.module;
+/******/ 			hotCurrentParents = [moduleId];
+/******/ 			try {
+/******/ 				__webpack_require__(moduleId);
+/******/ 			} catch(err) {
+/******/ 				if(typeof item.errorHandler === "function") {
+/******/ 					try {
+/******/ 						item.errorHandler(err);
+/******/ 					} catch(err2) {
+/******/ 						if(options.onErrored) {
+/******/ 							options.onErrored({
+/******/ 								type: "self-accept-error-handler-errored",
+/******/ 								moduleId: moduleId,
+/******/ 								error: err2,
+/******/ 								orginalError: err, // TODO remove in webpack 4
+/******/ 								originalError: err
+/******/ 							});
+/******/ 						}
+/******/ 						if(!options.ignoreErrored) {
+/******/ 							if(!error)
+/******/ 								error = err2;
+/******/ 						}
+/******/ 						if(!error)
+/******/ 							error = err;
+/******/ 					}
+/******/ 				} else {
+/******/ 					if(options.onErrored) {
+/******/ 						options.onErrored({
+/******/ 							type: "self-accept-errored",
+/******/ 							moduleId: moduleId,
+/******/ 							error: err
+/******/ 						});
+/******/ 					}
+/******/ 					if(!options.ignoreErrored) {
+/******/ 						if(!error)
+/******/ 							error = err;
+/******/ 					}
+/******/ 				}
+/******/ 			}
+/******/ 		}
+/******/ 	
+/******/ 		// handle errors in accept handlers and self accepted module load
+/******/ 		if(error) {
+/******/ 			hotSetStatus("fail");
+/******/ 			return Promise.reject(error);
+/******/ 		}
+/******/ 	
+/******/ 		hotSetStatus("idle");
+/******/ 		return new Promise(function(resolve) {
+/******/ 			resolve(outdatedModules);
+/******/ 		});
+/******/ 	}
+/******/
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
 /******/
@@ -13,11 +669,14 @@
 /******/ 		var module = installedModules[moduleId] = {
 /******/ 			i: moduleId,
 /******/ 			l: false,
-/******/ 			exports: {}
+/******/ 			exports: {},
+/******/ 			hot: hotCreateModule(moduleId),
+/******/ 			parents: (hotCurrentParentsTemp = hotCurrentParents, hotCurrentParents = [], hotCurrentParentsTemp),
+/******/ 			children: []
 /******/ 		};
 /******/
 /******/ 		// Execute the module function
-/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, hotCreateRequire(moduleId));
 /******/
 /******/ 		// Flag the module as loaded
 /******/ 		module.l = true;
@@ -57,22 +716,231 @@
 /******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
 /******/
 /******/ 	// __webpack_public_path__
-/******/ 	__webpack_require__.p = "/app/themes/stone-roberts-anew/dist/";
+/******/ 	__webpack_require__.p = "http://localhost:3000/app/themes/stone-roberts-anew/dist/";
+/******/
+/******/ 	// __webpack_hash__
+/******/ 	__webpack_require__.h = function() { return hotCurrentHash; };
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 16);
+/******/ 	return hotCreateRequire(32)(__webpack_require__.s = 32);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
+/*!*********************************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/html-entities/lib/html5-entities.js ***!
+  \*********************************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! all exports used */
+/***/ (function(module, exports) {
+
+var ENTITIES = [['Aacute', [193]], ['aacute', [225]], ['Abreve', [258]], ['abreve', [259]], ['ac', [8766]], ['acd', [8767]], ['acE', [8766, 819]], ['Acirc', [194]], ['acirc', [226]], ['acute', [180]], ['Acy', [1040]], ['acy', [1072]], ['AElig', [198]], ['aelig', [230]], ['af', [8289]], ['Afr', [120068]], ['afr', [120094]], ['Agrave', [192]], ['agrave', [224]], ['alefsym', [8501]], ['aleph', [8501]], ['Alpha', [913]], ['alpha', [945]], ['Amacr', [256]], ['amacr', [257]], ['amalg', [10815]], ['amp', [38]], ['AMP', [38]], ['andand', [10837]], ['And', [10835]], ['and', [8743]], ['andd', [10844]], ['andslope', [10840]], ['andv', [10842]], ['ang', [8736]], ['ange', [10660]], ['angle', [8736]], ['angmsdaa', [10664]], ['angmsdab', [10665]], ['angmsdac', [10666]], ['angmsdad', [10667]], ['angmsdae', [10668]], ['angmsdaf', [10669]], ['angmsdag', [10670]], ['angmsdah', [10671]], ['angmsd', [8737]], ['angrt', [8735]], ['angrtvb', [8894]], ['angrtvbd', [10653]], ['angsph', [8738]], ['angst', [197]], ['angzarr', [9084]], ['Aogon', [260]], ['aogon', [261]], ['Aopf', [120120]], ['aopf', [120146]], ['apacir', [10863]], ['ap', [8776]], ['apE', [10864]], ['ape', [8778]], ['apid', [8779]], ['apos', [39]], ['ApplyFunction', [8289]], ['approx', [8776]], ['approxeq', [8778]], ['Aring', [197]], ['aring', [229]], ['Ascr', [119964]], ['ascr', [119990]], ['Assign', [8788]], ['ast', [42]], ['asymp', [8776]], ['asympeq', [8781]], ['Atilde', [195]], ['atilde', [227]], ['Auml', [196]], ['auml', [228]], ['awconint', [8755]], ['awint', [10769]], ['backcong', [8780]], ['backepsilon', [1014]], ['backprime', [8245]], ['backsim', [8765]], ['backsimeq', [8909]], ['Backslash', [8726]], ['Barv', [10983]], ['barvee', [8893]], ['barwed', [8965]], ['Barwed', [8966]], ['barwedge', [8965]], ['bbrk', [9141]], ['bbrktbrk', [9142]], ['bcong', [8780]], ['Bcy', [1041]], ['bcy', [1073]], ['bdquo', [8222]], ['becaus', [8757]], ['because', [8757]], ['Because', [8757]], ['bemptyv', [10672]], ['bepsi', [1014]], ['bernou', [8492]], ['Bernoullis', [8492]], ['Beta', [914]], ['beta', [946]], ['beth', [8502]], ['between', [8812]], ['Bfr', [120069]], ['bfr', [120095]], ['bigcap', [8898]], ['bigcirc', [9711]], ['bigcup', [8899]], ['bigodot', [10752]], ['bigoplus', [10753]], ['bigotimes', [10754]], ['bigsqcup', [10758]], ['bigstar', [9733]], ['bigtriangledown', [9661]], ['bigtriangleup', [9651]], ['biguplus', [10756]], ['bigvee', [8897]], ['bigwedge', [8896]], ['bkarow', [10509]], ['blacklozenge', [10731]], ['blacksquare', [9642]], ['blacktriangle', [9652]], ['blacktriangledown', [9662]], ['blacktriangleleft', [9666]], ['blacktriangleright', [9656]], ['blank', [9251]], ['blk12', [9618]], ['blk14', [9617]], ['blk34', [9619]], ['block', [9608]], ['bne', [61, 8421]], ['bnequiv', [8801, 8421]], ['bNot', [10989]], ['bnot', [8976]], ['Bopf', [120121]], ['bopf', [120147]], ['bot', [8869]], ['bottom', [8869]], ['bowtie', [8904]], ['boxbox', [10697]], ['boxdl', [9488]], ['boxdL', [9557]], ['boxDl', [9558]], ['boxDL', [9559]], ['boxdr', [9484]], ['boxdR', [9554]], ['boxDr', [9555]], ['boxDR', [9556]], ['boxh', [9472]], ['boxH', [9552]], ['boxhd', [9516]], ['boxHd', [9572]], ['boxhD', [9573]], ['boxHD', [9574]], ['boxhu', [9524]], ['boxHu', [9575]], ['boxhU', [9576]], ['boxHU', [9577]], ['boxminus', [8863]], ['boxplus', [8862]], ['boxtimes', [8864]], ['boxul', [9496]], ['boxuL', [9563]], ['boxUl', [9564]], ['boxUL', [9565]], ['boxur', [9492]], ['boxuR', [9560]], ['boxUr', [9561]], ['boxUR', [9562]], ['boxv', [9474]], ['boxV', [9553]], ['boxvh', [9532]], ['boxvH', [9578]], ['boxVh', [9579]], ['boxVH', [9580]], ['boxvl', [9508]], ['boxvL', [9569]], ['boxVl', [9570]], ['boxVL', [9571]], ['boxvr', [9500]], ['boxvR', [9566]], ['boxVr', [9567]], ['boxVR', [9568]], ['bprime', [8245]], ['breve', [728]], ['Breve', [728]], ['brvbar', [166]], ['bscr', [119991]], ['Bscr', [8492]], ['bsemi', [8271]], ['bsim', [8765]], ['bsime', [8909]], ['bsolb', [10693]], ['bsol', [92]], ['bsolhsub', [10184]], ['bull', [8226]], ['bullet', [8226]], ['bump', [8782]], ['bumpE', [10926]], ['bumpe', [8783]], ['Bumpeq', [8782]], ['bumpeq', [8783]], ['Cacute', [262]], ['cacute', [263]], ['capand', [10820]], ['capbrcup', [10825]], ['capcap', [10827]], ['cap', [8745]], ['Cap', [8914]], ['capcup', [10823]], ['capdot', [10816]], ['CapitalDifferentialD', [8517]], ['caps', [8745, 65024]], ['caret', [8257]], ['caron', [711]], ['Cayleys', [8493]], ['ccaps', [10829]], ['Ccaron', [268]], ['ccaron', [269]], ['Ccedil', [199]], ['ccedil', [231]], ['Ccirc', [264]], ['ccirc', [265]], ['Cconint', [8752]], ['ccups', [10828]], ['ccupssm', [10832]], ['Cdot', [266]], ['cdot', [267]], ['cedil', [184]], ['Cedilla', [184]], ['cemptyv', [10674]], ['cent', [162]], ['centerdot', [183]], ['CenterDot', [183]], ['cfr', [120096]], ['Cfr', [8493]], ['CHcy', [1063]], ['chcy', [1095]], ['check', [10003]], ['checkmark', [10003]], ['Chi', [935]], ['chi', [967]], ['circ', [710]], ['circeq', [8791]], ['circlearrowleft', [8634]], ['circlearrowright', [8635]], ['circledast', [8859]], ['circledcirc', [8858]], ['circleddash', [8861]], ['CircleDot', [8857]], ['circledR', [174]], ['circledS', [9416]], ['CircleMinus', [8854]], ['CirclePlus', [8853]], ['CircleTimes', [8855]], ['cir', [9675]], ['cirE', [10691]], ['cire', [8791]], ['cirfnint', [10768]], ['cirmid', [10991]], ['cirscir', [10690]], ['ClockwiseContourIntegral', [8754]], ['clubs', [9827]], ['clubsuit', [9827]], ['colon', [58]], ['Colon', [8759]], ['Colone', [10868]], ['colone', [8788]], ['coloneq', [8788]], ['comma', [44]], ['commat', [64]], ['comp', [8705]], ['compfn', [8728]], ['complement', [8705]], ['complexes', [8450]], ['cong', [8773]], ['congdot', [10861]], ['Congruent', [8801]], ['conint', [8750]], ['Conint', [8751]], ['ContourIntegral', [8750]], ['copf', [120148]], ['Copf', [8450]], ['coprod', [8720]], ['Coproduct', [8720]], ['copy', [169]], ['COPY', [169]], ['copysr', [8471]], ['CounterClockwiseContourIntegral', [8755]], ['crarr', [8629]], ['cross', [10007]], ['Cross', [10799]], ['Cscr', [119966]], ['cscr', [119992]], ['csub', [10959]], ['csube', [10961]], ['csup', [10960]], ['csupe', [10962]], ['ctdot', [8943]], ['cudarrl', [10552]], ['cudarrr', [10549]], ['cuepr', [8926]], ['cuesc', [8927]], ['cularr', [8630]], ['cularrp', [10557]], ['cupbrcap', [10824]], ['cupcap', [10822]], ['CupCap', [8781]], ['cup', [8746]], ['Cup', [8915]], ['cupcup', [10826]], ['cupdot', [8845]], ['cupor', [10821]], ['cups', [8746, 65024]], ['curarr', [8631]], ['curarrm', [10556]], ['curlyeqprec', [8926]], ['curlyeqsucc', [8927]], ['curlyvee', [8910]], ['curlywedge', [8911]], ['curren', [164]], ['curvearrowleft', [8630]], ['curvearrowright', [8631]], ['cuvee', [8910]], ['cuwed', [8911]], ['cwconint', [8754]], ['cwint', [8753]], ['cylcty', [9005]], ['dagger', [8224]], ['Dagger', [8225]], ['daleth', [8504]], ['darr', [8595]], ['Darr', [8609]], ['dArr', [8659]], ['dash', [8208]], ['Dashv', [10980]], ['dashv', [8867]], ['dbkarow', [10511]], ['dblac', [733]], ['Dcaron', [270]], ['dcaron', [271]], ['Dcy', [1044]], ['dcy', [1076]], ['ddagger', [8225]], ['ddarr', [8650]], ['DD', [8517]], ['dd', [8518]], ['DDotrahd', [10513]], ['ddotseq', [10871]], ['deg', [176]], ['Del', [8711]], ['Delta', [916]], ['delta', [948]], ['demptyv', [10673]], ['dfisht', [10623]], ['Dfr', [120071]], ['dfr', [120097]], ['dHar', [10597]], ['dharl', [8643]], ['dharr', [8642]], ['DiacriticalAcute', [180]], ['DiacriticalDot', [729]], ['DiacriticalDoubleAcute', [733]], ['DiacriticalGrave', [96]], ['DiacriticalTilde', [732]], ['diam', [8900]], ['diamond', [8900]], ['Diamond', [8900]], ['diamondsuit', [9830]], ['diams', [9830]], ['die', [168]], ['DifferentialD', [8518]], ['digamma', [989]], ['disin', [8946]], ['div', [247]], ['divide', [247]], ['divideontimes', [8903]], ['divonx', [8903]], ['DJcy', [1026]], ['djcy', [1106]], ['dlcorn', [8990]], ['dlcrop', [8973]], ['dollar', [36]], ['Dopf', [120123]], ['dopf', [120149]], ['Dot', [168]], ['dot', [729]], ['DotDot', [8412]], ['doteq', [8784]], ['doteqdot', [8785]], ['DotEqual', [8784]], ['dotminus', [8760]], ['dotplus', [8724]], ['dotsquare', [8865]], ['doublebarwedge', [8966]], ['DoubleContourIntegral', [8751]], ['DoubleDot', [168]], ['DoubleDownArrow', [8659]], ['DoubleLeftArrow', [8656]], ['DoubleLeftRightArrow', [8660]], ['DoubleLeftTee', [10980]], ['DoubleLongLeftArrow', [10232]], ['DoubleLongLeftRightArrow', [10234]], ['DoubleLongRightArrow', [10233]], ['DoubleRightArrow', [8658]], ['DoubleRightTee', [8872]], ['DoubleUpArrow', [8657]], ['DoubleUpDownArrow', [8661]], ['DoubleVerticalBar', [8741]], ['DownArrowBar', [10515]], ['downarrow', [8595]], ['DownArrow', [8595]], ['Downarrow', [8659]], ['DownArrowUpArrow', [8693]], ['DownBreve', [785]], ['downdownarrows', [8650]], ['downharpoonleft', [8643]], ['downharpoonright', [8642]], ['DownLeftRightVector', [10576]], ['DownLeftTeeVector', [10590]], ['DownLeftVectorBar', [10582]], ['DownLeftVector', [8637]], ['DownRightTeeVector', [10591]], ['DownRightVectorBar', [10583]], ['DownRightVector', [8641]], ['DownTeeArrow', [8615]], ['DownTee', [8868]], ['drbkarow', [10512]], ['drcorn', [8991]], ['drcrop', [8972]], ['Dscr', [119967]], ['dscr', [119993]], ['DScy', [1029]], ['dscy', [1109]], ['dsol', [10742]], ['Dstrok', [272]], ['dstrok', [273]], ['dtdot', [8945]], ['dtri', [9663]], ['dtrif', [9662]], ['duarr', [8693]], ['duhar', [10607]], ['dwangle', [10662]], ['DZcy', [1039]], ['dzcy', [1119]], ['dzigrarr', [10239]], ['Eacute', [201]], ['eacute', [233]], ['easter', [10862]], ['Ecaron', [282]], ['ecaron', [283]], ['Ecirc', [202]], ['ecirc', [234]], ['ecir', [8790]], ['ecolon', [8789]], ['Ecy', [1069]], ['ecy', [1101]], ['eDDot', [10871]], ['Edot', [278]], ['edot', [279]], ['eDot', [8785]], ['ee', [8519]], ['efDot', [8786]], ['Efr', [120072]], ['efr', [120098]], ['eg', [10906]], ['Egrave', [200]], ['egrave', [232]], ['egs', [10902]], ['egsdot', [10904]], ['el', [10905]], ['Element', [8712]], ['elinters', [9191]], ['ell', [8467]], ['els', [10901]], ['elsdot', [10903]], ['Emacr', [274]], ['emacr', [275]], ['empty', [8709]], ['emptyset', [8709]], ['EmptySmallSquare', [9723]], ['emptyv', [8709]], ['EmptyVerySmallSquare', [9643]], ['emsp13', [8196]], ['emsp14', [8197]], ['emsp', [8195]], ['ENG', [330]], ['eng', [331]], ['ensp', [8194]], ['Eogon', [280]], ['eogon', [281]], ['Eopf', [120124]], ['eopf', [120150]], ['epar', [8917]], ['eparsl', [10723]], ['eplus', [10865]], ['epsi', [949]], ['Epsilon', [917]], ['epsilon', [949]], ['epsiv', [1013]], ['eqcirc', [8790]], ['eqcolon', [8789]], ['eqsim', [8770]], ['eqslantgtr', [10902]], ['eqslantless', [10901]], ['Equal', [10869]], ['equals', [61]], ['EqualTilde', [8770]], ['equest', [8799]], ['Equilibrium', [8652]], ['equiv', [8801]], ['equivDD', [10872]], ['eqvparsl', [10725]], ['erarr', [10609]], ['erDot', [8787]], ['escr', [8495]], ['Escr', [8496]], ['esdot', [8784]], ['Esim', [10867]], ['esim', [8770]], ['Eta', [919]], ['eta', [951]], ['ETH', [208]], ['eth', [240]], ['Euml', [203]], ['euml', [235]], ['euro', [8364]], ['excl', [33]], ['exist', [8707]], ['Exists', [8707]], ['expectation', [8496]], ['exponentiale', [8519]], ['ExponentialE', [8519]], ['fallingdotseq', [8786]], ['Fcy', [1060]], ['fcy', [1092]], ['female', [9792]], ['ffilig', [64259]], ['fflig', [64256]], ['ffllig', [64260]], ['Ffr', [120073]], ['ffr', [120099]], ['filig', [64257]], ['FilledSmallSquare', [9724]], ['FilledVerySmallSquare', [9642]], ['fjlig', [102, 106]], ['flat', [9837]], ['fllig', [64258]], ['fltns', [9649]], ['fnof', [402]], ['Fopf', [120125]], ['fopf', [120151]], ['forall', [8704]], ['ForAll', [8704]], ['fork', [8916]], ['forkv', [10969]], ['Fouriertrf', [8497]], ['fpartint', [10765]], ['frac12', [189]], ['frac13', [8531]], ['frac14', [188]], ['frac15', [8533]], ['frac16', [8537]], ['frac18', [8539]], ['frac23', [8532]], ['frac25', [8534]], ['frac34', [190]], ['frac35', [8535]], ['frac38', [8540]], ['frac45', [8536]], ['frac56', [8538]], ['frac58', [8541]], ['frac78', [8542]], ['frasl', [8260]], ['frown', [8994]], ['fscr', [119995]], ['Fscr', [8497]], ['gacute', [501]], ['Gamma', [915]], ['gamma', [947]], ['Gammad', [988]], ['gammad', [989]], ['gap', [10886]], ['Gbreve', [286]], ['gbreve', [287]], ['Gcedil', [290]], ['Gcirc', [284]], ['gcirc', [285]], ['Gcy', [1043]], ['gcy', [1075]], ['Gdot', [288]], ['gdot', [289]], ['ge', [8805]], ['gE', [8807]], ['gEl', [10892]], ['gel', [8923]], ['geq', [8805]], ['geqq', [8807]], ['geqslant', [10878]], ['gescc', [10921]], ['ges', [10878]], ['gesdot', [10880]], ['gesdoto', [10882]], ['gesdotol', [10884]], ['gesl', [8923, 65024]], ['gesles', [10900]], ['Gfr', [120074]], ['gfr', [120100]], ['gg', [8811]], ['Gg', [8921]], ['ggg', [8921]], ['gimel', [8503]], ['GJcy', [1027]], ['gjcy', [1107]], ['gla', [10917]], ['gl', [8823]], ['glE', [10898]], ['glj', [10916]], ['gnap', [10890]], ['gnapprox', [10890]], ['gne', [10888]], ['gnE', [8809]], ['gneq', [10888]], ['gneqq', [8809]], ['gnsim', [8935]], ['Gopf', [120126]], ['gopf', [120152]], ['grave', [96]], ['GreaterEqual', [8805]], ['GreaterEqualLess', [8923]], ['GreaterFullEqual', [8807]], ['GreaterGreater', [10914]], ['GreaterLess', [8823]], ['GreaterSlantEqual', [10878]], ['GreaterTilde', [8819]], ['Gscr', [119970]], ['gscr', [8458]], ['gsim', [8819]], ['gsime', [10894]], ['gsiml', [10896]], ['gtcc', [10919]], ['gtcir', [10874]], ['gt', [62]], ['GT', [62]], ['Gt', [8811]], ['gtdot', [8919]], ['gtlPar', [10645]], ['gtquest', [10876]], ['gtrapprox', [10886]], ['gtrarr', [10616]], ['gtrdot', [8919]], ['gtreqless', [8923]], ['gtreqqless', [10892]], ['gtrless', [8823]], ['gtrsim', [8819]], ['gvertneqq', [8809, 65024]], ['gvnE', [8809, 65024]], ['Hacek', [711]], ['hairsp', [8202]], ['half', [189]], ['hamilt', [8459]], ['HARDcy', [1066]], ['hardcy', [1098]], ['harrcir', [10568]], ['harr', [8596]], ['hArr', [8660]], ['harrw', [8621]], ['Hat', [94]], ['hbar', [8463]], ['Hcirc', [292]], ['hcirc', [293]], ['hearts', [9829]], ['heartsuit', [9829]], ['hellip', [8230]], ['hercon', [8889]], ['hfr', [120101]], ['Hfr', [8460]], ['HilbertSpace', [8459]], ['hksearow', [10533]], ['hkswarow', [10534]], ['hoarr', [8703]], ['homtht', [8763]], ['hookleftarrow', [8617]], ['hookrightarrow', [8618]], ['hopf', [120153]], ['Hopf', [8461]], ['horbar', [8213]], ['HorizontalLine', [9472]], ['hscr', [119997]], ['Hscr', [8459]], ['hslash', [8463]], ['Hstrok', [294]], ['hstrok', [295]], ['HumpDownHump', [8782]], ['HumpEqual', [8783]], ['hybull', [8259]], ['hyphen', [8208]], ['Iacute', [205]], ['iacute', [237]], ['ic', [8291]], ['Icirc', [206]], ['icirc', [238]], ['Icy', [1048]], ['icy', [1080]], ['Idot', [304]], ['IEcy', [1045]], ['iecy', [1077]], ['iexcl', [161]], ['iff', [8660]], ['ifr', [120102]], ['Ifr', [8465]], ['Igrave', [204]], ['igrave', [236]], ['ii', [8520]], ['iiiint', [10764]], ['iiint', [8749]], ['iinfin', [10716]], ['iiota', [8489]], ['IJlig', [306]], ['ijlig', [307]], ['Imacr', [298]], ['imacr', [299]], ['image', [8465]], ['ImaginaryI', [8520]], ['imagline', [8464]], ['imagpart', [8465]], ['imath', [305]], ['Im', [8465]], ['imof', [8887]], ['imped', [437]], ['Implies', [8658]], ['incare', [8453]], ['in', [8712]], ['infin', [8734]], ['infintie', [10717]], ['inodot', [305]], ['intcal', [8890]], ['int', [8747]], ['Int', [8748]], ['integers', [8484]], ['Integral', [8747]], ['intercal', [8890]], ['Intersection', [8898]], ['intlarhk', [10775]], ['intprod', [10812]], ['InvisibleComma', [8291]], ['InvisibleTimes', [8290]], ['IOcy', [1025]], ['iocy', [1105]], ['Iogon', [302]], ['iogon', [303]], ['Iopf', [120128]], ['iopf', [120154]], ['Iota', [921]], ['iota', [953]], ['iprod', [10812]], ['iquest', [191]], ['iscr', [119998]], ['Iscr', [8464]], ['isin', [8712]], ['isindot', [8949]], ['isinE', [8953]], ['isins', [8948]], ['isinsv', [8947]], ['isinv', [8712]], ['it', [8290]], ['Itilde', [296]], ['itilde', [297]], ['Iukcy', [1030]], ['iukcy', [1110]], ['Iuml', [207]], ['iuml', [239]], ['Jcirc', [308]], ['jcirc', [309]], ['Jcy', [1049]], ['jcy', [1081]], ['Jfr', [120077]], ['jfr', [120103]], ['jmath', [567]], ['Jopf', [120129]], ['jopf', [120155]], ['Jscr', [119973]], ['jscr', [119999]], ['Jsercy', [1032]], ['jsercy', [1112]], ['Jukcy', [1028]], ['jukcy', [1108]], ['Kappa', [922]], ['kappa', [954]], ['kappav', [1008]], ['Kcedil', [310]], ['kcedil', [311]], ['Kcy', [1050]], ['kcy', [1082]], ['Kfr', [120078]], ['kfr', [120104]], ['kgreen', [312]], ['KHcy', [1061]], ['khcy', [1093]], ['KJcy', [1036]], ['kjcy', [1116]], ['Kopf', [120130]], ['kopf', [120156]], ['Kscr', [119974]], ['kscr', [120000]], ['lAarr', [8666]], ['Lacute', [313]], ['lacute', [314]], ['laemptyv', [10676]], ['lagran', [8466]], ['Lambda', [923]], ['lambda', [955]], ['lang', [10216]], ['Lang', [10218]], ['langd', [10641]], ['langle', [10216]], ['lap', [10885]], ['Laplacetrf', [8466]], ['laquo', [171]], ['larrb', [8676]], ['larrbfs', [10527]], ['larr', [8592]], ['Larr', [8606]], ['lArr', [8656]], ['larrfs', [10525]], ['larrhk', [8617]], ['larrlp', [8619]], ['larrpl', [10553]], ['larrsim', [10611]], ['larrtl', [8610]], ['latail', [10521]], ['lAtail', [10523]], ['lat', [10923]], ['late', [10925]], ['lates', [10925, 65024]], ['lbarr', [10508]], ['lBarr', [10510]], ['lbbrk', [10098]], ['lbrace', [123]], ['lbrack', [91]], ['lbrke', [10635]], ['lbrksld', [10639]], ['lbrkslu', [10637]], ['Lcaron', [317]], ['lcaron', [318]], ['Lcedil', [315]], ['lcedil', [316]], ['lceil', [8968]], ['lcub', [123]], ['Lcy', [1051]], ['lcy', [1083]], ['ldca', [10550]], ['ldquo', [8220]], ['ldquor', [8222]], ['ldrdhar', [10599]], ['ldrushar', [10571]], ['ldsh', [8626]], ['le', [8804]], ['lE', [8806]], ['LeftAngleBracket', [10216]], ['LeftArrowBar', [8676]], ['leftarrow', [8592]], ['LeftArrow', [8592]], ['Leftarrow', [8656]], ['LeftArrowRightArrow', [8646]], ['leftarrowtail', [8610]], ['LeftCeiling', [8968]], ['LeftDoubleBracket', [10214]], ['LeftDownTeeVector', [10593]], ['LeftDownVectorBar', [10585]], ['LeftDownVector', [8643]], ['LeftFloor', [8970]], ['leftharpoondown', [8637]], ['leftharpoonup', [8636]], ['leftleftarrows', [8647]], ['leftrightarrow', [8596]], ['LeftRightArrow', [8596]], ['Leftrightarrow', [8660]], ['leftrightarrows', [8646]], ['leftrightharpoons', [8651]], ['leftrightsquigarrow', [8621]], ['LeftRightVector', [10574]], ['LeftTeeArrow', [8612]], ['LeftTee', [8867]], ['LeftTeeVector', [10586]], ['leftthreetimes', [8907]], ['LeftTriangleBar', [10703]], ['LeftTriangle', [8882]], ['LeftTriangleEqual', [8884]], ['LeftUpDownVector', [10577]], ['LeftUpTeeVector', [10592]], ['LeftUpVectorBar', [10584]], ['LeftUpVector', [8639]], ['LeftVectorBar', [10578]], ['LeftVector', [8636]], ['lEg', [10891]], ['leg', [8922]], ['leq', [8804]], ['leqq', [8806]], ['leqslant', [10877]], ['lescc', [10920]], ['les', [10877]], ['lesdot', [10879]], ['lesdoto', [10881]], ['lesdotor', [10883]], ['lesg', [8922, 65024]], ['lesges', [10899]], ['lessapprox', [10885]], ['lessdot', [8918]], ['lesseqgtr', [8922]], ['lesseqqgtr', [10891]], ['LessEqualGreater', [8922]], ['LessFullEqual', [8806]], ['LessGreater', [8822]], ['lessgtr', [8822]], ['LessLess', [10913]], ['lesssim', [8818]], ['LessSlantEqual', [10877]], ['LessTilde', [8818]], ['lfisht', [10620]], ['lfloor', [8970]], ['Lfr', [120079]], ['lfr', [120105]], ['lg', [8822]], ['lgE', [10897]], ['lHar', [10594]], ['lhard', [8637]], ['lharu', [8636]], ['lharul', [10602]], ['lhblk', [9604]], ['LJcy', [1033]], ['ljcy', [1113]], ['llarr', [8647]], ['ll', [8810]], ['Ll', [8920]], ['llcorner', [8990]], ['Lleftarrow', [8666]], ['llhard', [10603]], ['lltri', [9722]], ['Lmidot', [319]], ['lmidot', [320]], ['lmoustache', [9136]], ['lmoust', [9136]], ['lnap', [10889]], ['lnapprox', [10889]], ['lne', [10887]], ['lnE', [8808]], ['lneq', [10887]], ['lneqq', [8808]], ['lnsim', [8934]], ['loang', [10220]], ['loarr', [8701]], ['lobrk', [10214]], ['longleftarrow', [10229]], ['LongLeftArrow', [10229]], ['Longleftarrow', [10232]], ['longleftrightarrow', [10231]], ['LongLeftRightArrow', [10231]], ['Longleftrightarrow', [10234]], ['longmapsto', [10236]], ['longrightarrow', [10230]], ['LongRightArrow', [10230]], ['Longrightarrow', [10233]], ['looparrowleft', [8619]], ['looparrowright', [8620]], ['lopar', [10629]], ['Lopf', [120131]], ['lopf', [120157]], ['loplus', [10797]], ['lotimes', [10804]], ['lowast', [8727]], ['lowbar', [95]], ['LowerLeftArrow', [8601]], ['LowerRightArrow', [8600]], ['loz', [9674]], ['lozenge', [9674]], ['lozf', [10731]], ['lpar', [40]], ['lparlt', [10643]], ['lrarr', [8646]], ['lrcorner', [8991]], ['lrhar', [8651]], ['lrhard', [10605]], ['lrm', [8206]], ['lrtri', [8895]], ['lsaquo', [8249]], ['lscr', [120001]], ['Lscr', [8466]], ['lsh', [8624]], ['Lsh', [8624]], ['lsim', [8818]], ['lsime', [10893]], ['lsimg', [10895]], ['lsqb', [91]], ['lsquo', [8216]], ['lsquor', [8218]], ['Lstrok', [321]], ['lstrok', [322]], ['ltcc', [10918]], ['ltcir', [10873]], ['lt', [60]], ['LT', [60]], ['Lt', [8810]], ['ltdot', [8918]], ['lthree', [8907]], ['ltimes', [8905]], ['ltlarr', [10614]], ['ltquest', [10875]], ['ltri', [9667]], ['ltrie', [8884]], ['ltrif', [9666]], ['ltrPar', [10646]], ['lurdshar', [10570]], ['luruhar', [10598]], ['lvertneqq', [8808, 65024]], ['lvnE', [8808, 65024]], ['macr', [175]], ['male', [9794]], ['malt', [10016]], ['maltese', [10016]], ['Map', [10501]], ['map', [8614]], ['mapsto', [8614]], ['mapstodown', [8615]], ['mapstoleft', [8612]], ['mapstoup', [8613]], ['marker', [9646]], ['mcomma', [10793]], ['Mcy', [1052]], ['mcy', [1084]], ['mdash', [8212]], ['mDDot', [8762]], ['measuredangle', [8737]], ['MediumSpace', [8287]], ['Mellintrf', [8499]], ['Mfr', [120080]], ['mfr', [120106]], ['mho', [8487]], ['micro', [181]], ['midast', [42]], ['midcir', [10992]], ['mid', [8739]], ['middot', [183]], ['minusb', [8863]], ['minus', [8722]], ['minusd', [8760]], ['minusdu', [10794]], ['MinusPlus', [8723]], ['mlcp', [10971]], ['mldr', [8230]], ['mnplus', [8723]], ['models', [8871]], ['Mopf', [120132]], ['mopf', [120158]], ['mp', [8723]], ['mscr', [120002]], ['Mscr', [8499]], ['mstpos', [8766]], ['Mu', [924]], ['mu', [956]], ['multimap', [8888]], ['mumap', [8888]], ['nabla', [8711]], ['Nacute', [323]], ['nacute', [324]], ['nang', [8736, 8402]], ['nap', [8777]], ['napE', [10864, 824]], ['napid', [8779, 824]], ['napos', [329]], ['napprox', [8777]], ['natural', [9838]], ['naturals', [8469]], ['natur', [9838]], ['nbsp', [160]], ['nbump', [8782, 824]], ['nbumpe', [8783, 824]], ['ncap', [10819]], ['Ncaron', [327]], ['ncaron', [328]], ['Ncedil', [325]], ['ncedil', [326]], ['ncong', [8775]], ['ncongdot', [10861, 824]], ['ncup', [10818]], ['Ncy', [1053]], ['ncy', [1085]], ['ndash', [8211]], ['nearhk', [10532]], ['nearr', [8599]], ['neArr', [8663]], ['nearrow', [8599]], ['ne', [8800]], ['nedot', [8784, 824]], ['NegativeMediumSpace', [8203]], ['NegativeThickSpace', [8203]], ['NegativeThinSpace', [8203]], ['NegativeVeryThinSpace', [8203]], ['nequiv', [8802]], ['nesear', [10536]], ['nesim', [8770, 824]], ['NestedGreaterGreater', [8811]], ['NestedLessLess', [8810]], ['nexist', [8708]], ['nexists', [8708]], ['Nfr', [120081]], ['nfr', [120107]], ['ngE', [8807, 824]], ['nge', [8817]], ['ngeq', [8817]], ['ngeqq', [8807, 824]], ['ngeqslant', [10878, 824]], ['nges', [10878, 824]], ['nGg', [8921, 824]], ['ngsim', [8821]], ['nGt', [8811, 8402]], ['ngt', [8815]], ['ngtr', [8815]], ['nGtv', [8811, 824]], ['nharr', [8622]], ['nhArr', [8654]], ['nhpar', [10994]], ['ni', [8715]], ['nis', [8956]], ['nisd', [8954]], ['niv', [8715]], ['NJcy', [1034]], ['njcy', [1114]], ['nlarr', [8602]], ['nlArr', [8653]], ['nldr', [8229]], ['nlE', [8806, 824]], ['nle', [8816]], ['nleftarrow', [8602]], ['nLeftarrow', [8653]], ['nleftrightarrow', [8622]], ['nLeftrightarrow', [8654]], ['nleq', [8816]], ['nleqq', [8806, 824]], ['nleqslant', [10877, 824]], ['nles', [10877, 824]], ['nless', [8814]], ['nLl', [8920, 824]], ['nlsim', [8820]], ['nLt', [8810, 8402]], ['nlt', [8814]], ['nltri', [8938]], ['nltrie', [8940]], ['nLtv', [8810, 824]], ['nmid', [8740]], ['NoBreak', [8288]], ['NonBreakingSpace', [160]], ['nopf', [120159]], ['Nopf', [8469]], ['Not', [10988]], ['not', [172]], ['NotCongruent', [8802]], ['NotCupCap', [8813]], ['NotDoubleVerticalBar', [8742]], ['NotElement', [8713]], ['NotEqual', [8800]], ['NotEqualTilde', [8770, 824]], ['NotExists', [8708]], ['NotGreater', [8815]], ['NotGreaterEqual', [8817]], ['NotGreaterFullEqual', [8807, 824]], ['NotGreaterGreater', [8811, 824]], ['NotGreaterLess', [8825]], ['NotGreaterSlantEqual', [10878, 824]], ['NotGreaterTilde', [8821]], ['NotHumpDownHump', [8782, 824]], ['NotHumpEqual', [8783, 824]], ['notin', [8713]], ['notindot', [8949, 824]], ['notinE', [8953, 824]], ['notinva', [8713]], ['notinvb', [8951]], ['notinvc', [8950]], ['NotLeftTriangleBar', [10703, 824]], ['NotLeftTriangle', [8938]], ['NotLeftTriangleEqual', [8940]], ['NotLess', [8814]], ['NotLessEqual', [8816]], ['NotLessGreater', [8824]], ['NotLessLess', [8810, 824]], ['NotLessSlantEqual', [10877, 824]], ['NotLessTilde', [8820]], ['NotNestedGreaterGreater', [10914, 824]], ['NotNestedLessLess', [10913, 824]], ['notni', [8716]], ['notniva', [8716]], ['notnivb', [8958]], ['notnivc', [8957]], ['NotPrecedes', [8832]], ['NotPrecedesEqual', [10927, 824]], ['NotPrecedesSlantEqual', [8928]], ['NotReverseElement', [8716]], ['NotRightTriangleBar', [10704, 824]], ['NotRightTriangle', [8939]], ['NotRightTriangleEqual', [8941]], ['NotSquareSubset', [8847, 824]], ['NotSquareSubsetEqual', [8930]], ['NotSquareSuperset', [8848, 824]], ['NotSquareSupersetEqual', [8931]], ['NotSubset', [8834, 8402]], ['NotSubsetEqual', [8840]], ['NotSucceeds', [8833]], ['NotSucceedsEqual', [10928, 824]], ['NotSucceedsSlantEqual', [8929]], ['NotSucceedsTilde', [8831, 824]], ['NotSuperset', [8835, 8402]], ['NotSupersetEqual', [8841]], ['NotTilde', [8769]], ['NotTildeEqual', [8772]], ['NotTildeFullEqual', [8775]], ['NotTildeTilde', [8777]], ['NotVerticalBar', [8740]], ['nparallel', [8742]], ['npar', [8742]], ['nparsl', [11005, 8421]], ['npart', [8706, 824]], ['npolint', [10772]], ['npr', [8832]], ['nprcue', [8928]], ['nprec', [8832]], ['npreceq', [10927, 824]], ['npre', [10927, 824]], ['nrarrc', [10547, 824]], ['nrarr', [8603]], ['nrArr', [8655]], ['nrarrw', [8605, 824]], ['nrightarrow', [8603]], ['nRightarrow', [8655]], ['nrtri', [8939]], ['nrtrie', [8941]], ['nsc', [8833]], ['nsccue', [8929]], ['nsce', [10928, 824]], ['Nscr', [119977]], ['nscr', [120003]], ['nshortmid', [8740]], ['nshortparallel', [8742]], ['nsim', [8769]], ['nsime', [8772]], ['nsimeq', [8772]], ['nsmid', [8740]], ['nspar', [8742]], ['nsqsube', [8930]], ['nsqsupe', [8931]], ['nsub', [8836]], ['nsubE', [10949, 824]], ['nsube', [8840]], ['nsubset', [8834, 8402]], ['nsubseteq', [8840]], ['nsubseteqq', [10949, 824]], ['nsucc', [8833]], ['nsucceq', [10928, 824]], ['nsup', [8837]], ['nsupE', [10950, 824]], ['nsupe', [8841]], ['nsupset', [8835, 8402]], ['nsupseteq', [8841]], ['nsupseteqq', [10950, 824]], ['ntgl', [8825]], ['Ntilde', [209]], ['ntilde', [241]], ['ntlg', [8824]], ['ntriangleleft', [8938]], ['ntrianglelefteq', [8940]], ['ntriangleright', [8939]], ['ntrianglerighteq', [8941]], ['Nu', [925]], ['nu', [957]], ['num', [35]], ['numero', [8470]], ['numsp', [8199]], ['nvap', [8781, 8402]], ['nvdash', [8876]], ['nvDash', [8877]], ['nVdash', [8878]], ['nVDash', [8879]], ['nvge', [8805, 8402]], ['nvgt', [62, 8402]], ['nvHarr', [10500]], ['nvinfin', [10718]], ['nvlArr', [10498]], ['nvle', [8804, 8402]], ['nvlt', [60, 8402]], ['nvltrie', [8884, 8402]], ['nvrArr', [10499]], ['nvrtrie', [8885, 8402]], ['nvsim', [8764, 8402]], ['nwarhk', [10531]], ['nwarr', [8598]], ['nwArr', [8662]], ['nwarrow', [8598]], ['nwnear', [10535]], ['Oacute', [211]], ['oacute', [243]], ['oast', [8859]], ['Ocirc', [212]], ['ocirc', [244]], ['ocir', [8858]], ['Ocy', [1054]], ['ocy', [1086]], ['odash', [8861]], ['Odblac', [336]], ['odblac', [337]], ['odiv', [10808]], ['odot', [8857]], ['odsold', [10684]], ['OElig', [338]], ['oelig', [339]], ['ofcir', [10687]], ['Ofr', [120082]], ['ofr', [120108]], ['ogon', [731]], ['Ograve', [210]], ['ograve', [242]], ['ogt', [10689]], ['ohbar', [10677]], ['ohm', [937]], ['oint', [8750]], ['olarr', [8634]], ['olcir', [10686]], ['olcross', [10683]], ['oline', [8254]], ['olt', [10688]], ['Omacr', [332]], ['omacr', [333]], ['Omega', [937]], ['omega', [969]], ['Omicron', [927]], ['omicron', [959]], ['omid', [10678]], ['ominus', [8854]], ['Oopf', [120134]], ['oopf', [120160]], ['opar', [10679]], ['OpenCurlyDoubleQuote', [8220]], ['OpenCurlyQuote', [8216]], ['operp', [10681]], ['oplus', [8853]], ['orarr', [8635]], ['Or', [10836]], ['or', [8744]], ['ord', [10845]], ['order', [8500]], ['orderof', [8500]], ['ordf', [170]], ['ordm', [186]], ['origof', [8886]], ['oror', [10838]], ['orslope', [10839]], ['orv', [10843]], ['oS', [9416]], ['Oscr', [119978]], ['oscr', [8500]], ['Oslash', [216]], ['oslash', [248]], ['osol', [8856]], ['Otilde', [213]], ['otilde', [245]], ['otimesas', [10806]], ['Otimes', [10807]], ['otimes', [8855]], ['Ouml', [214]], ['ouml', [246]], ['ovbar', [9021]], ['OverBar', [8254]], ['OverBrace', [9182]], ['OverBracket', [9140]], ['OverParenthesis', [9180]], ['para', [182]], ['parallel', [8741]], ['par', [8741]], ['parsim', [10995]], ['parsl', [11005]], ['part', [8706]], ['PartialD', [8706]], ['Pcy', [1055]], ['pcy', [1087]], ['percnt', [37]], ['period', [46]], ['permil', [8240]], ['perp', [8869]], ['pertenk', [8241]], ['Pfr', [120083]], ['pfr', [120109]], ['Phi', [934]], ['phi', [966]], ['phiv', [981]], ['phmmat', [8499]], ['phone', [9742]], ['Pi', [928]], ['pi', [960]], ['pitchfork', [8916]], ['piv', [982]], ['planck', [8463]], ['planckh', [8462]], ['plankv', [8463]], ['plusacir', [10787]], ['plusb', [8862]], ['pluscir', [10786]], ['plus', [43]], ['plusdo', [8724]], ['plusdu', [10789]], ['pluse', [10866]], ['PlusMinus', [177]], ['plusmn', [177]], ['plussim', [10790]], ['plustwo', [10791]], ['pm', [177]], ['Poincareplane', [8460]], ['pointint', [10773]], ['popf', [120161]], ['Popf', [8473]], ['pound', [163]], ['prap', [10935]], ['Pr', [10939]], ['pr', [8826]], ['prcue', [8828]], ['precapprox', [10935]], ['prec', [8826]], ['preccurlyeq', [8828]], ['Precedes', [8826]], ['PrecedesEqual', [10927]], ['PrecedesSlantEqual', [8828]], ['PrecedesTilde', [8830]], ['preceq', [10927]], ['precnapprox', [10937]], ['precneqq', [10933]], ['precnsim', [8936]], ['pre', [10927]], ['prE', [10931]], ['precsim', [8830]], ['prime', [8242]], ['Prime', [8243]], ['primes', [8473]], ['prnap', [10937]], ['prnE', [10933]], ['prnsim', [8936]], ['prod', [8719]], ['Product', [8719]], ['profalar', [9006]], ['profline', [8978]], ['profsurf', [8979]], ['prop', [8733]], ['Proportional', [8733]], ['Proportion', [8759]], ['propto', [8733]], ['prsim', [8830]], ['prurel', [8880]], ['Pscr', [119979]], ['pscr', [120005]], ['Psi', [936]], ['psi', [968]], ['puncsp', [8200]], ['Qfr', [120084]], ['qfr', [120110]], ['qint', [10764]], ['qopf', [120162]], ['Qopf', [8474]], ['qprime', [8279]], ['Qscr', [119980]], ['qscr', [120006]], ['quaternions', [8461]], ['quatint', [10774]], ['quest', [63]], ['questeq', [8799]], ['quot', [34]], ['QUOT', [34]], ['rAarr', [8667]], ['race', [8765, 817]], ['Racute', [340]], ['racute', [341]], ['radic', [8730]], ['raemptyv', [10675]], ['rang', [10217]], ['Rang', [10219]], ['rangd', [10642]], ['range', [10661]], ['rangle', [10217]], ['raquo', [187]], ['rarrap', [10613]], ['rarrb', [8677]], ['rarrbfs', [10528]], ['rarrc', [10547]], ['rarr', [8594]], ['Rarr', [8608]], ['rArr', [8658]], ['rarrfs', [10526]], ['rarrhk', [8618]], ['rarrlp', [8620]], ['rarrpl', [10565]], ['rarrsim', [10612]], ['Rarrtl', [10518]], ['rarrtl', [8611]], ['rarrw', [8605]], ['ratail', [10522]], ['rAtail', [10524]], ['ratio', [8758]], ['rationals', [8474]], ['rbarr', [10509]], ['rBarr', [10511]], ['RBarr', [10512]], ['rbbrk', [10099]], ['rbrace', [125]], ['rbrack', [93]], ['rbrke', [10636]], ['rbrksld', [10638]], ['rbrkslu', [10640]], ['Rcaron', [344]], ['rcaron', [345]], ['Rcedil', [342]], ['rcedil', [343]], ['rceil', [8969]], ['rcub', [125]], ['Rcy', [1056]], ['rcy', [1088]], ['rdca', [10551]], ['rdldhar', [10601]], ['rdquo', [8221]], ['rdquor', [8221]], ['CloseCurlyDoubleQuote', [8221]], ['rdsh', [8627]], ['real', [8476]], ['realine', [8475]], ['realpart', [8476]], ['reals', [8477]], ['Re', [8476]], ['rect', [9645]], ['reg', [174]], ['REG', [174]], ['ReverseElement', [8715]], ['ReverseEquilibrium', [8651]], ['ReverseUpEquilibrium', [10607]], ['rfisht', [10621]], ['rfloor', [8971]], ['rfr', [120111]], ['Rfr', [8476]], ['rHar', [10596]], ['rhard', [8641]], ['rharu', [8640]], ['rharul', [10604]], ['Rho', [929]], ['rho', [961]], ['rhov', [1009]], ['RightAngleBracket', [10217]], ['RightArrowBar', [8677]], ['rightarrow', [8594]], ['RightArrow', [8594]], ['Rightarrow', [8658]], ['RightArrowLeftArrow', [8644]], ['rightarrowtail', [8611]], ['RightCeiling', [8969]], ['RightDoubleBracket', [10215]], ['RightDownTeeVector', [10589]], ['RightDownVectorBar', [10581]], ['RightDownVector', [8642]], ['RightFloor', [8971]], ['rightharpoondown', [8641]], ['rightharpoonup', [8640]], ['rightleftarrows', [8644]], ['rightleftharpoons', [8652]], ['rightrightarrows', [8649]], ['rightsquigarrow', [8605]], ['RightTeeArrow', [8614]], ['RightTee', [8866]], ['RightTeeVector', [10587]], ['rightthreetimes', [8908]], ['RightTriangleBar', [10704]], ['RightTriangle', [8883]], ['RightTriangleEqual', [8885]], ['RightUpDownVector', [10575]], ['RightUpTeeVector', [10588]], ['RightUpVectorBar', [10580]], ['RightUpVector', [8638]], ['RightVectorBar', [10579]], ['RightVector', [8640]], ['ring', [730]], ['risingdotseq', [8787]], ['rlarr', [8644]], ['rlhar', [8652]], ['rlm', [8207]], ['rmoustache', [9137]], ['rmoust', [9137]], ['rnmid', [10990]], ['roang', [10221]], ['roarr', [8702]], ['robrk', [10215]], ['ropar', [10630]], ['ropf', [120163]], ['Ropf', [8477]], ['roplus', [10798]], ['rotimes', [10805]], ['RoundImplies', [10608]], ['rpar', [41]], ['rpargt', [10644]], ['rppolint', [10770]], ['rrarr', [8649]], ['Rrightarrow', [8667]], ['rsaquo', [8250]], ['rscr', [120007]], ['Rscr', [8475]], ['rsh', [8625]], ['Rsh', [8625]], ['rsqb', [93]], ['rsquo', [8217]], ['rsquor', [8217]], ['CloseCurlyQuote', [8217]], ['rthree', [8908]], ['rtimes', [8906]], ['rtri', [9657]], ['rtrie', [8885]], ['rtrif', [9656]], ['rtriltri', [10702]], ['RuleDelayed', [10740]], ['ruluhar', [10600]], ['rx', [8478]], ['Sacute', [346]], ['sacute', [347]], ['sbquo', [8218]], ['scap', [10936]], ['Scaron', [352]], ['scaron', [353]], ['Sc', [10940]], ['sc', [8827]], ['sccue', [8829]], ['sce', [10928]], ['scE', [10932]], ['Scedil', [350]], ['scedil', [351]], ['Scirc', [348]], ['scirc', [349]], ['scnap', [10938]], ['scnE', [10934]], ['scnsim', [8937]], ['scpolint', [10771]], ['scsim', [8831]], ['Scy', [1057]], ['scy', [1089]], ['sdotb', [8865]], ['sdot', [8901]], ['sdote', [10854]], ['searhk', [10533]], ['searr', [8600]], ['seArr', [8664]], ['searrow', [8600]], ['sect', [167]], ['semi', [59]], ['seswar', [10537]], ['setminus', [8726]], ['setmn', [8726]], ['sext', [10038]], ['Sfr', [120086]], ['sfr', [120112]], ['sfrown', [8994]], ['sharp', [9839]], ['SHCHcy', [1065]], ['shchcy', [1097]], ['SHcy', [1064]], ['shcy', [1096]], ['ShortDownArrow', [8595]], ['ShortLeftArrow', [8592]], ['shortmid', [8739]], ['shortparallel', [8741]], ['ShortRightArrow', [8594]], ['ShortUpArrow', [8593]], ['shy', [173]], ['Sigma', [931]], ['sigma', [963]], ['sigmaf', [962]], ['sigmav', [962]], ['sim', [8764]], ['simdot', [10858]], ['sime', [8771]], ['simeq', [8771]], ['simg', [10910]], ['simgE', [10912]], ['siml', [10909]], ['simlE', [10911]], ['simne', [8774]], ['simplus', [10788]], ['simrarr', [10610]], ['slarr', [8592]], ['SmallCircle', [8728]], ['smallsetminus', [8726]], ['smashp', [10803]], ['smeparsl', [10724]], ['smid', [8739]], ['smile', [8995]], ['smt', [10922]], ['smte', [10924]], ['smtes', [10924, 65024]], ['SOFTcy', [1068]], ['softcy', [1100]], ['solbar', [9023]], ['solb', [10692]], ['sol', [47]], ['Sopf', [120138]], ['sopf', [120164]], ['spades', [9824]], ['spadesuit', [9824]], ['spar', [8741]], ['sqcap', [8851]], ['sqcaps', [8851, 65024]], ['sqcup', [8852]], ['sqcups', [8852, 65024]], ['Sqrt', [8730]], ['sqsub', [8847]], ['sqsube', [8849]], ['sqsubset', [8847]], ['sqsubseteq', [8849]], ['sqsup', [8848]], ['sqsupe', [8850]], ['sqsupset', [8848]], ['sqsupseteq', [8850]], ['square', [9633]], ['Square', [9633]], ['SquareIntersection', [8851]], ['SquareSubset', [8847]], ['SquareSubsetEqual', [8849]], ['SquareSuperset', [8848]], ['SquareSupersetEqual', [8850]], ['SquareUnion', [8852]], ['squarf', [9642]], ['squ', [9633]], ['squf', [9642]], ['srarr', [8594]], ['Sscr', [119982]], ['sscr', [120008]], ['ssetmn', [8726]], ['ssmile', [8995]], ['sstarf', [8902]], ['Star', [8902]], ['star', [9734]], ['starf', [9733]], ['straightepsilon', [1013]], ['straightphi', [981]], ['strns', [175]], ['sub', [8834]], ['Sub', [8912]], ['subdot', [10941]], ['subE', [10949]], ['sube', [8838]], ['subedot', [10947]], ['submult', [10945]], ['subnE', [10955]], ['subne', [8842]], ['subplus', [10943]], ['subrarr', [10617]], ['subset', [8834]], ['Subset', [8912]], ['subseteq', [8838]], ['subseteqq', [10949]], ['SubsetEqual', [8838]], ['subsetneq', [8842]], ['subsetneqq', [10955]], ['subsim', [10951]], ['subsub', [10965]], ['subsup', [10963]], ['succapprox', [10936]], ['succ', [8827]], ['succcurlyeq', [8829]], ['Succeeds', [8827]], ['SucceedsEqual', [10928]], ['SucceedsSlantEqual', [8829]], ['SucceedsTilde', [8831]], ['succeq', [10928]], ['succnapprox', [10938]], ['succneqq', [10934]], ['succnsim', [8937]], ['succsim', [8831]], ['SuchThat', [8715]], ['sum', [8721]], ['Sum', [8721]], ['sung', [9834]], ['sup1', [185]], ['sup2', [178]], ['sup3', [179]], ['sup', [8835]], ['Sup', [8913]], ['supdot', [10942]], ['supdsub', [10968]], ['supE', [10950]], ['supe', [8839]], ['supedot', [10948]], ['Superset', [8835]], ['SupersetEqual', [8839]], ['suphsol', [10185]], ['suphsub', [10967]], ['suplarr', [10619]], ['supmult', [10946]], ['supnE', [10956]], ['supne', [8843]], ['supplus', [10944]], ['supset', [8835]], ['Supset', [8913]], ['supseteq', [8839]], ['supseteqq', [10950]], ['supsetneq', [8843]], ['supsetneqq', [10956]], ['supsim', [10952]], ['supsub', [10964]], ['supsup', [10966]], ['swarhk', [10534]], ['swarr', [8601]], ['swArr', [8665]], ['swarrow', [8601]], ['swnwar', [10538]], ['szlig', [223]], ['Tab', [9]], ['target', [8982]], ['Tau', [932]], ['tau', [964]], ['tbrk', [9140]], ['Tcaron', [356]], ['tcaron', [357]], ['Tcedil', [354]], ['tcedil', [355]], ['Tcy', [1058]], ['tcy', [1090]], ['tdot', [8411]], ['telrec', [8981]], ['Tfr', [120087]], ['tfr', [120113]], ['there4', [8756]], ['therefore', [8756]], ['Therefore', [8756]], ['Theta', [920]], ['theta', [952]], ['thetasym', [977]], ['thetav', [977]], ['thickapprox', [8776]], ['thicksim', [8764]], ['ThickSpace', [8287, 8202]], ['ThinSpace', [8201]], ['thinsp', [8201]], ['thkap', [8776]], ['thksim', [8764]], ['THORN', [222]], ['thorn', [254]], ['tilde', [732]], ['Tilde', [8764]], ['TildeEqual', [8771]], ['TildeFullEqual', [8773]], ['TildeTilde', [8776]], ['timesbar', [10801]], ['timesb', [8864]], ['times', [215]], ['timesd', [10800]], ['tint', [8749]], ['toea', [10536]], ['topbot', [9014]], ['topcir', [10993]], ['top', [8868]], ['Topf', [120139]], ['topf', [120165]], ['topfork', [10970]], ['tosa', [10537]], ['tprime', [8244]], ['trade', [8482]], ['TRADE', [8482]], ['triangle', [9653]], ['triangledown', [9663]], ['triangleleft', [9667]], ['trianglelefteq', [8884]], ['triangleq', [8796]], ['triangleright', [9657]], ['trianglerighteq', [8885]], ['tridot', [9708]], ['trie', [8796]], ['triminus', [10810]], ['TripleDot', [8411]], ['triplus', [10809]], ['trisb', [10701]], ['tritime', [10811]], ['trpezium', [9186]], ['Tscr', [119983]], ['tscr', [120009]], ['TScy', [1062]], ['tscy', [1094]], ['TSHcy', [1035]], ['tshcy', [1115]], ['Tstrok', [358]], ['tstrok', [359]], ['twixt', [8812]], ['twoheadleftarrow', [8606]], ['twoheadrightarrow', [8608]], ['Uacute', [218]], ['uacute', [250]], ['uarr', [8593]], ['Uarr', [8607]], ['uArr', [8657]], ['Uarrocir', [10569]], ['Ubrcy', [1038]], ['ubrcy', [1118]], ['Ubreve', [364]], ['ubreve', [365]], ['Ucirc', [219]], ['ucirc', [251]], ['Ucy', [1059]], ['ucy', [1091]], ['udarr', [8645]], ['Udblac', [368]], ['udblac', [369]], ['udhar', [10606]], ['ufisht', [10622]], ['Ufr', [120088]], ['ufr', [120114]], ['Ugrave', [217]], ['ugrave', [249]], ['uHar', [10595]], ['uharl', [8639]], ['uharr', [8638]], ['uhblk', [9600]], ['ulcorn', [8988]], ['ulcorner', [8988]], ['ulcrop', [8975]], ['ultri', [9720]], ['Umacr', [362]], ['umacr', [363]], ['uml', [168]], ['UnderBar', [95]], ['UnderBrace', [9183]], ['UnderBracket', [9141]], ['UnderParenthesis', [9181]], ['Union', [8899]], ['UnionPlus', [8846]], ['Uogon', [370]], ['uogon', [371]], ['Uopf', [120140]], ['uopf', [120166]], ['UpArrowBar', [10514]], ['uparrow', [8593]], ['UpArrow', [8593]], ['Uparrow', [8657]], ['UpArrowDownArrow', [8645]], ['updownarrow', [8597]], ['UpDownArrow', [8597]], ['Updownarrow', [8661]], ['UpEquilibrium', [10606]], ['upharpoonleft', [8639]], ['upharpoonright', [8638]], ['uplus', [8846]], ['UpperLeftArrow', [8598]], ['UpperRightArrow', [8599]], ['upsi', [965]], ['Upsi', [978]], ['upsih', [978]], ['Upsilon', [933]], ['upsilon', [965]], ['UpTeeArrow', [8613]], ['UpTee', [8869]], ['upuparrows', [8648]], ['urcorn', [8989]], ['urcorner', [8989]], ['urcrop', [8974]], ['Uring', [366]], ['uring', [367]], ['urtri', [9721]], ['Uscr', [119984]], ['uscr', [120010]], ['utdot', [8944]], ['Utilde', [360]], ['utilde', [361]], ['utri', [9653]], ['utrif', [9652]], ['uuarr', [8648]], ['Uuml', [220]], ['uuml', [252]], ['uwangle', [10663]], ['vangrt', [10652]], ['varepsilon', [1013]], ['varkappa', [1008]], ['varnothing', [8709]], ['varphi', [981]], ['varpi', [982]], ['varpropto', [8733]], ['varr', [8597]], ['vArr', [8661]], ['varrho', [1009]], ['varsigma', [962]], ['varsubsetneq', [8842, 65024]], ['varsubsetneqq', [10955, 65024]], ['varsupsetneq', [8843, 65024]], ['varsupsetneqq', [10956, 65024]], ['vartheta', [977]], ['vartriangleleft', [8882]], ['vartriangleright', [8883]], ['vBar', [10984]], ['Vbar', [10987]], ['vBarv', [10985]], ['Vcy', [1042]], ['vcy', [1074]], ['vdash', [8866]], ['vDash', [8872]], ['Vdash', [8873]], ['VDash', [8875]], ['Vdashl', [10982]], ['veebar', [8891]], ['vee', [8744]], ['Vee', [8897]], ['veeeq', [8794]], ['vellip', [8942]], ['verbar', [124]], ['Verbar', [8214]], ['vert', [124]], ['Vert', [8214]], ['VerticalBar', [8739]], ['VerticalLine', [124]], ['VerticalSeparator', [10072]], ['VerticalTilde', [8768]], ['VeryThinSpace', [8202]], ['Vfr', [120089]], ['vfr', [120115]], ['vltri', [8882]], ['vnsub', [8834, 8402]], ['vnsup', [8835, 8402]], ['Vopf', [120141]], ['vopf', [120167]], ['vprop', [8733]], ['vrtri', [8883]], ['Vscr', [119985]], ['vscr', [120011]], ['vsubnE', [10955, 65024]], ['vsubne', [8842, 65024]], ['vsupnE', [10956, 65024]], ['vsupne', [8843, 65024]], ['Vvdash', [8874]], ['vzigzag', [10650]], ['Wcirc', [372]], ['wcirc', [373]], ['wedbar', [10847]], ['wedge', [8743]], ['Wedge', [8896]], ['wedgeq', [8793]], ['weierp', [8472]], ['Wfr', [120090]], ['wfr', [120116]], ['Wopf', [120142]], ['wopf', [120168]], ['wp', [8472]], ['wr', [8768]], ['wreath', [8768]], ['Wscr', [119986]], ['wscr', [120012]], ['xcap', [8898]], ['xcirc', [9711]], ['xcup', [8899]], ['xdtri', [9661]], ['Xfr', [120091]], ['xfr', [120117]], ['xharr', [10231]], ['xhArr', [10234]], ['Xi', [926]], ['xi', [958]], ['xlarr', [10229]], ['xlArr', [10232]], ['xmap', [10236]], ['xnis', [8955]], ['xodot', [10752]], ['Xopf', [120143]], ['xopf', [120169]], ['xoplus', [10753]], ['xotime', [10754]], ['xrarr', [10230]], ['xrArr', [10233]], ['Xscr', [119987]], ['xscr', [120013]], ['xsqcup', [10758]], ['xuplus', [10756]], ['xutri', [9651]], ['xvee', [8897]], ['xwedge', [8896]], ['Yacute', [221]], ['yacute', [253]], ['YAcy', [1071]], ['yacy', [1103]], ['Ycirc', [374]], ['ycirc', [375]], ['Ycy', [1067]], ['ycy', [1099]], ['yen', [165]], ['Yfr', [120092]], ['yfr', [120118]], ['YIcy', [1031]], ['yicy', [1111]], ['Yopf', [120144]], ['yopf', [120170]], ['Yscr', [119988]], ['yscr', [120014]], ['YUcy', [1070]], ['yucy', [1102]], ['yuml', [255]], ['Yuml', [376]], ['Zacute', [377]], ['zacute', [378]], ['Zcaron', [381]], ['zcaron', [382]], ['Zcy', [1047]], ['zcy', [1079]], ['Zdot', [379]], ['zdot', [380]], ['zeetrf', [8488]], ['ZeroWidthSpace', [8203]], ['Zeta', [918]], ['zeta', [950]], ['zfr', [120119]], ['Zfr', [8488]], ['ZHcy', [1046]], ['zhcy', [1078]], ['zigrarr', [8669]], ['zopf', [120171]], ['Zopf', [8484]], ['Zscr', [119989]], ['zscr', [120015]], ['zwj', [8205]], ['zwnj', [8204]]];
+
+var alphaIndex = {};
+var charIndex = {};
+
+createIndexes(alphaIndex, charIndex);
+
+/**
+ * @constructor
+ */
+function Html5Entities() {}
+
+/**
+ * @param {String} str
+ * @returns {String}
+ */
+Html5Entities.prototype.decode = function(str) {
+    if (!str || !str.length) {
+        return '';
+    }
+    return str.replace(/&(#?[\w\d]+);?/g, function(s, entity) {
+        var chr;
+        if (entity.charAt(0) === "#") {
+            var code = entity.charAt(1) === 'x' ?
+                parseInt(entity.substr(2).toLowerCase(), 16) :
+                parseInt(entity.substr(1));
+
+            if (!(isNaN(code) || code < -32768 || code > 65535)) {
+                chr = String.fromCharCode(code);
+            }
+        } else {
+            chr = alphaIndex[entity];
+        }
+        return chr || s;
+    });
+};
+
+/**
+ * @param {String} str
+ * @returns {String}
+ */
+ Html5Entities.decode = function(str) {
+    return new Html5Entities().decode(str);
+ };
+
+/**
+ * @param {String} str
+ * @returns {String}
+ */
+Html5Entities.prototype.encode = function(str) {
+    if (!str || !str.length) {
+        return '';
+    }
+    var strLength = str.length;
+    var result = '';
+    var i = 0;
+    while (i < strLength) {
+        var charInfo = charIndex[str.charCodeAt(i)];
+        if (charInfo) {
+            var alpha = charInfo[str.charCodeAt(i + 1)];
+            if (alpha) {
+                i++;
+            } else {
+                alpha = charInfo[''];
+            }
+            if (alpha) {
+                result += "&" + alpha + ";";
+                i++;
+                continue;
+            }
+        }
+        result += str.charAt(i);
+        i++;
+    }
+    return result;
+};
+
+/**
+ * @param {String} str
+ * @returns {String}
+ */
+ Html5Entities.encode = function(str) {
+    return new Html5Entities().encode(str);
+ };
+
+/**
+ * @param {String} str
+ * @returns {String}
+ */
+Html5Entities.prototype.encodeNonUTF = function(str) {
+    if (!str || !str.length) {
+        return '';
+    }
+    var strLength = str.length;
+    var result = '';
+    var i = 0;
+    while (i < strLength) {
+        var c = str.charCodeAt(i);
+        var charInfo = charIndex[c];
+        if (charInfo) {
+            var alpha = charInfo[str.charCodeAt(i + 1)];
+            if (alpha) {
+                i++;
+            } else {
+                alpha = charInfo[''];
+            }
+            if (alpha) {
+                result += "&" + alpha + ";";
+                i++;
+                continue;
+            }
+        }
+        if (c < 32 || c > 126) {
+            result += '&#' + c + ';';
+        } else {
+            result += str.charAt(i);
+        }
+        i++;
+    }
+    return result;
+};
+
+/**
+ * @param {String} str
+ * @returns {String}
+ */
+ Html5Entities.encodeNonUTF = function(str) {
+    return new Html5Entities().encodeNonUTF(str);
+ };
+
+/**
+ * @param {String} str
+ * @returns {String}
+ */
+Html5Entities.prototype.encodeNonASCII = function(str) {
+    if (!str || !str.length) {
+        return '';
+    }
+    var strLength = str.length;
+    var result = '';
+    var i = 0;
+    while (i < strLength) {
+        var c = str.charCodeAt(i);
+        if (c <= 255) {
+            result += str[i++];
+            continue;
+        }
+        result += '&#' + c + ';';
+        i++
+    }
+    return result;
+};
+
+/**
+ * @param {String} str
+ * @returns {String}
+ */
+ Html5Entities.encodeNonASCII = function(str) {
+    return new Html5Entities().encodeNonASCII(str);
+ };
+
+/**
+ * @param {Object} alphaIndex Passed by reference.
+ * @param {Object} charIndex Passed by reference.
+ */
+function createIndexes(alphaIndex, charIndex) {
+    var i = ENTITIES.length;
+    var _results = [];
+    while (i--) {
+        var e = ENTITIES[i];
+        var alpha = e[0];
+        var chars = e[1];
+        var chr = chars[0];
+        var addChar = (chr < 32 || chr > 126) || chr === 62 || chr === 60 || chr === 38 || chr === 34 || chr === 39;
+        var charInfo;
+        if (addChar) {
+            charInfo = charIndex[chr] = charIndex[chr] || {};
+        }
+        if (chars[1]) {
+            var chr2 = chars[1];
+            alphaIndex[alpha] = String.fromCharCode(chr) + String.fromCharCode(chr2);
+            _results.push(addChar && (charInfo[chr2] = alpha));
+        } else {
+            alphaIndex[alpha] = String.fromCharCode(chr);
+            _results.push(addChar && (charInfo[''] = alpha));
+        }
+    }
+}
+
+module.exports = Html5Entities;
+
+
+/***/ }),
+/* 1 */
+/*!******************************!*\
+  !*** ./scripts/utilities.js ***!
+  \******************************/
+/*! exports provided: utilities */
+/*! all exports used */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "utilities", function() { return utilities; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_ios_inner_height__ = __webpack_require__(19);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_ios_inner_height__ = __webpack_require__(/*! ios-inner-height */ 35);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_ios_inner_height___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_ios_inner_height__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_vh_check__ = __webpack_require__(20);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_vh_check__ = __webpack_require__(/*! vh-check */ 36);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_vh_check___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_vh_check__);
 
 
@@ -249,7 +1117,45 @@ utilities.init();
 
 
 /***/ }),
-/* 1 */
+/* 2 */
+/*!***********************************!*\
+  !*** (webpack)/buildin/module.js ***!
+  \***********************************/
+/*! dynamic exports provided */
+/*! all exports used */
+/***/ (function(module, exports) {
+
+module.exports = function(module) {
+	if(!module.webpackPolyfill) {
+		module.deprecate = function() {};
+		module.paths = [];
+		// module.parent = undefined by default
+		if(!module.children) module.children = [];
+		Object.defineProperty(module, "loaded", {
+			enumerable: true,
+			get: function() {
+				return module.l;
+			}
+		});
+		Object.defineProperty(module, "id", {
+			enumerable: true,
+			get: function() {
+				return module.i;
+			}
+		});
+		module.webpackPolyfill = 1;
+	}
+	return module;
+};
+
+
+/***/ }),
+/* 3 */
+/*!************************************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/body-scroll-lock/lib/bodyScrollLock.js ***!
+  \************************************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! exports used: clearAllBodyScrollLocks, disableBodyScroll */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -406,19 +1312,24 @@ var enableBodyScroll = exports.enableBodyScroll = function enableBodyScroll(targ
 };
 
 /***/ }),
-/* 2 */
+/* 4 */
+/*!*******************************!*\
+  !*** ./scripts/nakasentro.js ***!
+  \*******************************/
+/*! exports provided: nakasentro */
+/*! all exports used */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "nakasentro", function() { return nakasentro; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utilities__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_underscore__ = __webpack_require__(15);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utilities__ = __webpack_require__(/*! ./utilities */ 1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_underscore__ = __webpack_require__(/*! underscore */ 31);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_underscore___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_underscore__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__center_scroll_to__ = __webpack_require__(6);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__thumbnail_nav__ = __webpack_require__(7);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__zoomy__ = __webpack_require__(5);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__vh_fix__ = __webpack_require__(36);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__center_scroll_to__ = __webpack_require__(/*! ./center-scroll-to */ 21);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__thumbnail_nav__ = __webpack_require__(/*! ./thumbnail-nav */ 22);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__zoomy__ = __webpack_require__(/*! ./zoomy */ 20);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__vh_fix__ = __webpack_require__(/*! ./vh-fix */ 51);
 
 
 
@@ -562,17 +1473,19 @@ var nakasentro = {
 	}, 250),
 
 	fullScreenOnChangeEvent: function () {
+		window.setTimeout(function(){
 		// if in fullscreen we want to add remved events which handle scroll when centered and scroll events is not triggered due to fixed elements
-		/* eslint-disable */
-		if (Barba.FullScreen.isFullscreen === false) {
-			/* eslint-enable */
-			nakasentro.removeFullDimensionsCenteredImageScrollEvents.call(this, true);
-		}
+			/* eslint-disable */
+			if (Barba.FullScreen.isFullscreen === false) {
+				/* eslint-enable */
+				nakasentro.removeFullDimensionsCenteredImageScrollEvents.call(this, true);
+			}
 
-		// nakasentro.debounceWindowResize();
-		nakasentro.artworks = Array();
-		__WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].setViewportDimensions();
-		nakasentro.setupValues();
+			// nakasentro.debounceWindowResize();
+			nakasentro.artworks = Array();
+			__WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].setViewportDimensions();
+			nakasentro.setupValues();
+		}, 100);
 	},
 
 	removeFullDimensionsCenteredImageScrollEvents: function (removeAllWheel) {
@@ -1235,13 +2148,1385 @@ var nakasentro = {
 
 
 /***/ }),
-/* 3 */
+/* 5 */
+/*!*************************!*\
+  !*** external "jQuery" ***!
+  \*************************/
+/*! dynamic exports provided */
+/*! all exports used */
 /***/ (function(module, exports) {
 
 module.exports = jQuery;
 
 /***/ }),
-/* 4 */
+/* 6 */
+/*!*************************************!*\
+  !*** ./build/helpers/hmr-client.js ***!
+  \*************************************/
+/*! dynamic exports provided */
+/*! all exports used */
+/***/ (function(module, exports, __webpack_require__) {
+
+var hotMiddlewareScript = __webpack_require__(/*! webpack-hot-middleware/client?noInfo=true&timeout=20000&reload=true */ 7);
+
+hotMiddlewareScript.subscribe(function (event) {
+  if (event.action === 'reload') {
+    window.location.reload();
+  }
+});
+
+
+/***/ }),
+/* 7 */
+/*!********************************************************************************!*\
+  !*** (webpack)-hot-middleware/client.js?noInfo=true&timeout=20000&reload=true ***!
+  \********************************************************************************/
+/*! dynamic exports provided */
+/*! all exports used */
+/***/ (function(module, exports, __webpack_require__) {
+
+/* WEBPACK VAR INJECTION */(function(__resourceQuery, module) {/*eslint-env browser*/
+/*global __resourceQuery __webpack_public_path__*/
+
+var options = {
+  path: "/__webpack_hmr",
+  timeout: 20 * 1000,
+  overlay: true,
+  reload: false,
+  log: true,
+  warn: true,
+  name: '',
+  autoConnect: true,
+  overlayStyles: {},
+  overlayWarnings: false,
+  ansiColors: {}
+};
+if (true) {
+  var querystring = __webpack_require__(/*! querystring */ 8);
+  var overrides = querystring.parse(__resourceQuery.slice(1));
+  setOverrides(overrides);
+}
+
+if (typeof window === 'undefined') {
+  // do nothing
+} else if (typeof window.EventSource === 'undefined') {
+  console.warn(
+    "webpack-hot-middleware's client requires EventSource to work. " +
+    "You should include a polyfill if you want to support this browser: " +
+    "https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events#Tools"
+  );
+} else {
+  if (options.autoConnect) {
+    connect();
+  }
+}
+
+/* istanbul ignore next */
+function setOptionsAndConnect(overrides) {
+  setOverrides(overrides);
+  connect();
+}
+
+function setOverrides(overrides) {
+  if (overrides.autoConnect) options.autoConnect = overrides.autoConnect == 'true';
+  if (overrides.path) options.path = overrides.path;
+  if (overrides.timeout) options.timeout = overrides.timeout;
+  if (overrides.overlay) options.overlay = overrides.overlay !== 'false';
+  if (overrides.reload) options.reload = overrides.reload !== 'false';
+  if (overrides.noInfo && overrides.noInfo !== 'false') {
+    options.log = false;
+  }
+  if (overrides.name) {
+    options.name = overrides.name;
+  }
+  if (overrides.quiet && overrides.quiet !== 'false') {
+    options.log = false;
+    options.warn = false;
+  }
+
+  if (overrides.dynamicPublicPath) {
+    options.path = __webpack_require__.p + options.path;
+  }
+
+  if (overrides.ansiColors) options.ansiColors = JSON.parse(overrides.ansiColors);
+  if (overrides.overlayStyles) options.overlayStyles = JSON.parse(overrides.overlayStyles);
+
+  if (overrides.overlayWarnings) {
+    options.overlayWarnings = overrides.overlayWarnings == 'true';
+  }
+}
+
+function EventSourceWrapper() {
+  var source;
+  var lastActivity = new Date();
+  var listeners = [];
+
+  init();
+  var timer = setInterval(function() {
+    if ((new Date() - lastActivity) > options.timeout) {
+      handleDisconnect();
+    }
+  }, options.timeout / 2);
+
+  function init() {
+    source = new window.EventSource(options.path);
+    source.onopen = handleOnline;
+    source.onerror = handleDisconnect;
+    source.onmessage = handleMessage;
+  }
+
+  function handleOnline() {
+    if (options.log) console.log("[HMR] connected");
+    lastActivity = new Date();
+  }
+
+  function handleMessage(event) {
+    lastActivity = new Date();
+    for (var i = 0; i < listeners.length; i++) {
+      listeners[i](event);
+    }
+  }
+
+  function handleDisconnect() {
+    clearInterval(timer);
+    source.close();
+    setTimeout(init, options.timeout);
+  }
+
+  return {
+    addMessageListener: function(fn) {
+      listeners.push(fn);
+    }
+  };
+}
+
+function getEventSourceWrapper() {
+  if (!window.__whmEventSourceWrapper) {
+    window.__whmEventSourceWrapper = {};
+  }
+  if (!window.__whmEventSourceWrapper[options.path]) {
+    // cache the wrapper for other entries loaded on
+    // the same page with the same options.path
+    window.__whmEventSourceWrapper[options.path] = EventSourceWrapper();
+  }
+  return window.__whmEventSourceWrapper[options.path];
+}
+
+function connect() {
+  getEventSourceWrapper().addMessageListener(handleMessage);
+
+  function handleMessage(event) {
+    if (event.data == "\uD83D\uDC93") {
+      return;
+    }
+    try {
+      processMessage(JSON.parse(event.data));
+    } catch (ex) {
+      if (options.warn) {
+        console.warn("Invalid HMR message: " + event.data + "\n" + ex);
+      }
+    }
+  }
+}
+
+// the reporter needs to be a singleton on the page
+// in case the client is being used by multiple bundles
+// we only want to report once.
+// all the errors will go to all clients
+var singletonKey = '__webpack_hot_middleware_reporter__';
+var reporter;
+if (typeof window !== 'undefined') {
+  if (!window[singletonKey]) {
+    window[singletonKey] = createReporter();
+  }
+  reporter = window[singletonKey];
+}
+
+function createReporter() {
+  var strip = __webpack_require__(/*! strip-ansi */ 11);
+
+  var overlay;
+  if (typeof document !== 'undefined' && options.overlay) {
+    overlay = __webpack_require__(/*! ./client-overlay */ 13)({
+      ansiColors: options.ansiColors,
+      overlayStyles: options.overlayStyles
+    });
+  }
+
+  var styles = {
+    errors: "color: #ff0000;",
+    warnings: "color: #999933;"
+  };
+  var previousProblems = null;
+  function log(type, obj) {
+    var newProblems = obj[type].map(function(msg) { return strip(msg); }).join('\n');
+    if (previousProblems == newProblems) {
+      return;
+    } else {
+      previousProblems = newProblems;
+    }
+
+    var style = styles[type];
+    var name = obj.name ? "'" + obj.name + "' " : "";
+    var title = "[HMR] bundle " + name + "has " + obj[type].length + " " + type;
+    // NOTE: console.warn or console.error will print the stack trace
+    // which isn't helpful here, so using console.log to escape it.
+    if (console.group && console.groupEnd) {
+      console.group("%c" + title, style);
+      console.log("%c" + newProblems, style);
+      console.groupEnd();
+    } else {
+      console.log(
+        "%c" + title + "\n\t%c" + newProblems.replace(/\n/g, "\n\t"),
+        style + "font-weight: bold;",
+        style + "font-weight: normal;"
+      );
+    }
+  }
+
+  return {
+    cleanProblemsCache: function () {
+      previousProblems = null;
+    },
+    problems: function(type, obj) {
+      if (options.warn) {
+        log(type, obj);
+      }
+      if (overlay) {
+        if (options.overlayWarnings || type === 'errors') {
+          overlay.showProblems(type, obj[type]);
+          return false;
+        }
+        overlay.clear();
+      }
+      return true;
+    },
+    success: function() {
+      if (overlay) overlay.clear();
+    },
+    useCustomOverlay: function(customOverlay) {
+      overlay = customOverlay;
+    }
+  };
+}
+
+var processUpdate = __webpack_require__(/*! ./process-update */ 18);
+
+var customHandler;
+var subscribeAllHandler;
+function processMessage(obj) {
+  switch(obj.action) {
+    case "building":
+      if (options.log) {
+        console.log(
+          "[HMR] bundle " + (obj.name ? "'" + obj.name + "' " : "") +
+          "rebuilding"
+        );
+      }
+      break;
+    case "built":
+      if (options.log) {
+        console.log(
+          "[HMR] bundle " + (obj.name ? "'" + obj.name + "' " : "") +
+          "rebuilt in " + obj.time + "ms"
+        );
+      }
+      // fall through
+    case "sync":
+      if (obj.name && options.name && obj.name !== options.name) {
+        return;
+      }
+      var applyUpdate = true;
+      if (obj.errors.length > 0) {
+        if (reporter) reporter.problems('errors', obj);
+        applyUpdate = false;
+      } else if (obj.warnings.length > 0) {
+        if (reporter) {
+          var overlayShown = reporter.problems('warnings', obj);
+          applyUpdate = overlayShown;
+        }
+      } else {
+        if (reporter) {
+          reporter.cleanProblemsCache();
+          reporter.success();
+        }
+      }
+      if (applyUpdate) {
+        processUpdate(obj.hash, obj.modules, options);
+      }
+      break;
+    default:
+      if (customHandler) {
+        customHandler(obj);
+      }
+  }
+
+  if (subscribeAllHandler) {
+    subscribeAllHandler(obj);
+  }
+}
+
+if (module) {
+  module.exports = {
+    subscribeAll: function subscribeAll(handler) {
+      subscribeAllHandler = handler;
+    },
+    subscribe: function subscribe(handler) {
+      customHandler = handler;
+    },
+    useCustomOverlay: function useCustomOverlay(customOverlay) {
+      if (reporter) reporter.useCustomOverlay(customOverlay);
+    },
+    setOptionsAndConnect: setOptionsAndConnect
+  };
+}
+
+/* WEBPACK VAR INJECTION */}.call(exports, "?noInfo=true&timeout=20000&reload=true", __webpack_require__(/*! ./../webpack/buildin/module.js */ 2)(module)))
+
+/***/ }),
+/* 8 */
+/*!**********************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/querystring-es3/index.js ***!
+  \**********************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! all exports used */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+exports.decode = exports.parse = __webpack_require__(/*! ./decode */ 9);
+exports.encode = exports.stringify = __webpack_require__(/*! ./encode */ 10);
+
+
+/***/ }),
+/* 9 */
+/*!***********************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/querystring-es3/decode.js ***!
+  \***********************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! all exports used */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+
+// If obj.hasOwnProperty has been overridden, then calling
+// obj.hasOwnProperty(prop) will break.
+// See: https://github.com/joyent/node/issues/1707
+function hasOwnProperty(obj, prop) {
+  return Object.prototype.hasOwnProperty.call(obj, prop);
+}
+
+module.exports = function(qs, sep, eq, options) {
+  sep = sep || '&';
+  eq = eq || '=';
+  var obj = {};
+
+  if (typeof qs !== 'string' || qs.length === 0) {
+    return obj;
+  }
+
+  var regexp = /\+/g;
+  qs = qs.split(sep);
+
+  var maxKeys = 1000;
+  if (options && typeof options.maxKeys === 'number') {
+    maxKeys = options.maxKeys;
+  }
+
+  var len = qs.length;
+  // maxKeys <= 0 means that we should not limit keys count
+  if (maxKeys > 0 && len > maxKeys) {
+    len = maxKeys;
+  }
+
+  for (var i = 0; i < len; ++i) {
+    var x = qs[i].replace(regexp, '%20'),
+        idx = x.indexOf(eq),
+        kstr, vstr, k, v;
+
+    if (idx >= 0) {
+      kstr = x.substr(0, idx);
+      vstr = x.substr(idx + 1);
+    } else {
+      kstr = x;
+      vstr = '';
+    }
+
+    k = decodeURIComponent(kstr);
+    v = decodeURIComponent(vstr);
+
+    if (!hasOwnProperty(obj, k)) {
+      obj[k] = v;
+    } else if (isArray(obj[k])) {
+      obj[k].push(v);
+    } else {
+      obj[k] = [obj[k], v];
+    }
+  }
+
+  return obj;
+};
+
+var isArray = Array.isArray || function (xs) {
+  return Object.prototype.toString.call(xs) === '[object Array]';
+};
+
+
+/***/ }),
+/* 10 */
+/*!***********************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/querystring-es3/encode.js ***!
+  \***********************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! all exports used */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+
+
+var stringifyPrimitive = function(v) {
+  switch (typeof v) {
+    case 'string':
+      return v;
+
+    case 'boolean':
+      return v ? 'true' : 'false';
+
+    case 'number':
+      return isFinite(v) ? v : '';
+
+    default:
+      return '';
+  }
+};
+
+module.exports = function(obj, sep, eq, name) {
+  sep = sep || '&';
+  eq = eq || '=';
+  if (obj === null) {
+    obj = undefined;
+  }
+
+  if (typeof obj === 'object') {
+    return map(objectKeys(obj), function(k) {
+      var ks = encodeURIComponent(stringifyPrimitive(k)) + eq;
+      if (isArray(obj[k])) {
+        return map(obj[k], function(v) {
+          return ks + encodeURIComponent(stringifyPrimitive(v));
+        }).join(sep);
+      } else {
+        return ks + encodeURIComponent(stringifyPrimitive(obj[k]));
+      }
+    }).join(sep);
+
+  }
+
+  if (!name) return '';
+  return encodeURIComponent(stringifyPrimitive(name)) + eq +
+         encodeURIComponent(stringifyPrimitive(obj));
+};
+
+var isArray = Array.isArray || function (xs) {
+  return Object.prototype.toString.call(xs) === '[object Array]';
+};
+
+function map (xs, f) {
+  if (xs.map) return xs.map(f);
+  var res = [];
+  for (var i = 0; i < xs.length; i++) {
+    res.push(f(xs[i], i));
+  }
+  return res;
+}
+
+var objectKeys = Object.keys || function (obj) {
+  var res = [];
+  for (var key in obj) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) res.push(key);
+  }
+  return res;
+};
+
+
+/***/ }),
+/* 11 */
+/*!*****************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/strip-ansi/index.js ***!
+  \*****************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! all exports used */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+var ansiRegex = __webpack_require__(/*! ansi-regex */ 12)();
+
+module.exports = function (str) {
+	return typeof str === 'string' ? str.replace(ansiRegex, '') : str;
+};
+
+
+/***/ }),
+/* 12 */
+/*!*****************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/ansi-regex/index.js ***!
+  \*****************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! all exports used */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+module.exports = function () {
+	return /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-PRZcf-nqry=><]/g;
+};
+
+
+/***/ }),
+/* 13 */
+/*!**************************************************!*\
+  !*** (webpack)-hot-middleware/client-overlay.js ***!
+  \**************************************************/
+/*! dynamic exports provided */
+/*! all exports used */
+/***/ (function(module, exports, __webpack_require__) {
+
+/*eslint-env browser*/
+
+var clientOverlay = document.createElement('div');
+clientOverlay.id = 'webpack-hot-middleware-clientOverlay';
+var styles = {
+  background: 'rgba(0,0,0,0.85)',
+  color: '#E8E8E8',
+  lineHeight: '1.2',
+  whiteSpace: 'pre',
+  fontFamily: 'Menlo, Consolas, monospace',
+  fontSize: '13px',
+  position: 'fixed',
+  zIndex: 9999,
+  padding: '10px',
+  left: 0,
+  right: 0,
+  top: 0,
+  bottom: 0,
+  overflow: 'auto',
+  dir: 'ltr',
+  textAlign: 'left'
+};
+
+var ansiHTML = __webpack_require__(/*! ansi-html */ 14);
+var colors = {
+  reset: ['transparent', 'transparent'],
+  black: '181818',
+  red: 'E36049',
+  green: 'B3CB74',
+  yellow: 'FFD080',
+  blue: '7CAFC2',
+  magenta: '7FACCA',
+  cyan: 'C3C2EF',
+  lightgrey: 'EBE7E3',
+  darkgrey: '6D7891'
+};
+
+var Entities = __webpack_require__(/*! html-entities */ 15).AllHtmlEntities;
+var entities = new Entities();
+
+function showProblems(type, lines) {
+  clientOverlay.innerHTML = '';
+  lines.forEach(function(msg) {
+    msg = ansiHTML(entities.encode(msg));
+    var div = document.createElement('div');
+    div.style.marginBottom = '26px';
+    div.innerHTML = problemType(type) + ' in ' + msg;
+    clientOverlay.appendChild(div);
+  });
+  if (document.body) {
+    document.body.appendChild(clientOverlay);
+  }
+}
+
+function clear() {
+  if (document.body && clientOverlay.parentNode) {
+    document.body.removeChild(clientOverlay);
+  }
+}
+
+function problemType (type) {
+  var problemColors = {
+    errors: colors.red,
+    warnings: colors.yellow
+  };
+  var color = problemColors[type] || colors.red;
+  return (
+    '<span style="background-color:#' + color + '; color:#fff; padding:2px 4px; border-radius: 2px">' +
+      type.slice(0, -1).toUpperCase() +
+    '</span>'
+  );
+}
+
+module.exports = function(options) {
+  for (var color in options.overlayColors) {
+    if (color in colors) {
+      colors[color] = options.overlayColors[color];
+    }
+    ansiHTML.setColors(colors);
+  }
+
+  for (var style in options.overlayStyles) {
+    styles[style] = options.overlayStyles[style];
+  }
+
+  for (var key in styles) {
+    clientOverlay.style[key] = styles[key];
+  }
+
+  return {
+    showProblems: showProblems,
+    clear: clear
+  }
+};
+
+module.exports.clear = clear;
+module.exports.showProblems = showProblems;
+
+
+/***/ }),
+/* 14 */
+/*!****************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/ansi-html/index.js ***!
+  \****************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! all exports used */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+module.exports = ansiHTML
+
+// Reference to https://github.com/sindresorhus/ansi-regex
+var _regANSI = /(?:(?:\u001b\[)|\u009b)(?:(?:[0-9]{1,3})?(?:(?:;[0-9]{0,3})*)?[A-M|f-m])|\u001b[A-M]/
+
+var _defColors = {
+  reset: ['fff', '000'], // [FOREGROUD_COLOR, BACKGROUND_COLOR]
+  black: '000',
+  red: 'ff0000',
+  green: '209805',
+  yellow: 'e8bf03',
+  blue: '0000ff',
+  magenta: 'ff00ff',
+  cyan: '00ffee',
+  lightgrey: 'f0f0f0',
+  darkgrey: '888'
+}
+var _styles = {
+  30: 'black',
+  31: 'red',
+  32: 'green',
+  33: 'yellow',
+  34: 'blue',
+  35: 'magenta',
+  36: 'cyan',
+  37: 'lightgrey'
+}
+var _openTags = {
+  '1': 'font-weight:bold', // bold
+  '2': 'opacity:0.5', // dim
+  '3': '<i>', // italic
+  '4': '<u>', // underscore
+  '8': 'display:none', // hidden
+  '9': '<del>' // delete
+}
+var _closeTags = {
+  '23': '</i>', // reset italic
+  '24': '</u>', // reset underscore
+  '29': '</del>' // reset delete
+}
+
+;[0, 21, 22, 27, 28, 39, 49].forEach(function (n) {
+  _closeTags[n] = '</span>'
+})
+
+/**
+ * Converts text with ANSI color codes to HTML markup.
+ * @param {String} text
+ * @returns {*}
+ */
+function ansiHTML (text) {
+  // Returns the text if the string has no ANSI escape code.
+  if (!_regANSI.test(text)) {
+    return text
+  }
+
+  // Cache opened sequence.
+  var ansiCodes = []
+  // Replace with markup.
+  var ret = text.replace(/\033\[(\d+)*m/g, function (match, seq) {
+    var ot = _openTags[seq]
+    if (ot) {
+      // If current sequence has been opened, close it.
+      if (!!~ansiCodes.indexOf(seq)) { // eslint-disable-line no-extra-boolean-cast
+        ansiCodes.pop()
+        return '</span>'
+      }
+      // Open tag.
+      ansiCodes.push(seq)
+      return ot[0] === '<' ? ot : '<span style="' + ot + ';">'
+    }
+
+    var ct = _closeTags[seq]
+    if (ct) {
+      // Pop sequence
+      ansiCodes.pop()
+      return ct
+    }
+    return ''
+  })
+
+  // Make sure tags are closed.
+  var l = ansiCodes.length
+  ;(l > 0) && (ret += Array(l + 1).join('</span>'))
+
+  return ret
+}
+
+/**
+ * Customize colors.
+ * @param {Object} colors reference to _defColors
+ */
+ansiHTML.setColors = function (colors) {
+  if (typeof colors !== 'object') {
+    throw new Error('`colors` parameter must be an Object.')
+  }
+
+  var _finalColors = {}
+  for (var key in _defColors) {
+    var hex = colors.hasOwnProperty(key) ? colors[key] : null
+    if (!hex) {
+      _finalColors[key] = _defColors[key]
+      continue
+    }
+    if ('reset' === key) {
+      if (typeof hex === 'string') {
+        hex = [hex]
+      }
+      if (!Array.isArray(hex) || hex.length === 0 || hex.some(function (h) {
+        return typeof h !== 'string'
+      })) {
+        throw new Error('The value of `' + key + '` property must be an Array and each item could only be a hex string, e.g.: FF0000')
+      }
+      var defHexColor = _defColors[key]
+      if (!hex[0]) {
+        hex[0] = defHexColor[0]
+      }
+      if (hex.length === 1 || !hex[1]) {
+        hex = [hex[0]]
+        hex.push(defHexColor[1])
+      }
+
+      hex = hex.slice(0, 2)
+    } else if (typeof hex !== 'string') {
+      throw new Error('The value of `' + key + '` property must be a hex string, e.g.: FF0000')
+    }
+    _finalColors[key] = hex
+  }
+  _setTags(_finalColors)
+}
+
+/**
+ * Reset colors.
+ */
+ansiHTML.reset = function () {
+  _setTags(_defColors)
+}
+
+/**
+ * Expose tags, including open and close.
+ * @type {Object}
+ */
+ansiHTML.tags = {}
+
+if (Object.defineProperty) {
+  Object.defineProperty(ansiHTML.tags, 'open', {
+    get: function () { return _openTags }
+  })
+  Object.defineProperty(ansiHTML.tags, 'close', {
+    get: function () { return _closeTags }
+  })
+} else {
+  ansiHTML.tags.open = _openTags
+  ansiHTML.tags.close = _closeTags
+}
+
+function _setTags (colors) {
+  // reset all
+  _openTags['0'] = 'font-weight:normal;opacity:1;color:#' + colors.reset[0] + ';background:#' + colors.reset[1]
+  // inverse
+  _openTags['7'] = 'color:#' + colors.reset[1] + ';background:#' + colors.reset[0]
+  // dark grey
+  _openTags['90'] = 'color:#' + colors.darkgrey
+
+  for (var code in _styles) {
+    var color = _styles[code]
+    var oriColor = colors[color] || '000'
+    _openTags[code] = 'color:#' + oriColor
+    code = parseInt(code)
+    _openTags[(code + 10).toString()] = 'background:#' + oriColor
+  }
+}
+
+ansiHTML.reset()
+
+
+/***/ }),
+/* 15 */
+/*!********************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/html-entities/index.js ***!
+  \********************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! all exports used */
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports = {
+  XmlEntities: __webpack_require__(/*! ./lib/xml-entities.js */ 16),
+  Html4Entities: __webpack_require__(/*! ./lib/html4-entities.js */ 17),
+  Html5Entities: __webpack_require__(/*! ./lib/html5-entities.js */ 0),
+  AllHtmlEntities: __webpack_require__(/*! ./lib/html5-entities.js */ 0)
+};
+
+
+/***/ }),
+/* 16 */
+/*!*******************************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/html-entities/lib/xml-entities.js ***!
+  \*******************************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! all exports used */
+/***/ (function(module, exports) {
+
+var ALPHA_INDEX = {
+    '&lt': '<',
+    '&gt': '>',
+    '&quot': '"',
+    '&apos': '\'',
+    '&amp': '&',
+    '&lt;': '<',
+    '&gt;': '>',
+    '&quot;': '"',
+    '&apos;': '\'',
+    '&amp;': '&'
+};
+
+var CHAR_INDEX = {
+    60: 'lt',
+    62: 'gt',
+    34: 'quot',
+    39: 'apos',
+    38: 'amp'
+};
+
+var CHAR_S_INDEX = {
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    '\'': '&apos;',
+    '&': '&amp;'
+};
+
+/**
+ * @constructor
+ */
+function XmlEntities() {}
+
+/**
+ * @param {String} str
+ * @returns {String}
+ */
+XmlEntities.prototype.encode = function(str) {
+    if (!str || !str.length) {
+        return '';
+    }
+    return str.replace(/<|>|"|'|&/g, function(s) {
+        return CHAR_S_INDEX[s];
+    });
+};
+
+/**
+ * @param {String} str
+ * @returns {String}
+ */
+ XmlEntities.encode = function(str) {
+    return new XmlEntities().encode(str);
+ };
+
+/**
+ * @param {String} str
+ * @returns {String}
+ */
+XmlEntities.prototype.decode = function(str) {
+    if (!str || !str.length) {
+        return '';
+    }
+    return str.replace(/&#?[0-9a-zA-Z]+;?/g, function(s) {
+        if (s.charAt(1) === '#') {
+            var code = s.charAt(2).toLowerCase() === 'x' ?
+                parseInt(s.substr(3), 16) :
+                parseInt(s.substr(2));
+
+            if (isNaN(code) || code < -32768 || code > 65535) {
+                return '';
+            }
+            return String.fromCharCode(code);
+        }
+        return ALPHA_INDEX[s] || s;
+    });
+};
+
+/**
+ * @param {String} str
+ * @returns {String}
+ */
+ XmlEntities.decode = function(str) {
+    return new XmlEntities().decode(str);
+ };
+
+/**
+ * @param {String} str
+ * @returns {String}
+ */
+XmlEntities.prototype.encodeNonUTF = function(str) {
+    if (!str || !str.length) {
+        return '';
+    }
+    var strLength = str.length;
+    var result = '';
+    var i = 0;
+    while (i < strLength) {
+        var c = str.charCodeAt(i);
+        var alpha = CHAR_INDEX[c];
+        if (alpha) {
+            result += "&" + alpha + ";";
+            i++;
+            continue;
+        }
+        if (c < 32 || c > 126) {
+            result += '&#' + c + ';';
+        } else {
+            result += str.charAt(i);
+        }
+        i++;
+    }
+    return result;
+};
+
+/**
+ * @param {String} str
+ * @returns {String}
+ */
+ XmlEntities.encodeNonUTF = function(str) {
+    return new XmlEntities().encodeNonUTF(str);
+ };
+
+/**
+ * @param {String} str
+ * @returns {String}
+ */
+XmlEntities.prototype.encodeNonASCII = function(str) {
+    if (!str || !str.length) {
+        return '';
+    }
+    var strLenght = str.length;
+    var result = '';
+    var i = 0;
+    while (i < strLenght) {
+        var c = str.charCodeAt(i);
+        if (c <= 255) {
+            result += str[i++];
+            continue;
+        }
+        result += '&#' + c + ';';
+        i++;
+    }
+    return result;
+};
+
+/**
+ * @param {String} str
+ * @returns {String}
+ */
+ XmlEntities.encodeNonASCII = function(str) {
+    return new XmlEntities().encodeNonASCII(str);
+ };
+
+module.exports = XmlEntities;
+
+
+/***/ }),
+/* 17 */
+/*!*********************************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/html-entities/lib/html4-entities.js ***!
+  \*********************************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! all exports used */
+/***/ (function(module, exports) {
+
+var HTML_ALPHA = ['apos', 'nbsp', 'iexcl', 'cent', 'pound', 'curren', 'yen', 'brvbar', 'sect', 'uml', 'copy', 'ordf', 'laquo', 'not', 'shy', 'reg', 'macr', 'deg', 'plusmn', 'sup2', 'sup3', 'acute', 'micro', 'para', 'middot', 'cedil', 'sup1', 'ordm', 'raquo', 'frac14', 'frac12', 'frac34', 'iquest', 'Agrave', 'Aacute', 'Acirc', 'Atilde', 'Auml', 'Aring', 'Aelig', 'Ccedil', 'Egrave', 'Eacute', 'Ecirc', 'Euml', 'Igrave', 'Iacute', 'Icirc', 'Iuml', 'ETH', 'Ntilde', 'Ograve', 'Oacute', 'Ocirc', 'Otilde', 'Ouml', 'times', 'Oslash', 'Ugrave', 'Uacute', 'Ucirc', 'Uuml', 'Yacute', 'THORN', 'szlig', 'agrave', 'aacute', 'acirc', 'atilde', 'auml', 'aring', 'aelig', 'ccedil', 'egrave', 'eacute', 'ecirc', 'euml', 'igrave', 'iacute', 'icirc', 'iuml', 'eth', 'ntilde', 'ograve', 'oacute', 'ocirc', 'otilde', 'ouml', 'divide', 'oslash', 'ugrave', 'uacute', 'ucirc', 'uuml', 'yacute', 'thorn', 'yuml', 'quot', 'amp', 'lt', 'gt', 'OElig', 'oelig', 'Scaron', 'scaron', 'Yuml', 'circ', 'tilde', 'ensp', 'emsp', 'thinsp', 'zwnj', 'zwj', 'lrm', 'rlm', 'ndash', 'mdash', 'lsquo', 'rsquo', 'sbquo', 'ldquo', 'rdquo', 'bdquo', 'dagger', 'Dagger', 'permil', 'lsaquo', 'rsaquo', 'euro', 'fnof', 'Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon', 'Zeta', 'Eta', 'Theta', 'Iota', 'Kappa', 'Lambda', 'Mu', 'Nu', 'Xi', 'Omicron', 'Pi', 'Rho', 'Sigma', 'Tau', 'Upsilon', 'Phi', 'Chi', 'Psi', 'Omega', 'alpha', 'beta', 'gamma', 'delta', 'epsilon', 'zeta', 'eta', 'theta', 'iota', 'kappa', 'lambda', 'mu', 'nu', 'xi', 'omicron', 'pi', 'rho', 'sigmaf', 'sigma', 'tau', 'upsilon', 'phi', 'chi', 'psi', 'omega', 'thetasym', 'upsih', 'piv', 'bull', 'hellip', 'prime', 'Prime', 'oline', 'frasl', 'weierp', 'image', 'real', 'trade', 'alefsym', 'larr', 'uarr', 'rarr', 'darr', 'harr', 'crarr', 'lArr', 'uArr', 'rArr', 'dArr', 'hArr', 'forall', 'part', 'exist', 'empty', 'nabla', 'isin', 'notin', 'ni', 'prod', 'sum', 'minus', 'lowast', 'radic', 'prop', 'infin', 'ang', 'and', 'or', 'cap', 'cup', 'int', 'there4', 'sim', 'cong', 'asymp', 'ne', 'equiv', 'le', 'ge', 'sub', 'sup', 'nsub', 'sube', 'supe', 'oplus', 'otimes', 'perp', 'sdot', 'lceil', 'rceil', 'lfloor', 'rfloor', 'lang', 'rang', 'loz', 'spades', 'clubs', 'hearts', 'diams'];
+var HTML_CODES = [39, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200, 201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 240, 241, 242, 243, 244, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255, 34, 38, 60, 62, 338, 339, 352, 353, 376, 710, 732, 8194, 8195, 8201, 8204, 8205, 8206, 8207, 8211, 8212, 8216, 8217, 8218, 8220, 8221, 8222, 8224, 8225, 8240, 8249, 8250, 8364, 402, 913, 914, 915, 916, 917, 918, 919, 920, 921, 922, 923, 924, 925, 926, 927, 928, 929, 931, 932, 933, 934, 935, 936, 937, 945, 946, 947, 948, 949, 950, 951, 952, 953, 954, 955, 956, 957, 958, 959, 960, 961, 962, 963, 964, 965, 966, 967, 968, 969, 977, 978, 982, 8226, 8230, 8242, 8243, 8254, 8260, 8472, 8465, 8476, 8482, 8501, 8592, 8593, 8594, 8595, 8596, 8629, 8656, 8657, 8658, 8659, 8660, 8704, 8706, 8707, 8709, 8711, 8712, 8713, 8715, 8719, 8721, 8722, 8727, 8730, 8733, 8734, 8736, 8743, 8744, 8745, 8746, 8747, 8756, 8764, 8773, 8776, 8800, 8801, 8804, 8805, 8834, 8835, 8836, 8838, 8839, 8853, 8855, 8869, 8901, 8968, 8969, 8970, 8971, 9001, 9002, 9674, 9824, 9827, 9829, 9830];
+
+var alphaIndex = {};
+var numIndex = {};
+
+var i = 0;
+var length = HTML_ALPHA.length;
+while (i < length) {
+    var a = HTML_ALPHA[i];
+    var c = HTML_CODES[i];
+    alphaIndex[a] = String.fromCharCode(c);
+    numIndex[c] = a;
+    i++;
+}
+
+/**
+ * @constructor
+ */
+function Html4Entities() {}
+
+/**
+ * @param {String} str
+ * @returns {String}
+ */
+Html4Entities.prototype.decode = function(str) {
+    if (!str || !str.length) {
+        return '';
+    }
+    return str.replace(/&(#?[\w\d]+);?/g, function(s, entity) {
+        var chr;
+        if (entity.charAt(0) === "#") {
+            var code = entity.charAt(1).toLowerCase() === 'x' ?
+                parseInt(entity.substr(2), 16) :
+                parseInt(entity.substr(1));
+
+            if (!(isNaN(code) || code < -32768 || code > 65535)) {
+                chr = String.fromCharCode(code);
+            }
+        } else {
+            chr = alphaIndex[entity];
+        }
+        return chr || s;
+    });
+};
+
+/**
+ * @param {String} str
+ * @returns {String}
+ */
+Html4Entities.decode = function(str) {
+    return new Html4Entities().decode(str);
+};
+
+/**
+ * @param {String} str
+ * @returns {String}
+ */
+Html4Entities.prototype.encode = function(str) {
+    if (!str || !str.length) {
+        return '';
+    }
+    var strLength = str.length;
+    var result = '';
+    var i = 0;
+    while (i < strLength) {
+        var alpha = numIndex[str.charCodeAt(i)];
+        result += alpha ? "&" + alpha + ";" : str.charAt(i);
+        i++;
+    }
+    return result;
+};
+
+/**
+ * @param {String} str
+ * @returns {String}
+ */
+Html4Entities.encode = function(str) {
+    return new Html4Entities().encode(str);
+};
+
+/**
+ * @param {String} str
+ * @returns {String}
+ */
+Html4Entities.prototype.encodeNonUTF = function(str) {
+    if (!str || !str.length) {
+        return '';
+    }
+    var strLength = str.length;
+    var result = '';
+    var i = 0;
+    while (i < strLength) {
+        var cc = str.charCodeAt(i);
+        var alpha = numIndex[cc];
+        if (alpha) {
+            result += "&" + alpha + ";";
+        } else if (cc < 32 || cc > 126) {
+            result += "&#" + cc + ";";
+        } else {
+            result += str.charAt(i);
+        }
+        i++;
+    }
+    return result;
+};
+
+/**
+ * @param {String} str
+ * @returns {String}
+ */
+Html4Entities.encodeNonUTF = function(str) {
+    return new Html4Entities().encodeNonUTF(str);
+};
+
+/**
+ * @param {String} str
+ * @returns {String}
+ */
+Html4Entities.prototype.encodeNonASCII = function(str) {
+    if (!str || !str.length) {
+        return '';
+    }
+    var strLength = str.length;
+    var result = '';
+    var i = 0;
+    while (i < strLength) {
+        var c = str.charCodeAt(i);
+        if (c <= 255) {
+            result += str[i++];
+            continue;
+        }
+        result += '&#' + c + ';';
+        i++;
+    }
+    return result;
+};
+
+/**
+ * @param {String} str
+ * @returns {String}
+ */
+Html4Entities.encodeNonASCII = function(str) {
+    return new Html4Entities().encodeNonASCII(str);
+};
+
+module.exports = Html4Entities;
+
+
+/***/ }),
+/* 18 */
+/*!**************************************************!*\
+  !*** (webpack)-hot-middleware/process-update.js ***!
+  \**************************************************/
+/*! dynamic exports provided */
+/*! all exports used */
+/***/ (function(module, exports, __webpack_require__) {
+
+/**
+ * Based heavily on https://github.com/webpack/webpack/blob/
+ *  c0afdf9c6abc1dd70707c594e473802a566f7b6e/hot/only-dev-server.js
+ * Original copyright Tobias Koppers @sokra (MIT license)
+ */
+
+/* global window __webpack_hash__ */
+
+if (false) {
+  throw new Error("[HMR] Hot Module Replacement is disabled.");
+}
+
+var hmrDocsUrl = "https://webpack.js.org/concepts/hot-module-replacement/"; // eslint-disable-line max-len
+
+var lastHash;
+var failureStatuses = { abort: 1, fail: 1 };
+var applyOptions = { 				
+  ignoreUnaccepted: true,
+  ignoreDeclined: true,
+  ignoreErrored: true,
+  onUnaccepted: function(data) {
+    console.warn("Ignored an update to unaccepted module " + data.chain.join(" -> "));
+  },
+  onDeclined: function(data) {
+    console.warn("Ignored an update to declined module " + data.chain.join(" -> "));
+  },
+  onErrored: function(data) {
+    console.error(data.error);
+    console.warn("Ignored an error while updating module " + data.moduleId + " (" + data.type + ")");
+  } 
+}
+
+function upToDate(hash) {
+  if (hash) lastHash = hash;
+  return lastHash == __webpack_require__.h();
+}
+
+module.exports = function(hash, moduleMap, options) {
+  var reload = options.reload;
+  if (!upToDate(hash) && module.hot.status() == "idle") {
+    if (options.log) console.log("[HMR] Checking for updates on the server...");
+    check();
+  }
+
+  function check() {
+    var cb = function(err, updatedModules) {
+      if (err) return handleError(err);
+
+      if(!updatedModules) {
+        if (options.warn) {
+          console.warn("[HMR] Cannot find update (Full reload needed)");
+          console.warn("[HMR] (Probably because of restarting the server)");
+        }
+        performReload();
+        return null;
+      }
+
+      var applyCallback = function(applyErr, renewedModules) {
+        if (applyErr) return handleError(applyErr);
+
+        if (!upToDate()) check();
+
+        logUpdates(updatedModules, renewedModules);
+      };
+
+      var applyResult = module.hot.apply(applyOptions, applyCallback);
+      // webpack 2 promise
+      if (applyResult && applyResult.then) {
+        // HotModuleReplacement.runtime.js refers to the result as `outdatedModules`
+        applyResult.then(function(outdatedModules) {
+          applyCallback(null, outdatedModules);
+        });
+        applyResult.catch(applyCallback);
+      }
+
+    };
+
+    var result = module.hot.check(false, cb);
+    // webpack 2 promise
+    if (result && result.then) {
+        result.then(function(updatedModules) {
+            cb(null, updatedModules);
+        });
+        result.catch(cb);
+    }
+  }
+
+  function logUpdates(updatedModules, renewedModules) {
+    var unacceptedModules = updatedModules.filter(function(moduleId) {
+      return renewedModules && renewedModules.indexOf(moduleId) < 0;
+    });
+
+    if(unacceptedModules.length > 0) {
+      if (options.warn) {
+        console.warn(
+          "[HMR] The following modules couldn't be hot updated: " +
+          "(Full reload needed)\n" +
+          "This is usually because the modules which have changed " +
+          "(and their parents) do not know how to hot reload themselves. " +
+          "See " + hmrDocsUrl + " for more details."
+        );
+        unacceptedModules.forEach(function(moduleId) {
+          console.warn("[HMR]  - " + moduleMap[moduleId]);
+        });
+      }
+      performReload();
+      return;
+    }
+
+    if (options.log) {
+      if(!renewedModules || renewedModules.length === 0) {
+        console.log("[HMR] Nothing hot updated.");
+      } else {
+        console.log("[HMR] Updated modules:");
+        renewedModules.forEach(function(moduleId) {
+          console.log("[HMR]  - " + moduleMap[moduleId]);
+        });
+      }
+
+      if (upToDate()) {
+        console.log("[HMR] App is up to date.");
+      }
+    }
+  }
+
+  function handleError(err) {
+    if (module.hot.status() in failureStatuses) {
+      if (options.warn) {
+        console.warn("[HMR] Cannot check for update (Full reload needed)");
+        console.warn("[HMR] " + err.stack || err.message);
+      }
+      performReload();
+      return;
+    }
+    if (options.warn) {
+      console.warn("[HMR] Update check failed: " + err.stack || err.message);
+    }
+  }
+
+  function performReload() {
+    if (reload) {
+      if (options.warn) console.warn("[HMR] Reloading page");
+      window.location.reload();
+    }
+  }
+};
+
+
+/***/ }),
+/* 19 */
+/*!****************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/process/browser.js ***!
+  \****************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! all exports used */
 /***/ (function(module, exports) {
 
 // shim for using process in browser
@@ -1431,17 +3716,22 @@ process.umask = function() { return 0; };
 
 
 /***/ }),
-/* 5 */
+/* 20 */
+/*!**************************!*\
+  !*** ./scripts/zoomy.js ***!
+  \**************************/
+/*! exports provided: zoomy */
+/*! all exports used */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "zoomy", function() { return zoomy; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utilities__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utilities__ = __webpack_require__(/*! ./utilities */ 1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__ = __webpack_require__(/*! body-scroll-lock */ 3);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_body_scroll_lock___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__mousePosition__ = __webpack_require__(14);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__nakasentro__ = __webpack_require__(2);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__mousePosition__ = __webpack_require__(/*! ./mousePosition */ 30);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__nakasentro__ = __webpack_require__(/*! ./nakasentro */ 4);
 
 
 
@@ -1630,17 +3920,22 @@ var zoomy = {
 };
 
 /***/ }),
-/* 6 */
+/* 21 */
+/*!*************************************!*\
+  !*** ./scripts/center-scroll-to.js ***!
+  \*************************************/
+/*! exports provided: init, scrollToElement */
+/*! all exports used */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "init", function() { return init; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "scrollToElement", function() { return scrollToElement; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__nakasentro__ = __webpack_require__(2);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_smoothscroll_polyfill__ = __webpack_require__(35);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__nakasentro__ = __webpack_require__(/*! ./nakasentro */ 4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_smoothscroll_polyfill__ = __webpack_require__(/*! smoothscroll-polyfill */ 50);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_smoothscroll_polyfill___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_smoothscroll_polyfill__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_underscore__ = __webpack_require__(15);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_underscore__ = __webpack_require__(/*! underscore */ 31);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_underscore___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_underscore__);
 
 
@@ -1864,7 +4159,12 @@ function setNextVisibility(value) {
 
 
 /***/ }),
-/* 7 */
+/* 22 */
+/*!**********************************!*\
+  !*** ./scripts/thumbnail-nav.js ***!
+  \**********************************/
+/*! exports provided: init, addThumbnail, setInitFalse */
+/*! all exports used */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -1872,8 +4172,8 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "init", function() { return init; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "addThumbnail", function() { return addThumbnail; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setInitFalse", function() { return setInitFalse; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__center_scroll_to__ = __webpack_require__(6);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__center_scroll_to__ = __webpack_require__(/*! ./center-scroll-to */ 21);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__ = __webpack_require__(/*! body-scroll-lock */ 3);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_body_scroll_lock___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__);
 
 
@@ -1955,15 +4255,39 @@ function setInitFalse() {
 
 
 /***/ }),
-/* 8 */
+/* 23 */
+/*!*********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/cache-loader/dist/cjs.js!/Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/css-loader?{"sourceMap":true}!/Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/postcss-loader/lib?{"config":{"path":"/Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/resources/assets/build","ctx":{"open":true,"copy":"images/**_/*","proxyUrl":"http://localhost:3000","cacheBusting":"[name]_[hash:8]","paths":{"root":"/Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew","assets":"/Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/resources/assets","dist":"/Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/dist"},"enabled":{"sourceMaps":true,"optimize":false,"cacheBusting":false,"watcher":true},"watch":["app/**_/*.php","config/**_/*.php","resources/views/**_/*.php"],"entry":{"main":["./scripts/splash-page.js","./scripts/utilities.js","./scripts/youtube.js","./scripts/artwork-info.js","./scripts/st-audio.js","./scripts/more-info.js","./scripts/mousePosition.js","./scripts/zoomy.js","./scripts/thumbnail-nav.js","./scripts/nakasentro.js","./scripts/center-scroll-to.js","./scripts/main.js","./styles/main.scss"],"customizer":["./scripts/customizer.js"]},"publicPath":"/app/themes/stone-roberts-anew/dist/","devUrl":"http://stoneroberts.localhost","headers":{"Access-Control-Allow-Origin":"*"},"env":{"production":false,"development":true},"manifest":{}}},"sourceMap":true}!/Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/resolve-url-loader?{"sourceMap":true}!/Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/sass-loader/lib/loader.js?{"sourceMap":true}!/Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/import-glob!./styles/main.scss ***!
+  \*********************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! all exports used */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(/*! ../../../node_modules/css-loader/lib/css-base.js */ 72)(true);
+// imports
+exports.push([module.i, "@import url(https://cloud.typography.com/7063492/6582372/css/fonts.css);", ""]);
+
+// module
+exports.push([module.i, "/*********************\nBREAKPOINTS\n*********************/\n\n/** Import everything from autoload */\n\n/**\n * Import npm dependencies\n *\n * Prefix your imports with `~` to grab from node_modules/\n * @see https://github.com/webpack-contrib/sass-loader#imports\n */\n\n/** Import theme styles */\n\n/*! sanitize.css v5.0.0 | CC0 License | github.com/jonathantneal/sanitize.css */\n\n/* Document (https://html.spec.whatwg.org/multipage/semantics.html#semantics)\n   ========================================================================== */\n\n/**\n * 1. Remove repeating backgrounds in all browsers (opinionated).\n * 2. Add box sizing inheritence in all browsers (opinionated).\n */\n\n*,\n::before,\n::after {\n  background-repeat: no-repeat;\n  /* 1 */\n  -webkit-box-sizing: inherit;\n          box-sizing: inherit;\n  /* 2 */\n}\n\n/**\n * 1. Add text decoration inheritance in all browsers (opinionated).\n * 2. Add vertical alignment inheritence in all browsers (opinionated).\n */\n\n::before,\n::after {\n  text-decoration: inherit;\n  /* 1 */\n  vertical-align: inherit;\n  /* 2 */\n}\n\n/**\n * 1. Add border box sizing in all browsers (opinionated).\n * 2. Add the default cursor in all browsers (opinionated).\n * 3. Prevent font size adjustments after orientation changes in IE and iOS.\n */\n\nhtml {\n  -webkit-box-sizing: border-box;\n          box-sizing: border-box;\n  /* 1 */\n  cursor: default;\n  /* 2 */\n  -ms-text-size-adjust: 100%;\n  /* 3 */\n  -webkit-text-size-adjust: 100%;\n  /* 3 */\n}\n\n/* Sections (https://html.spec.whatwg.org/multipage/semantics.html#sections)\n   ========================================================================== */\n\n/**\n * Add the correct display in IE 9-.\n */\n\narticle,\naside,\nfooter,\nheader,\nnav,\nsection {\n  display: block;\n}\n\n/**\n * Remove the margin in all browsers (opinionated).\n */\n\nbody {\n  margin: 0;\n}\n\n/**\n * Correct the font size and margin on `h1` elements within `section` and\n * `article` contexts in Chrome, Firefox, and Safari.\n */\n\nh1 {\n  font-size: 2em;\n  margin: .67em 0;\n}\n\n/* Grouping content (https://html.spec.whatwg.org/multipage/semantics.html#grouping-content)\n   ========================================================================== */\n\n/**\n * Add the correct display in IE 9-.\n * 1. Add the correct display in IE.\n */\n\nfigcaption,\nfigure,\nmain {\n  /* 1 */\n  display: block;\n}\n\n/**\n * Add the correct margin in IE 8.\n */\n\nfigure {\n  margin: 1em 40px;\n}\n\n/**\n * 1. Add the correct box sizing in Firefox.\n * 2. Show the overflow in Edge and IE.\n */\n\nhr {\n  -webkit-box-sizing: content-box;\n          box-sizing: content-box;\n  /* 1 */\n  height: 0;\n  /* 1 */\n  overflow: visible;\n  /* 2 */\n}\n\n/**\n * Remove the list style on navigation lists in all browsers (opinionated).\n */\n\nnav ol,\nnav ul {\n  list-style: none;\n}\n\n/**\n * 1. Correct the inheritance and scaling of font size in all browsers.\n * 2. Correct the odd `em` font sizing in all browsers.\n */\n\npre {\n  font-family: monospace, monospace;\n  /* 1 */\n  font-size: 1em;\n  /* 2 */\n}\n\n/* Text-level semantics (https://html.spec.whatwg.org/multipage/semantics.html#text-level-semantics)\n   ========================================================================== */\n\n/**\n * 1. Remove the gray background on active links in IE 10.\n * 2. Remove gaps in links underline in iOS 8+ and Safari 8+.\n */\n\na {\n  background-color: transparent;\n  /* 1 */\n  -webkit-text-decoration-skip: objects;\n  /* 2 */\n}\n\n/**\n * 1. Remove the bottom border in Firefox 39-.\n * 2. Add the correct text decoration in Chrome, Edge, IE, Opera, and Safari.\n */\n\nabbr[title] {\n  border-bottom: none;\n  /* 1 */\n  text-decoration: underline;\n  /* 2 */\n  -webkit-text-decoration: underline dotted;\n          text-decoration: underline dotted;\n  /* 2 */\n}\n\n/**\n * Prevent the duplicate application of `bolder` by the next rule in Safari 6.\n */\n\nb,\nstrong {\n  font-weight: inherit;\n}\n\n/**\n * Add the correct font weight in Chrome, Edge, and Safari.\n */\n\nb,\nstrong {\n  font-weight: bolder;\n}\n\n/**\n * 1. Correct the inheritance and scaling of font size in all browsers.\n * 2. Correct the odd `em` font sizing in all browsers.\n */\n\ncode,\nkbd,\nsamp {\n  font-family: monospace, monospace;\n  /* 1 */\n  font-size: 1em;\n  /* 2 */\n}\n\n/**\n * Add the correct font style in Android 4.3-.\n */\n\ndfn {\n  font-style: italic;\n}\n\n/**\n * Add the correct background and color in IE 9-.\n */\n\nmark {\n  background-color: #ffff00;\n  color: #000000;\n}\n\n/**\n * Add the correct font size in all browsers.\n */\n\nsmall {\n  font-size: 80%;\n}\n\n/**\n * Prevent `sub` and `sup` elements from affecting the line height in\n * all browsers.\n */\n\nsub,\nsup {\n  font-size: 75%;\n  line-height: 0;\n  position: relative;\n  vertical-align: baseline;\n}\n\nsub {\n  bottom: -.25em;\n}\n\nsup {\n  top: -.5em;\n}\n\n/*\n * Remove the text shadow on text selections (opinionated).\n * 1. Restore the coloring undone by defining the text shadow (opinionated).\n */\n\n::-moz-selection {\n  background-color: #b3d4fc;\n  /* 1 */\n  color: #000000;\n  /* 1 */\n  text-shadow: none;\n}\n\n::selection {\n  background-color: #b3d4fc;\n  /* 1 */\n  color: #000000;\n  /* 1 */\n  text-shadow: none;\n}\n\n/* Embedded content (https://html.spec.whatwg.org/multipage/embedded-content.html#embedded-content)\n   ========================================================================== */\n\n/*\n * Change the alignment on media elements in all browers (opinionated).\n */\n\naudio,\ncanvas,\niframe,\nimg,\nsvg,\nvideo {\n  vertical-align: middle;\n}\n\n/**\n * Add the correct display in IE 9-.\n */\n\naudio,\nvideo {\n  display: inline-block;\n}\n\n/**\n * Add the correct display in iOS 4-7.\n */\n\naudio:not([controls]) {\n  display: none;\n  height: 0;\n}\n\n/**\n * Remove the border on images inside links in IE 10-.\n */\n\nimg {\n  border-style: none;\n}\n\n/**\n * Change the fill color to match the text color in all browsers (opinionated).\n */\n\nsvg {\n  fill: currentColor;\n}\n\n/**\n * Hide the overflow in IE.\n */\n\nsvg:not(:root) {\n  overflow: hidden;\n}\n\n/* Tabular data (https://html.spec.whatwg.org/multipage/tables.html#tables)\n   ========================================================================== */\n\n/**\n * Collapse border spacing\n */\n\ntable {\n  border-collapse: collapse;\n}\n\n/* Forms (https://html.spec.whatwg.org/multipage/forms.html#forms)\n   ========================================================================== */\n\n/**\n * Remove the margin in Firefox and Safari.\n */\n\nbutton,\ninput,\noptgroup,\nselect,\ntextarea {\n  margin: 0;\n}\n\n/**\n * Inherit styling in all browsers (opinionated).\n */\n\nbutton,\ninput,\nselect,\ntextarea {\n  background-color: transparent;\n  color: inherit;\n  font-size: inherit;\n  line-height: inherit;\n}\n\n/**\n * Show the overflow in IE.\n * 1. Show the overflow in Edge.\n */\n\nbutton,\ninput {\n  /* 1 */\n  overflow: visible;\n}\n\n/**\n * Remove the inheritance of text transform in Edge, Firefox, and IE.\n * 1. Remove the inheritance of text transform in Firefox.\n */\n\nbutton,\nselect {\n  /* 1 */\n  text-transform: none;\n}\n\n/**\n * 1. Prevent a WebKit bug where (2) destroys native `audio` and `video`\n *    controls in Android 4.\n * 2. Correct the inability to style clickable types in iOS and Safari.\n */\n\nbutton,\nhtml [type=\"button\"],\n[type=\"reset\"],\n[type=\"submit\"] {\n  -webkit-appearance: button;\n  /* 2 */\n}\n\n/**\n * Remove the inner border and padding in Firefox.\n */\n\nbutton::-moz-focus-inner,\n[type=\"button\"]::-moz-focus-inner,\n[type=\"reset\"]::-moz-focus-inner,\n[type=\"submit\"]::-moz-focus-inner {\n  border-style: none;\n  padding: 0;\n}\n\n/**\n * Restore the focus styles unset by the previous rule.\n */\n\nbutton:-moz-focusring,\n[type=\"button\"]:-moz-focusring,\n[type=\"reset\"]:-moz-focusring,\n[type=\"submit\"]:-moz-focusring {\n  outline: 1px dotted ButtonText;\n}\n\n/**\n * 1. Correct the text wrapping in Edge and IE.\n * 2. Correct the color inheritance from `fieldset` elements in IE.\n * 3. Remove the padding so developers are not caught out when they zero out\n *    `fieldset` elements in all browsers.\n */\n\nlegend {\n  -webkit-box-sizing: border-box;\n          box-sizing: border-box;\n  /* 1 */\n  color: inherit;\n  /* 2 */\n  display: table;\n  /* 1 */\n  max-width: 100%;\n  /* 1 */\n  padding: 0;\n  /* 3 */\n  white-space: normal;\n  /* 1 */\n}\n\n/**\n * 1. Add the correct display in IE 9-.\n * 2. Add the correct vertical alignment in Chrome, Firefox, and Opera.\n */\n\nprogress {\n  display: inline-block;\n  /* 1 */\n  vertical-align: baseline;\n  /* 2 */\n}\n\n/**\n * 1. Remove the default vertical scrollbar in IE.\n * 2. Change the resize direction on textareas in all browsers (opinionated).\n */\n\ntextarea {\n  overflow: auto;\n  /* 1 */\n  resize: vertical;\n  /* 2 */\n}\n\n/**\n * 1. Add the correct box sizing in IE 10-.\n * 2. Remove the padding in IE 10-.\n */\n\n[type=\"checkbox\"],\n[type=\"radio\"] {\n  -webkit-box-sizing: border-box;\n          box-sizing: border-box;\n  /* 1 */\n  padding: 0;\n  /* 2 */\n}\n\n/**\n * Correct the cursor style of increment and decrement buttons in Chrome.\n */\n\n[type=\"number\"]::-webkit-inner-spin-button,\n[type=\"number\"]::-webkit-outer-spin-button {\n  height: auto;\n}\n\n/**\n * 1. Correct the odd appearance in Chrome and Safari.\n * 2. Correct the outline style in Safari.\n */\n\n[type=\"search\"] {\n  -webkit-appearance: textfield;\n  /* 1 */\n  outline-offset: -2px;\n  /* 2 */\n}\n\n/**\n * Remove the inner padding and cancel buttons in Chrome and Safari on macOS.\n */\n\n[type=\"search\"]::-webkit-search-cancel-button,\n[type=\"search\"]::-webkit-search-decoration {\n  -webkit-appearance: none;\n}\n\n/**\n * 1. Correct the inability to style clickable types in iOS and Safari.\n * 2. Change font properties to `inherit` in Safari.\n */\n\n::-webkit-file-upload-button {\n  -webkit-appearance: button;\n  /* 1 */\n  font: inherit;\n  /* 2 */\n}\n\n/* Interactive elements (https://html.spec.whatwg.org/multipage/forms.html#interactive-elements)\n   ========================================================================== */\n\n/*\n * Add the correct display in IE 9-.\n * 1. Add the correct display in Edge, IE, and Firefox.\n */\n\ndetails,\nmenu {\n  display: block;\n}\n\n/*\n * Add the correct display in all browsers.\n */\n\nsummary {\n  display: list-item;\n}\n\n/* Scripting (https://html.spec.whatwg.org/multipage/scripting.html#scripting-3)\n   ========================================================================== */\n\n/**\n * Add the correct display in IE 9-.\n */\n\ncanvas {\n  display: inline-block;\n}\n\n/**\n * Add the correct display in IE.\n */\n\ntemplate {\n  display: none;\n}\n\n/* User interaction (https://html.spec.whatwg.org/multipage/interaction.html#editing)\n   ========================================================================== */\n\n/*\n * Remove the tapping delay on clickable elements (opinionated).\n * 1. Remove the tapping delay in IE 10.\n */\n\na,\narea,\nbutton,\ninput,\nlabel,\nselect,\nsummary,\ntextarea,\n[tabindex] {\n  -ms-touch-action: manipulation;\n  /* 1 */\n  touch-action: manipulation;\n}\n\n/**\n * Add the correct display in IE 10-.\n */\n\n[hidden] {\n  display: none;\n}\n\n/* ARIA (https://w3c.github.io/html-aria/)\n   ========================================================================== */\n\n/**\n * Change the cursor on busy elements (opinionated).\n */\n\n[aria-busy=\"true\"] {\n  cursor: progress;\n}\n\n/*\n * Change the cursor on control elements (opinionated).\n */\n\n[aria-controls] {\n  cursor: pointer;\n}\n\n/*\n * Change the display on visually hidden accessible elements (opinionated).\n */\n\n[aria-hidden=\"false\"][hidden]:not(:focus) {\n  clip: rect(0, 0, 0, 0);\n  display: inherit;\n  position: absolute;\n}\n\n/*\n * Change the cursor on disabled, not-editable, or otherwise\n * inoperable elements (opinionated).\n */\n\n[aria-disabled] {\n  cursor: default;\n}\n\n/* eslint-disable selector-pseudo-element-colon-notation */\n\n/**\n * For modern browsers\n * 1. The space content is one way to avoid an Opera bug when the\n *    contenteditable attribute is included anywhere else in the document.\n *    Otherwise it causes space to appear at the top and bottom of elements\n *    that are clearfixed.\n * 2. The use of `table` rather than `block` is only necessary if using\n *    `:before` to contain the top-margins of child elements.\n */\n\n:root {\n  --vh-offset: 0px;\n}\n\n.cf:before,\n.cf:after {\n  content: \" \";\n  /* 1 */\n  display: table;\n  /* 2 */\n}\n\n.cf:after {\n  clear: both;\n}\n\n/**\n * For IE 6/7 only\n * Include this rule to trigger hasLayout and contain floats.\n */\n\n.cf {\n  *zoom: 1;\n}\n\n/* Hide the text. */\n\n.hide-text {\n  display: block;\n  overflow: hidden;\n  text-indent: 100%;\n  white-space: nowrap;\n}\n\nimg {\n  max-height: 100%;\n  max-width: 100%;\n}\n\ntextarea,\ninput,\nbutton,\n.mobile-nav-link {\n  outline: none;\n}\n\n.container {\n  margin: 0 auto;\n  padding: 0;\n}\n\nbody.front {\n  background: #262626;\n  overflow: scroll;\n}\n\nbody.front.no-scroll {\n  overflow: hidden;\n}\n\nbody.front .fullscreen {\n  background-color: #262626;\n}\n\n@media screen and (max-width: 414px) {\n  body.front .fullscreen .fullscreen-wrapper {\n    overflow: hidden;\n  }\n}\n\nbody.front .fullscreen .fullscreen-wrapper .wrap.container {\n  max-width: 100%;\n  width: 100%;\n}\n\nbody.front .fullscreen .fullscreen-wrapper .wrap.container > .content {\n  margin: 0;\n}\n\nbody.front #body-overlay {\n  background: rgba(255, 255, 255, 0.5);\n  bottom: 0;\n  left: 0;\n  position: fixed;\n  right: 0;\n  top: 0;\n  z-index: -300;\n}\n\nbody.front .main {\n  margin: 0 auto;\n  max-width: 600px;\n}\n\nbody.front .main .alignleft {\n  margin-bottom: 0.55em;\n  margin-right: 1.4em;\n}\n\nbody.front .main .alignright {\n  margin-bottom: 0.55em;\n  margin-left: 1.4em;\n}\n\n@media screen and (max-width: 414px) {\n  body.front .main {\n    width: 90%;\n  }\n}\n\nbody.front.page-template-template-projects .main,\nbody.front.single-projects .main {\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-orient: vertical;\n  -webkit-box-direction: normal;\n      -ms-flex-direction: column;\n          flex-direction: column;\n  -webkit-box-pack: start;\n      -ms-flex-pack: start;\n          justify-content: flex-start;\n  -webkit-box-align: center;\n      -ms-flex-align: center;\n          align-items: center;\n  margin: 0 auto;\n  max-width: 600px;\n}\n\nbody.front.page-template-template-projects .main > *,\nbody.front.single-projects .main > * {\n  -webkit-transition-duration: .25s;\n       -o-transition-duration: .25s;\n          transition-duration: .25s;\n  -webkit-transition-property: opacity;\n  -o-transition-property: opacity;\n  transition-property: opacity;\n}\n\nbody.front.page-template-template-projects .main.centered-image > *:not(.centered-image-transition-duration),\nbody.front.single-projects .main.centered-image > *:not(.centered-image-transition-duration) {\n  opacity: 0;\n}\n\nbody.front.page-template-template-projects .main p,\nbody.front.single-projects .main p {\n  margin-top: 0;\n}\n\nbody.front.centered-image #back-to-top {\n  opacity: 0;\n}\n\n/** Search form */\n\n/**\n * WordPress Generated Classes\n * @see http://codex.wordpress.org/CSS#WordPress_Generated_Classes\n */\n\n/** Media alignment */\n\n.alignnone {\n  margin-left: 0;\n  margin-right: 0;\n  max-width: 100%;\n  height: auto;\n}\n\n.aligncenter {\n  display: block;\n  margin: 0.5rem auto;\n  height: auto;\n}\n\n.alignleft,\n.alignright {\n  margin-bottom: 0.5rem;\n  height: auto;\n}\n\n@media (min-width: 30rem) {\n  .alignleft {\n    float: left;\n    margin-right: 0.5rem;\n  }\n\n  .alignright {\n    float: right;\n    margin-left: 0.5rem;\n  }\n}\n\n/** Captions */\n\n/** Text meant only for screen readers */\n\n.screen-reader-text {\n  position: absolute;\n  width: 1px;\n  height: 1px;\n  padding: 0;\n  margin: -1px;\n  overflow: hidden;\n  clip: rect(0, 0, 0, 0);\n  border: 0;\n  color: #000;\n  background: #fff;\n}\n\n.modal {\n  max-width: 30000px;\n  width: 100vw;\n}\n\n.modal .modal-dialog {\n  max-width: 30000px;\n  height: 100vh;\n  width: 100vw;\n}\n\n.modal .modal-dialog .modal-content {\n  max-width: 100%;\n  height: 100vh;\n  top: 0 !important;\n  left: 0 !important;\n  -webkit-transform: translate(0, 0) !important;\n       -o-transform: translate(0, 0) !important;\n          transform: translate(0, 0) !important;\n}\n\n.modal .modal-dialog .modal-content .modal-body {\n  position: absolute;\n  width: 100%;\n  height: 100%;\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-orient: vertical;\n  -webkit-box-direction: normal;\n      -ms-flex-direction: column;\n          flex-direction: column;\n  -webkit-box-pack: center;\n      -ms-flex-pack: center;\n          justify-content: center;\n  padding-top: 39px;\n}\n\n.modal .modal-dialog .modal-content .modal-body .video-embed,\n.modal .modal-dialog .modal-content .modal-body .video-embed * {\n  max-height: calc(100vh - 27px);\n}\n\n.modal .modal-dialog .modal-content .modal-body button {\n  background: url(\"/app/themes/stone-roberts-anew/dist/images/closeout-icon-lightgrey.png\") no-repeat center center/contain transparent !important;\n  height: 17px;\n  padding: 0;\n  width: 17px;\n  text-align: left;\n  position: absolute;\n  left: 3px;\n  top: 10px;\n  z-index: 200;\n}\n\n.modal .modal-dialog .modal-content .modal-body iframe {\n  display: block;\n  margin: 0 auto;\n}\n\n.nav-primary {\n  background: #262626;\n  -webkit-transform: translateY(-120vh);\n       -o-transform: translateY(-120vh);\n          transform: translateY(-120vh);\n  position: fixed;\n  z-index: 19;\n  height: 100vh;\n  width: 100vw;\n  margin: 0 auto;\n  padding: 24px 13vh;\n  max-height: 100vh;\n  max-width: none;\n  overflow: scroll;\n  top: 0;\n  -webkit-transition-duration: .25s;\n       -o-transition-duration: .25s;\n          transition-duration: .25s;\n  -webkit-transition-property: -webkit-transform;\n  transition-property: -webkit-transform;\n  -o-transition-property: -o-transform;\n  transition-property: transform;\n  transition-property: transform, -webkit-transform, -o-transform;\n}\n\n@media screen and (max-width: 414px) {\n  .nav-primary {\n    padding: 10vh;\n  }\n}\n\n@media screen and (min-width: 415px) and (max-width: 767px) {\n  .nav-primary {\n    padding: 6vh 18vh;\n  }\n}\n\n@media screen and (min-width: 768px) and (max-width: 1023px) {\n  .nav-primary {\n    padding: 24px 11vw;\n  }\n}\n\n.custom-nav {\n  display: grid;\n  grid-template-columns: 1fr 1fr 1fr;\n  grid-gap: 3vw;\n  margin: 0 auto;\n  max-width: 1200px;\n  padding: 0;\n}\n\n@media screen and (max-width: 414px) {\n  .custom-nav {\n    grid-template-columns: 1fr;\n  }\n}\n\n@media screen and (min-width: 415px) and (max-width: 767px) {\n  .custom-nav {\n    grid-template-columns: 1fr 1fr;\n  }\n}\n\n.custom-nav .list-item {\n  display: block;\n  height: auto;\n  margin: 0 0 1.8em;\n  max-height: none;\n  max-width: none;\n  width: auto;\n}\n\n.custom-nav .list-item:hover .nav-item-image,\n.custom-nav .list-item:active .nav-item-image {\n  -webkit-transform: scale(1.01);\n       -o-transform: scale(1.01);\n          transform: scale(1.01);\n  -webkit-transition-duration: .25s;\n       -o-transition-duration: .25s;\n          transition-duration: .25s;\n  -webkit-transition-property: -webkit-transform;\n  transition-property: -webkit-transform;\n  -o-transition-property: -o-transform;\n  transition-property: transform;\n  transition-property: transform, -webkit-transform, -o-transform;\n}\n\n.custom-nav .list-item .nav-item {\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-orient: vertical;\n  -webkit-box-direction: normal;\n      -ms-flex-direction: column;\n          flex-direction: column;\n  height: 100%;\n}\n\n.custom-nav .list-item .nav-item-header {\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-orient: vertical;\n  -webkit-box-direction: normal;\n      -ms-flex-direction: column;\n          flex-direction: column;\n  -webkit-box-flex: 0;\n      -ms-flex-positive: 0;\n          flex-grow: 0;\n  font-size: 18px;\n  -webkit-box-pack: end;\n      -ms-flex-pack: end;\n          justify-content: flex-end;\n  margin-bottom: 13px;\n  text-transform: uppercase;\n  letter-spacing: 1.1px;\n}\n\n.custom-nav .list-item .nav-item-image {\n  background-size: cover;\n  display: block;\n  -webkit-box-flex: 0;\n      -ms-flex-positive: 0;\n          flex-grow: 0;\n  height: unset;\n  max-width: 100%;\n  padding-bottom: 100%;\n  width: 100%;\n}\n\n.custom-nav .list-item .nav-item-short-text {\n  display: block;\n  -webkit-box-flex: 0;\n      -ms-flex-positive: 0;\n          flex-grow: 0;\n  margin-top: 0.4em;\n}\n\nbody.home .custom-nav {\n  width: 90%;\n}\n\n.audio {\n  margin-top: 73px;\n  padding: 0 23px;\n  position: relative;\n}\n\n.audio .audio-piece .duration,\n.audio .audio-piece .timer {\n  background: rgba(0, 0, 0, 0.5);\n  bottom: 0;\n  color: #fff;\n  padding: .5em;\n  position: absolute;\n}\n\n.audio .audio-piece .duration.timer,\n.audio .audio-piece .timer.timer {\n  left: -2em;\n}\n\n.audio .audio-piece .duration.duration,\n.audio .audio-piece .timer.duration {\n  right: -2em;\n}\n\n.audio .audio-piece button {\n  background-color: gray;\n  border: 0 solid;\n  border-radius: .1em;\n  padding: 1.2em;\n  color: #fff;\n}\n\n.audio .audio-piece .span-value-wrap {\n  height: 50px;\n  position: relative;\n  width: 100%;\n}\n\n.audio .audio-piece .span-value-wrap .span-value {\n  background-color: #646464;\n  border-radius: 0;\n  display: block;\n  height: 100%;\n  overflow: visible;\n  width: 0;\n}\n\n.audio .audio-piece .span-value-wrap .span-value .span-value-jump {\n  -webkit-box-sizing: content-box;\n          box-sizing: content-box;\n  height: 100%;\n  width: 0;\n}\n\n.audio .audio-piece .span-value-wrap .span-value .span-value-jump div {\n  height: 100%;\n  width: 100%;\n}\n\n.audio .audio-piece .span-value-wrap:hover .span-value-jump div {\n  background-color: rgba(79, 105, 61, 0.5);\n}\n\n.video {\n  position: relative;\n  width: 100%;\n}\n\n.video .wrap {\n  overflow: hidden;\n  position: relative;\n}\n\n.video .wrap .video-play-screenshot {\n  overflow: hidden;\n  display: block;\n  height: 100%;\n  width: 100%;\n  position: absolute;\n  top: 0;\n  left: 0;\n  background-size: cover;\n  background-position: center;\n  z-index: 1;\n}\n\n.video .caption {\n  margin-top: 10px;\n}\n\n.video .caption p {\n  color: #bcbcbc;\n  font-size: 15px;\n  line-height: 19px;\n}\n\n.video .play-button {\n  background: url(\"/app/themes/stone-roberts-anew/dist/images/play.svg\") no-repeat 50%/28% transparent;\n  border: none;\n  display: block;\n  position: absolute;\n  width: 100%;\n  height: 100%;\n  top: 0;\n  left: 0;\n  z-index: 2;\n}\n\n@media screen and (max-width: 767px) {\n  .video {\n    background-size: 22%;\n  }\n}\n\n@media screen and (min-width: 768px) {\n  .video .play-button {\n    background-size: 20%;\n  }\n\n  .video .play-button:hover {\n    cursor: pointer;\n  }\n}\n\n.video.playing .play-button,\n.video.playing .video-play-screenshot {\n  display: none;\n}\n\n.carousel-wrap {\n  overflow: hidden;\n  position: relative;\n}\n\n.carousel-wrap .carousel {\n  width: 100%;\n}\n\n.carousel-wrap .carousel .carousel-cell {\n  max-width: 100vw;\n  width: 100%;\n}\n\n.carousel-wrap .carousel .carousel-cell figure {\n  margin-bottom: 0;\n  width: 100% !important;\n}\n\n.carousel-wrap .carousel .carousel-cell figure img {\n  width: 100%;\n}\n\n.carousel-wrap .carousel .carousel-cell .text {\n  background: rgba(0, 0, 0, 0.5);\n  bottom: 0;\n  color: #fff;\n  margin: 0;\n  padding: 0;\n  position: absolute;\n  text-align: left;\n  width: 100%;\n}\n\n.carousel-wrap .carousel .flickity-prev-next-button {\n  display: none;\n  width: 55px;\n  height: 77px;\n}\n\n@media screen and (min-width: 768px) {\n  .carousel-wrap .carousel .flickity-page-dots {\n    bottom: 45px;\n  }\n\n  .carousel-wrap .carousel .flickity-page-dots .dot {\n    height: 13px;\n    width: 13px;\n    background: #fff;\n  }\n}\n\n@media screen and (min-width: 1024px) {\n  .carousel-wrap .carousel .flickity-page-dots {\n    bottom: 59px;\n  }\n\n  .carousel-wrap .carousel .flickity-prev-next-button {\n    display: block;\n  }\n}\n\n.carousel-wrap .carousel .flickity-prev-next-button {\n  background: transparent;\n  display: block;\n  top: 72%;\n}\n\n.carousel-wrap .carousel .flickity-prev-next-button path {\n  fill: #fff;\n  opacity: .4;\n}\n\n.carousel-wrap .carousel .flickity-prev-next-button {\n  top: 73.2%;\n}\n\n.carousel-wrap .carousel .flickity-prev-next-button.previous {\n  left: 31px;\n}\n\n.carousel-wrap .carousel .flickity-prev-next-button.next {\n  right: 20px;\n}\n\n.center-scroll-arrows {\n  position: fixed;\n  left: unset;\n  right: 22px;\n  top: 18px;\n  height: 100px;\n  display: none;\n  -webkit-box-orient: vertical;\n  -webkit-box-direction: normal;\n      -ms-flex-direction: column;\n          flex-direction: column;\n  -webkit-box-pack: justify;\n      -ms-flex-pack: justify;\n          justify-content: space-between;\n  z-index: 50;\n}\n\n.center-scroll-arrows div {\n  background: url(\"/app/themes/stone-roberts-anew/dist/images/arrow.png\") no-repeat center/contain transparent;\n  height: 32px;\n  width: 30px;\n}\n\n.center-scroll-arrows div.next {\n  -webkit-transform: rotate(180deg);\n       -o-transform: rotate(180deg);\n          transform: rotate(180deg);\n}\n\n.center-scroll-arrows div:hover {\n  cursor: pointer;\n}\n\n.center-scroll-arrows.hide-next .next {\n  opacity: .15;\n  visibility: visible;\n}\n\n.center-scroll-arrows.hide-previous .prev {\n  opacity: .15;\n  visibility: visible;\n}\n\n.template-projects .center-scroll-arrows {\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n}\n\n#thumbnails-nav {\n  background-color: rgba(0, 0, 0, 0.9);\n  height: 100vh;\n  left: 0;\n  opacity: 1;\n  overflow: scroll;\n  padding: 0 4vw 8vw;\n  position: fixed;\n  top: 0;\n  -webkit-transition-duration: .1s;\n       -o-transition-duration: .1s;\n          transition-duration: .1s;\n  -webkit-transition-property: opacity, -webkit-transform;\n  transition-property: opacity, -webkit-transform;\n  -o-transition-property: opacity, -o-transform;\n  transition-property: transform, opacity;\n  transition-property: transform, opacity, -webkit-transform, -o-transform;\n  width: 100vw;\n  z-index: 300;\n}\n\n#thumbnails-nav h1 {\n  font-size: 18px;\n  letter-spacing: 3.7px;\n  height: 8vw;\n  width: 100%;\n  text-align: center;\n  margin: 0 0 -2vh 0 !important;\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-pack: center;\n      -ms-flex-pack: center;\n          justify-content: center;\n  -webkit-box-align: center;\n      -ms-flex-align: center;\n          align-items: center;\n}\n\n#thumbnails-nav .thumbnails-wrap {\n  -ms-flex-line-pack: start;\n      align-content: flex-start;\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  -ms-flex-wrap: wrap;\n      flex-wrap: wrap;\n  -webkit-box-pack: center;\n      -ms-flex-pack: center;\n          justify-content: center;\n}\n\n#thumbnails-nav .thumbnail-wrap {\n  height: 21vw;\n  padding: 2vh;\n  width: auto;\n}\n\n#thumbnails-nav .thumbnail {\n  height: 100%;\n  width: auto;\n}\n\n#thumbnails-nav .thumbnail:hover {\n  cursor: pointer;\n}\n\n#thumbnails-nav.hide {\n  opacity: 0;\n  -webkit-transform: translateX(-100vw);\n       -o-transform: translateX(-100vw);\n          transform: translateX(-100vw);\n}\n\n#thumbnail-trigger {\n  height: 20px;\n  left: unset;\n  top: 60px;\n  right: 21px;\n  position: fixed;\n  -webkit-transition-duration: .1s;\n       -o-transition-duration: .1s;\n          transition-duration: .1s;\n  -webkit-transition-property: top;\n  -o-transition-property: top;\n  transition-property: top;\n  width: 30px;\n  z-index: 301;\n}\n\n#thumbnail-trigger:hover {\n  cursor: pointer;\n}\n\n#thumbnail-trigger > div {\n  background-color: #b3b3b3;\n  float: left;\n  height: 7px;\n  margin: 0 3px 3px 0;\n  width: 7px;\n}\n\nbody:not(.template-projects) #thumbnail-trigger {\n  display: none;\n}\n\n.is-touch #thumbnail-trigger {\n  top: 10px;\n  right: 10px;\n}\n\n.artwork_piece {\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-pack: center;\n      -ms-flex-pack: center;\n          justify-content: center;\n  max-width: 100vw !important;\n  min-width: 100%;\n  padding-top: 55px;\n  position: relative;\n  -webkit-transition-property: width, height;\n  -o-transition-property: width, height;\n  transition-property: width, height;\n  -webkit-transition-duration: 0.5s;\n       -o-transition-duration: 0.5s;\n          transition-duration: 0.5s;\n}\n\n@-webkit-keyframes loadingH {\n  0% {\n    width: 15px;\n  }\n\n  50% {\n    width: 75px;\n    padding: 4px;\n  }\n\n  100% {\n    width: 15px;\n  }\n}\n\n@-o-keyframes loadingH {\n  0% {\n    width: 15px;\n  }\n\n  50% {\n    width: 75px;\n    padding: 4px;\n  }\n\n  100% {\n    width: 15px;\n  }\n}\n\n@keyframes loadingH {\n  0% {\n    width: 15px;\n  }\n\n  50% {\n    width: 75px;\n    padding: 4px;\n  }\n\n  100% {\n    width: 15px;\n  }\n}\n\n.artwork_piece .line {\n  border-radius: 15px;\n  display: inline-block;\n  height: 15px;\n  background-color: #b3b3b3;\n  width: 100%;\n}\n\n.artwork_piece .loading-image {\n  display: block;\n  position: absolute;\n  top: 50%;\n  width: 100%;\n}\n\n.artwork_piece .loading-image .line {\n  -webkit-animation: loadingH 1.5s cubic-bezier(0.17, 0.37, 0.43, 0.67) infinite;\n       -o-animation: loadingH 1.5s cubic-bezier(0.17, 0.37, 0.43, 0.67) infinite;\n          animation: loadingH 1.5s cubic-bezier(0.17, 0.37, 0.43, 0.67) infinite;\n}\n\n.artwork_piece .artwork-title {\n  position: absolute;\n  top: 0;\n  left: 0;\n}\n\n.artwork_piece .image-wrap {\n  display: inline-block;\n  max-height: 100%;\n  max-width: 100%;\n  position: relative;\n  text-align: center;\n  width: 100%;\n}\n\n.artwork_piece .image-wrap .image-space-placeholder {\n  margin: 0 auto;\n  position: relative;\n  -webkit-transition-duration: 0.5s;\n       -o-transition-duration: 0.5s;\n          transition-duration: 0.5s;\n  width: 100%;\n  z-index: 2;\n}\n\n.artwork_piece .image-wrap .image-space-placeholder .center-image-wrap,\n.artwork_piece .image-wrap .image-space-placeholder .zoomy-wrap {\n  -webkit-box-align: baseline;\n      -ms-flex-align: baseline;\n          align-items: baseline;\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-pack: center;\n      -ms-flex-pack: center;\n          justify-content: center;\n}\n\n.artwork_piece .image-wrap .image-space-placeholder .main-img {\n  background-color: #363636;\n  -webkit-box-flex: 0;\n      -ms-flex-positive: 0;\n          flex-grow: 0;\n  -ms-flex-negative: 0;\n      flex-shrink: 0;\n  min-height: 125px;\n  position: static;\n  -webkit-transition-duration: 0.5s;\n       -o-transition-duration: 0.5s;\n          transition-duration: 0.5s;\n}\n\n.artwork_piece .image-wrap .image-space-placeholder .artwork-image-wrap {\n  margin: 0 auto;\n}\n\n.artwork_piece .image-wrap .caption {\n  display: inline-block;\n  margin-right: 1%;\n  width: calc(100% - 158px);\n}\n\n.artwork_piece .image-wrap .artwork-meta {\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  position: static;\n  text-align: left;\n  width: 100%;\n}\n\n.artwork_piece .image-wrap .artwork-meta .caption p {\n  margin: 0;\n}\n\n.artwork_piece .image-wrap .artwork-meta .actions {\n  display: block;\n  position: absolute;\n  right: 0;\n  -webkit-box-flex: 0;\n      -ms-flex-positive: 0;\n          flex-grow: 0;\n  -ms-flex-negative: 0;\n      flex-shrink: 0;\n  -webkit-transition-duration: .5s;\n       -o-transition-duration: .5s;\n          transition-duration: .5s;\n  z-index: 20;\n}\n\n.artwork_piece .image-wrap .artwork-meta .actions .icon {\n  display: inline-block;\n  height: 34px;\n  margin: 0 10px;\n  width: 30px;\n}\n\n.artwork_piece .image-wrap .artwork-meta .actions .icon:hover {\n  cursor: pointer;\n}\n\n.artwork_piece .image-wrap .artwork-meta .actions .info {\n  background: url(\"/app/themes/stone-roberts-anew/dist/images/artwork-scale.png\") no-repeat center/contain transparent;\n}\n\n.artwork_piece .image-wrap .artwork-meta .actions .zoom {\n  background: url(\"/app/themes/stone-roberts-anew/dist/images/zoom.png\") no-repeat center/contain transparent;\n}\n\n.artwork_piece .image-wrap .artwork-meta .actions .share {\n  background: url(\"/app/themes/stone-roberts-anew/dist/images/share.png\") no-repeat center/contain transparent;\n}\n\n.artwork_piece .image-wrap .piece-comparison {\n  background: #fff;\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  left: 0;\n  margin: 0;\n  padding: 0;\n  position: fixed;\n  right: 0;\n  top: 0;\n  -webkit-transform: translateY(110vh);\n       -o-transform: translateY(110vh);\n          transform: translateY(110vh);\n  -webkit-transition-duration: .5s;\n       -o-transition-duration: .5s;\n          transition-duration: .5s;\n  z-index: 400;\n  height: 100vh;\n}\n\n.artwork_piece .image-wrap .piece-comparison .piece-comparison-wrap {\n  -webkit-box-align: center;\n      -ms-flex-align: center;\n          align-items: center;\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  height: 100%;\n  -webkit-box-pack: center;\n      -ms-flex-pack: center;\n          justify-content: center;\n  margin: 0 auto;\n  overflow: hidden;\n  padding: 0;\n  width: 100%;\n}\n\n.artwork_piece .image-wrap .piece-comparison .piece-comparison-wrap.piece-comparison-processed {\n  visibility: visible !important;\n}\n\n.artwork_piece .image-wrap .piece-comparison .piece-comparison-wrap .close {\n  background: url(\"/app/themes/stone-roberts-anew/dist/images/close.png\") no-repeat center/contain transparent;\n  height: 18px;\n  width: 17px;\n}\n\n.artwork_piece .image-wrap .piece-comparison .comparison-image-wrap {\n  -webkit-box-align: center;\n      -ms-flex-align: center;\n          align-items: center;\n  -webkit-box-shadow: -2px 1px 5px 0px #525356;\n          box-shadow: -2px 1px 5px 0px #525356;\n  padding: 0;\n  border: 10px solid #383838;\n  -webkit-box-orient: vertical;\n  -webkit-box-direction: normal;\n      -ms-flex-direction: column;\n          flex-direction: column;\n  -webkit-box-flex: 0;\n      -ms-flex-positive: 0;\n          flex-grow: 0;\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-pack: end;\n      -ms-flex-pack: end;\n          justify-content: flex-end;\n  position: static;\n  margin: 0 0 5%;\n  max-height: 100%;\n  top: 19%;\n  z-index: 1;\n}\n\n.artwork_piece .image-wrap .piece-comparison .comparison-image-wrap .comparison-image {\n  border: 30px solid #fff;\n  -ms-flex-negative: 1;\n      flex-shrink: 1;\n  height: auto;\n  max-height: none;\n  max-width: none;\n  width: 100%;\n}\n\n.artwork_piece .image-wrap .piece-comparison .compared-to {\n  height: 100vh;\n  left: 0;\n  max-height: none;\n  max-width: none;\n  -o-object-fit: cover;\n     object-fit: cover;\n  position: absolute;\n  top: 0;\n  -webkit-transition-duration: 250ms;\n       -o-transition-duration: 250ms;\n          transition-duration: 250ms;\n  -webkit-transition-property: width, height;\n  -o-transition-property: width, height;\n  transition-property: width, height;\n  width: 100vw;\n}\n\n.artwork_piece .image-wrap .piece-comparison .close {\n  color: #0f0f0f;\n  position: absolute;\n  right: 20px;\n  top: 20px;\n  z-index: 5;\n}\n\n.artwork_piece .image-wrap .piece-comparison .close:hover {\n  cursor: pointer;\n}\n\n.artwork_piece.show-info .piece-comparison {\n  -webkit-transform: translateY(0vh);\n       -o-transform: translateY(0vh);\n          transform: translateY(0vh);\n}\n\n.artwork_piece .zoomy-wrap {\n  height: 100%;\n  position: absolute;\n  top: 0;\n  width: 100%;\n  z-index: 10;\n}\n\n.artwork_piece .zoomy-wrap .zoom-img {\n  background-color: #0f0f0f;\n  position: absolute;\n  max-height: none;\n  max-width: none;\n  padding: 10px;\n  width: 150%;\n  height: auto;\n}\n\n.artwork_piece .zoomy-wrap .mouse-map-wrap {\n  -webkit-box-align: center;\n      -ms-flex-align: center;\n          align-items: center;\n  background-color: #333333;\n  background-origin: border-box;\n  background-repeat: no-repeat;\n  background-size: 100%;\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  height: 100%;\n  -webkit-box-pack: center;\n      -ms-flex-pack: center;\n          justify-content: center;\n  overflow: hidden;\n  opacity: 0;\n  position: relative;\n  -webkit-transition-duration: 0.5s;\n       -o-transition-duration: 0.5s;\n          transition-duration: 0.5s;\n  -webkit-transition-property: background-size, width, height, -webkit-transform;\n  transition-property: background-size, width, height, -webkit-transform;\n  -o-transition-property: background-size, width, height, -o-transform;\n  transition-property: transform, background-size, width, height;\n  transition-property: transform, background-size, width, height, -webkit-transform, -o-transform;\n  width: 100%;\n}\n\n.artwork_piece .zoomy-wrap .mouse-map-wrap[zoom-enabled]:hover {\n  cursor: -webkit-zoom-in;\n  cursor: zoom-in;\n}\n\n.artwork_piece .zoomy-wrap .mouse-map-wrap .mouse-map {\n  opacity: .4;\n  height: 100%;\n  width: 100%;\n  margin: 0 auto;\n  -webkit-transition-duration: 0.5s;\n       -o-transition-duration: 0.5s;\n          transition-duration: 0.5s;\n  -webkit-transition-property: background-size, width, height, -webkit-transform;\n  transition-property: background-size, width, height, -webkit-transform;\n  -o-transition-property: background-size, width, height, -o-transform;\n  transition-property: transform, background-size, width, height;\n  transition-property: transform, background-size, width, height, -webkit-transform, -o-transform;\n}\n\n.artwork_piece.loaded .loading-image {\n  display: none;\n}\n\n.artwork_piece.zoomed .mouse-map-wrap {\n  opacity: 1;\n}\n\n.artwork_piece.zoomed .mouse-map-wrap:hover {\n  cursor: -webkit-zoom-out !important;\n  cursor: zoom-out !important;\n}\n\n.artwork_piece.zoomed .main-img {\n  visibility: hidden;\n}\n\n.artwork_piece.centered .image-space-placeholder {\n  z-index: 50;\n}\n\n.artwork_piece.centered .center-image-wrap,\n.artwork_piece.centered .zoomy-wrap {\n  -webkit-box-align: center !important;\n      -ms-flex-align: center !important;\n          align-items: center !important;\n  bottom: 0;\n  height: auto !important;\n  position: fixed;\n  left: 0;\n  right: 0;\n  top: 0;\n}\n\n.artwork_piece.centered .artwork-meta {\n  display: none;\n}\n\n.artwork_piece.centered.width .image-space-placeholder,\n.artwork_piece.centered.width .image-ratio-holder {\n  width: 100%;\n}\n\n.artwork_piece.centered.height .image-wrap,\n.artwork_piece.centered.height .image-space-placeholder,\n.artwork_piece.centered.height .image-ratio-holder {\n  width: 100%;\n}\n\n.artwork_piece:not(.zoomed) .artwork-meta:hover {\n  bottom: 0;\n}\n\n.artwork_piece:not(.zoomed) .artwork-meta:hover .caption p {\n  opacity: 1;\n}\n\n.artwork_piece.centered-image-transition-duration .main-img {\n  -webkit-transition-duration: 0.5s;\n       -o-transition-duration: 0.5s;\n          transition-duration: 0.5s;\n}\n\n.artwork_piece.zoomed-delay .mouse-map-wrap {\n  opacity: 1 !important;\n}\n\n.artwork_piece .actions .zoom {\n  display: none !important;\n}\n\n.artwork_piece[zoom-enabled] .actions .zoom {\n  display: inline-block !important;\n}\n\nbody.artworks-processed .artwork_piece {\n  width: 100vw;\n}\n\nbody.centered-image .main > *,\nbody.centered-image .banner .brand {\n  opacity: 0;\n}\n\nbody.centered-image .main > *.centered,\nbody.centered-image .banner .brand.centered {\n  opacity: 1 !important;\n}\n\nbody.centered-image .main > *.centered h3,\nbody.centered-image .banner .brand.centered h3 {\n  opacity: 0;\n}\n\nbody.centered-image #thumbnail-trigger,\nbody.centered-image .hamburger,\nbody.centered-image .center-scroll-arrows,\nbody.centered-image .fullscreen-toggle {\n  opacity: .1;\n  -webkit-transition-duration: .25s;\n       -o-transition-duration: .25s;\n          transition-duration: .25s;\n}\n\nbody.centered-image #thumbnail-trigger:hover,\nbody.centered-image .hamburger:hover,\nbody.centered-image .center-scroll-arrows:hover,\nbody.centered-image .fullscreen-toggle:hover {\n  opacity: 1;\n}\n\nbody.is-touch .artwork_piece .main-img {\n  max-width: 100vw;\n  max-height: none !important;\n  position: static !important;\n}\n\nbody.is-touch .artwork_piece .artwork-meta {\n  padding: 1.2em;\n}\n\nbody.is-touch .artwork_piece.width .main-img {\n  height: auto;\n  width: 100vw;\n}\n\nbody.is-touch .artwork_piece.height .main-img {\n  /* If you need to support browser without CSS var support */\n  height: 100vh;\n  /* enable vh fix */\n  height: calc(100vh - var(--vh-offset));\n  width: auto;\n}\n\nbody.is-touch.zoomed {\n  overflow: hidden;\n}\n\nbody.is-touch .artwork-title {\n  left: 5%;\n}\n\nbody.viewport-resizing .artwork_piece {\n  max-width: 100% !important;\n}\n\nbody.orientation-landscape.zoomed .artwork-meta {\n  z-index: 0;\n}\n\n@media screen and (max-width: 630px) {\n  body .artwork_piece .main-img {\n    max-width: 100vw;\n    max-height: none !important;\n    position: static !important;\n  }\n\n  body .artwork_piece .artwork-meta {\n    padding: 1.2em;\n  }\n\n  body .artwork_piece.width .main-img {\n    height: auto;\n    width: 100vw;\n  }\n\n  body .artwork_piece.height .main-img {\n    /* If you need to support browser without CSS var support */\n    height: 100vh;\n    /* enable vh fix */\n    height: calc(100vh - var(--vh-offset));\n    width: auto;\n  }\n}\n\n@media screen and (min-width: 768px) and (max-width: 100000px) {\n  body.template-projects header.banner {\n    margin-bottom: 121px;\n  }\n}\n\nbody.template-projects .page-header {\n  display: none;\n}\n\n.dev-share-buttons {\n  -webkit-box-orient: horizontal;\n  -webkit-box-direction: normal;\n      -ms-flex-direction: row;\n          flex-direction: row;\n  -webkit-box-pack: center;\n      -ms-flex-pack: center;\n          justify-content: center;\n  -webkit-box-align: center;\n      -ms-flex-align: center;\n          align-items: center;\n  position: absolute;\n}\n\n.dev-share-buttons a {\n  background: none;\n  font-size: 32px;\n  display: inline-block;\n  padding: 10px;\n  margin: 32px 5px 0;\n}\n\n.dev-share-buttons a:hover {\n  background: none;\n}\n\n.dev-share-buttons svg {\n  color: #b3b3b3;\n}\n\n.dev-share-buttons .link-input-wrap {\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-pack: center;\n      -ms-flex-pack: center;\n          justify-content: center;\n  left: 0;\n  position: absolute;\n  width: 100%;\n  top: 35%;\n}\n\n.dev-share-buttons .link-input-wrap input {\n  width: 50%;\n}\n\n.dev-share-buttons .close {\n  background: url(\"/app/themes/stone-roberts-anew/dist/images/close.png\") no-repeat center/contain transparent;\n  height: 18px;\n  width: 17px;\n}\n\n.dev-share-buttons .close svg {\n  display: none;\n}\n\n.body_text p:last-child {\n  margin-bottom: 0;\n}\n\n#splash-modal {\n  display: block;\n  background-color: #262626;\n  background-size: cover;\n  background-position: center;\n  height: 100vh;\n  left: 0;\n  opacity: 0;\n  position: fixed;\n  top: 0;\n  -webkit-transition-duration: .25s;\n       -o-transition-duration: .25s;\n          transition-duration: .25s;\n  -webkit-transition-property: opacity;\n  -o-transition-property: opacity;\n  transition-property: opacity;\n  width: 100vw;\n  z-index: -1;\n}\n\n#splash-modal:hover {\n  cursor: pointer;\n}\n\n.show-splash #splash-modal {\n  opacity: 1;\n  z-index: 400;\n}\n\n.show-splash-transition #splash-modal {\n  z-index: 400;\n}\n\nheader.banner {\n  margin-bottom: 70px;\n}\n\n@media screen and (min-width: 0px) and (max-width: 767px) {\n  header.banner {\n    margin-bottom: 0;\n  }\n}\n\nheader.banner .container {\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-pack: center;\n      -ms-flex-pack: center;\n          justify-content: center;\n  overflow: auto;\n}\n\nheader.banner .container .brand {\n  background-color: #262626;\n  display: block;\n  height: auto;\n  line-height: 1em;\n  margin: 0 auto;\n  max-width: 100%;\n  text-align: center;\n  padding: 31px 0 0;\n  font-size: 30px;\n  font-weight: bold;\n  position: static;\n  top: 0;\n  left: 0;\n  width: 399px;\n}\n\n@media screen and (min-width: 0px) and (max-width: 767px) {\n  header.banner .container .brand {\n    width: calc( 100% - 131px);\n    margin: 84px 0 69px;\n    padding: 0;\n  }\n}\n\nheader.banner .container .brand span {\n  display: block;\n  background: url(\"/app/themes/stone-roberts-anew/dist/images/logo.png\") no-repeat center/contain transparent;\n  height: 88px;\n}\n\nheader.banner .container .nav-primary {\n  z-index: 300;\n}\n\nheader.banner .container .nav-primary .nav {\n  padding: 0;\n}\n\nheader.banner .container .nav-primary .nav li {\n  display: inline-block;\n  list-style-type: none;\n  margin: 0 .3em;\n}\n\nheader.banner .fullscreen-toggle {\n  background-image: url(\"/app/themes/stone-roberts-anew/dist/images/fullscreen-in.png\") !important;\n  left: 22px;\n  right: unset;\n  top: 26px;\n  width: 33px !important;\n  z-index: 301;\n}\n\n.hamburger {\n  z-index: 307 !important;\n  top: 57px;\n  left: 9px;\n}\n\n.home .hamburger,\n.home .nav-primary {\n  display: none;\n}\n\n.fullscreen:-webkit-full-screen .fullscreen-toggle {\n  background-image: url(\"/app/themes/stone-roberts-anew/dist/images/fullscreen-out.png\") !important;\n  display: block !important;\n}\n\n.fullscreen:-moz-full-screen .fullscreen-toggle {\n  background-image: url(\"/app/themes/stone-roberts-anew/dist/images/fullscreen-out.png\") !important;\n  display: block !important;\n}\n\n.fullscreen:-ms-fullscreen .fullscreen-toggle {\n  background-image: url(\"/app/themes/stone-roberts-anew/dist/images/fullscreen-out.png\") !important;\n  display: block !important;\n}\n\n.fullscreen:fullscreen .fullscreen-toggle {\n  background-image: url(\"/app/themes/stone-roberts-anew/dist/images/fullscreen-out.png\") !important;\n  display: block !important;\n}\n\n.no-fullscreen .hamburger {\n  left: 1px;\n  top: -5px;\n}\n\nfooter.content-info {\n  padding: 30px 0;\n}\n\nbody.home .main {\n  max-width: unset;\n  width: 100vw;\n}\n\n.post-main-content figure {\n  display: block;\n  margin-left: auto;\n  margin-right: auto;\n}\n\nhtml {\n  background: transparent;\n}\n\nbody#tinymce {\n  margin: 12px !important;\n}\n\nbody.front {\n  color: #fff;\n  font-family: \"Whitney SSm A\", \"Whitney SSm B\";\n  font-weight: 400;\n  font-style: normal;\n  line-height: 23px;\n}\n\nbody.front a {\n  color: #fff;\n  text-decoration: none;\n}\n\nbody.front .fullscreen {\n  background: #262626;\n}\n\nbody.front .fullscreen .fullscreen-modal {\n  background-color: rgba(0, 0, 0, 0.8);\n  z-index: 400;\n}\n\nbody.front .fullscreen .main > * {\n  margin-bottom: 33px;\n}\n\nbody.front .fullscreen .main .page-header {\n  margin-top: 40px;\n  margin-bottom: 60px;\n}\n\nbody.front .fullscreen .main .page-header h1 {\n  font-size: 18px;\n  letter-spacing: 3.7px;\n}\n\nbody.front .fullscreen .main h1,\nbody.front .fullscreen .main h2,\nbody.front .fullscreen .main h3,\nbody.front .fullscreen .main h4,\nbody.front .fullscreen .main h5 {\n  font-weight: 100;\n  font-size: 14px;\n  letter-spacing: 0.21em;\n  text-transform: uppercase;\n}\n\nbody.front .fullscreen .main .artwork_piece .artwork-meta {\n  margin-top: 10px;\n}\n\nbody.front .fullscreen .main .artwork_piece .artwork-meta .caption p {\n  color: #bcbcbc;\n  font-size: 15px;\n  line-height: 19px;\n}\n\n", "", {"version":3,"sources":["/Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/resources/assets/styles/resources/assets/styles/common/_variables.scss","/Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/resources/assets/styles/main.scss","/Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/resources/assets/styles/resources/assets/styles/main.scss","/Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/resources/assets/styles/node_modules/sanitize.css/sanitize.css","/Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/resources/assets/styles/resources/assets/styles/common/_global.scss","/Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/resources/assets/styles/main.scss","/Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/resources/assets/styles/resources/assets/styles/components/_forms.scss","/Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/resources/assets/styles/resources/assets/styles/components/_wp-classes.scss","/Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/resources/assets/styles/resources/assets/styles/components/_modal.scss","/Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/resources/assets/styles/resources/assets/styles/components/_custom-main-navigation.scss","/Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/resources/assets/styles/resources/assets/styles/components/_audio.scss","/Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/resources/assets/styles/resources/assets/styles/components/_embed.scss","/Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/resources/assets/styles/resources/assets/styles/components/_flickity.scss","/Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/resources/assets/styles/resources/assets/styles/components/_center-scroll-to.scss","/Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/resources/assets/styles/resources/assets/styles/components/_thumbnails-nav.scss","/Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/resources/assets/styles/resources/assets/styles/components/_artwork-piece.scss","/Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/resources/assets/styles/resources/assets/styles/components/_share.scss","/Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/resources/assets/styles/resources/assets/styles/components/_body-text.scss","/Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/resources/assets/styles/resources/assets/styles/components/_splash.scss","/Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/resources/assets/styles/resources/assets/styles/layouts/_header.scss","/Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/resources/assets/styles/resources/assets/styles/layouts/_footer.scss","/Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/resources/assets/styles/resources/assets/styles/layouts/_pages.scss","/Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/resources/assets/styles/resources/assets/styles/layouts/_posts.scss","/Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/resources/assets/styles/resources/assets/styles/layouts/_tinymce.scss","/Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/resources/assets/styles/resources/assets/styles/common/_custom-client.scss"],"names":[],"mappings":"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","file":"main.scss","sourcesContent":["// Grid settings\n$main-sm-columns: 12;\n$sidebar-sm-columns: 4;\n\n$spacer: 1rem;\n\n// Colors\n$background: #262626;\n$background-lighter: #363636;\n$brand-primary: #27ae60;\n$icons-color: hsla(0, 0%, 70%, 1.0);\n\n// Widths\n$mobile-max-width: 767px;\n$desktop-min-width: 768px;\n$main-content-max-width: 600px;\n\n$theme-path: '/app/themes/stone-roberts-anew/dist/';\n$image-path: $theme-path + 'images/';\n\n// Image margins\n$image-margin-horizontal: 1.4em;\n$image-margin-vertical: .55em;\n\n/*********************\nBREAKPOINTS\n*********************/\n$xs: (max: 414px);\n$sm: (min: 415px);\n$md: (min: 768px);\n$lg: (min: 1024px);\n$xs-sm-only: (min: map-get((min: 0px), min), max: map-get($md, min) - 1);\n$sm-only: (min: map-get($sm, min), max: map-get($md, min) - 1);\n$md-lg-only: (min: map-get($md, min), max: 100000px);\n$md-only: (min: map-get($md, min), max: map-get($lg, min) - 1);\n$lg-only: (min: map-get($lg, min), max: 100000px);\n\n@mixin breakpoint($map) {\n  $query: \"\";\n  @if map-has-key($map, min) {\n    $query: append($query, \"(min-width: #{map-get($map, min)})\")\n  }\n  @if map-has-key($map, min) and map-has-key($map, max) {\n    $query: append($query, \"and\")\n  }\n  @if map-has-key($map, max) {\n    $query: append($query, \"(max-width: #{map-get($map, max)})\")\n  }\n  @media screen and #{$query} {\n    @content;\n  }\n}\n\n// Mixins\n@mixin nonAnimatingMobile {\n  .artwork_piece {\n    .main-img {\n      max-width: 100vw;\n      max-height: none !important;\n      position: static !important;\n    }\n    .artwork-meta{\n      padding: 1.2em;\n    }\n    &.width {\n      .main-img {\n        height: auto;\n        width: 100vw;\n      }\n    }\n\n    &.height {\n      .main-img {\n        /* If you need to support browser without CSS var support */\n        height: 100vh;\n        /* enable vh fix */\n        height: calc(100vh - var(--vh-offset));\n        width: auto;\n      }\n    }\n\n  }\n}","/*********************\nBREAKPOINTS\n*********************/\n\n/** Import everything from autoload */\n\n/**\n * Import npm dependencies\n *\n * Prefix your imports with `~` to grab from node_modules/\n * @see https://github.com/webpack-contrib/sass-loader#imports\n */\n\n/** Import theme styles */\n\n@import url(\"https://cloud.typography.com/7063492/6582372/css/fonts.css\");\n\n/*! sanitize.css v5.0.0 | CC0 License | github.com/jonathantneal/sanitize.css */\n\n/* Document (https://html.spec.whatwg.org/multipage/semantics.html#semantics)\n   ========================================================================== */\n\n/**\n * 1. Remove repeating backgrounds in all browsers (opinionated).\n * 2. Add box sizing inheritence in all browsers (opinionated).\n */\n\n*,\n::before,\n::after {\n  background-repeat: no-repeat;\n  /* 1 */\n  box-sizing: inherit;\n  /* 2 */\n}\n\n/**\n * 1. Add text decoration inheritance in all browsers (opinionated).\n * 2. Add vertical alignment inheritence in all browsers (opinionated).\n */\n\n::before,\n::after {\n  text-decoration: inherit;\n  /* 1 */\n  vertical-align: inherit;\n  /* 2 */\n}\n\n/**\n * 1. Add border box sizing in all browsers (opinionated).\n * 2. Add the default cursor in all browsers (opinionated).\n * 3. Prevent font size adjustments after orientation changes in IE and iOS.\n */\n\nhtml {\n  box-sizing: border-box;\n  /* 1 */\n  cursor: default;\n  /* 2 */\n  -ms-text-size-adjust: 100%;\n  /* 3 */\n  -webkit-text-size-adjust: 100%;\n  /* 3 */\n}\n\n/* Sections (https://html.spec.whatwg.org/multipage/semantics.html#sections)\n   ========================================================================== */\n\n/**\n * Add the correct display in IE 9-.\n */\n\narticle,\naside,\nfooter,\nheader,\nnav,\nsection {\n  display: block;\n}\n\n/**\n * Remove the margin in all browsers (opinionated).\n */\n\nbody {\n  margin: 0;\n}\n\n/**\n * Correct the font size and margin on `h1` elements within `section` and\n * `article` contexts in Chrome, Firefox, and Safari.\n */\n\nh1 {\n  font-size: 2em;\n  margin: .67em 0;\n}\n\n/* Grouping content (https://html.spec.whatwg.org/multipage/semantics.html#grouping-content)\n   ========================================================================== */\n\n/**\n * Add the correct display in IE 9-.\n * 1. Add the correct display in IE.\n */\n\nfigcaption,\nfigure,\nmain {\n  /* 1 */\n  display: block;\n}\n\n/**\n * Add the correct margin in IE 8.\n */\n\nfigure {\n  margin: 1em 40px;\n}\n\n/**\n * 1. Add the correct box sizing in Firefox.\n * 2. Show the overflow in Edge and IE.\n */\n\nhr {\n  box-sizing: content-box;\n  /* 1 */\n  height: 0;\n  /* 1 */\n  overflow: visible;\n  /* 2 */\n}\n\n/**\n * Remove the list style on navigation lists in all browsers (opinionated).\n */\n\nnav ol,\nnav ul {\n  list-style: none;\n}\n\n/**\n * 1. Correct the inheritance and scaling of font size in all browsers.\n * 2. Correct the odd `em` font sizing in all browsers.\n */\n\npre {\n  font-family: monospace, monospace;\n  /* 1 */\n  font-size: 1em;\n  /* 2 */\n}\n\n/* Text-level semantics (https://html.spec.whatwg.org/multipage/semantics.html#text-level-semantics)\n   ========================================================================== */\n\n/**\n * 1. Remove the gray background on active links in IE 10.\n * 2. Remove gaps in links underline in iOS 8+ and Safari 8+.\n */\n\na {\n  background-color: transparent;\n  /* 1 */\n  -webkit-text-decoration-skip: objects;\n  /* 2 */\n}\n\n/**\n * 1. Remove the bottom border in Firefox 39-.\n * 2. Add the correct text decoration in Chrome, Edge, IE, Opera, and Safari.\n */\n\nabbr[title] {\n  border-bottom: none;\n  /* 1 */\n  text-decoration: underline;\n  /* 2 */\n  text-decoration: underline dotted;\n  /* 2 */\n}\n\n/**\n * Prevent the duplicate application of `bolder` by the next rule in Safari 6.\n */\n\nb,\nstrong {\n  font-weight: inherit;\n}\n\n/**\n * Add the correct font weight in Chrome, Edge, and Safari.\n */\n\nb,\nstrong {\n  font-weight: bolder;\n}\n\n/**\n * 1. Correct the inheritance and scaling of font size in all browsers.\n * 2. Correct the odd `em` font sizing in all browsers.\n */\n\ncode,\nkbd,\nsamp {\n  font-family: monospace, monospace;\n  /* 1 */\n  font-size: 1em;\n  /* 2 */\n}\n\n/**\n * Add the correct font style in Android 4.3-.\n */\n\ndfn {\n  font-style: italic;\n}\n\n/**\n * Add the correct background and color in IE 9-.\n */\n\nmark {\n  background-color: #ffff00;\n  color: #000000;\n}\n\n/**\n * Add the correct font size in all browsers.\n */\n\nsmall {\n  font-size: 80%;\n}\n\n/**\n * Prevent `sub` and `sup` elements from affecting the line height in\n * all browsers.\n */\n\nsub,\nsup {\n  font-size: 75%;\n  line-height: 0;\n  position: relative;\n  vertical-align: baseline;\n}\n\nsub {\n  bottom: -.25em;\n}\n\nsup {\n  top: -.5em;\n}\n\n/*\n * Remove the text shadow on text selections (opinionated).\n * 1. Restore the coloring undone by defining the text shadow (opinionated).\n */\n\n::-moz-selection {\n  background-color: #b3d4fc;\n  /* 1 */\n  color: #000000;\n  /* 1 */\n  text-shadow: none;\n}\n\n::selection {\n  background-color: #b3d4fc;\n  /* 1 */\n  color: #000000;\n  /* 1 */\n  text-shadow: none;\n}\n\n/* Embedded content (https://html.spec.whatwg.org/multipage/embedded-content.html#embedded-content)\n   ========================================================================== */\n\n/*\n * Change the alignment on media elements in all browers (opinionated).\n */\n\naudio,\ncanvas,\niframe,\nimg,\nsvg,\nvideo {\n  vertical-align: middle;\n}\n\n/**\n * Add the correct display in IE 9-.\n */\n\naudio,\nvideo {\n  display: inline-block;\n}\n\n/**\n * Add the correct display in iOS 4-7.\n */\n\naudio:not([controls]) {\n  display: none;\n  height: 0;\n}\n\n/**\n * Remove the border on images inside links in IE 10-.\n */\n\nimg {\n  border-style: none;\n}\n\n/**\n * Change the fill color to match the text color in all browsers (opinionated).\n */\n\nsvg {\n  fill: currentColor;\n}\n\n/**\n * Hide the overflow in IE.\n */\n\nsvg:not(:root) {\n  overflow: hidden;\n}\n\n/* Tabular data (https://html.spec.whatwg.org/multipage/tables.html#tables)\n   ========================================================================== */\n\n/**\n * Collapse border spacing\n */\n\ntable {\n  border-collapse: collapse;\n}\n\n/* Forms (https://html.spec.whatwg.org/multipage/forms.html#forms)\n   ========================================================================== */\n\n/**\n * Remove the margin in Firefox and Safari.\n */\n\nbutton,\ninput,\noptgroup,\nselect,\ntextarea {\n  margin: 0;\n}\n\n/**\n * Inherit styling in all browsers (opinionated).\n */\n\nbutton,\ninput,\nselect,\ntextarea {\n  background-color: transparent;\n  color: inherit;\n  font-size: inherit;\n  line-height: inherit;\n}\n\n/**\n * Show the overflow in IE.\n * 1. Show the overflow in Edge.\n */\n\nbutton,\ninput {\n  /* 1 */\n  overflow: visible;\n}\n\n/**\n * Remove the inheritance of text transform in Edge, Firefox, and IE.\n * 1. Remove the inheritance of text transform in Firefox.\n */\n\nbutton,\nselect {\n  /* 1 */\n  text-transform: none;\n}\n\n/**\n * 1. Prevent a WebKit bug where (2) destroys native `audio` and `video`\n *    controls in Android 4.\n * 2. Correct the inability to style clickable types in iOS and Safari.\n */\n\nbutton,\nhtml [type=\"button\"],\n[type=\"reset\"],\n[type=\"submit\"] {\n  -webkit-appearance: button;\n  /* 2 */\n}\n\n/**\n * Remove the inner border and padding in Firefox.\n */\n\nbutton::-moz-focus-inner,\n[type=\"button\"]::-moz-focus-inner,\n[type=\"reset\"]::-moz-focus-inner,\n[type=\"submit\"]::-moz-focus-inner {\n  border-style: none;\n  padding: 0;\n}\n\n/**\n * Restore the focus styles unset by the previous rule.\n */\n\nbutton:-moz-focusring,\n[type=\"button\"]:-moz-focusring,\n[type=\"reset\"]:-moz-focusring,\n[type=\"submit\"]:-moz-focusring {\n  outline: 1px dotted ButtonText;\n}\n\n/**\n * 1. Correct the text wrapping in Edge and IE.\n * 2. Correct the color inheritance from `fieldset` elements in IE.\n * 3. Remove the padding so developers are not caught out when they zero out\n *    `fieldset` elements in all browsers.\n */\n\nlegend {\n  box-sizing: border-box;\n  /* 1 */\n  color: inherit;\n  /* 2 */\n  display: table;\n  /* 1 */\n  max-width: 100%;\n  /* 1 */\n  padding: 0;\n  /* 3 */\n  white-space: normal;\n  /* 1 */\n}\n\n/**\n * 1. Add the correct display in IE 9-.\n * 2. Add the correct vertical alignment in Chrome, Firefox, and Opera.\n */\n\nprogress {\n  display: inline-block;\n  /* 1 */\n  vertical-align: baseline;\n  /* 2 */\n}\n\n/**\n * 1. Remove the default vertical scrollbar in IE.\n * 2. Change the resize direction on textareas in all browsers (opinionated).\n */\n\ntextarea {\n  overflow: auto;\n  /* 1 */\n  resize: vertical;\n  /* 2 */\n}\n\n/**\n * 1. Add the correct box sizing in IE 10-.\n * 2. Remove the padding in IE 10-.\n */\n\n[type=\"checkbox\"],\n[type=\"radio\"] {\n  box-sizing: border-box;\n  /* 1 */\n  padding: 0;\n  /* 2 */\n}\n\n/**\n * Correct the cursor style of increment and decrement buttons in Chrome.\n */\n\n[type=\"number\"]::-webkit-inner-spin-button,\n[type=\"number\"]::-webkit-outer-spin-button {\n  height: auto;\n}\n\n/**\n * 1. Correct the odd appearance in Chrome and Safari.\n * 2. Correct the outline style in Safari.\n */\n\n[type=\"search\"] {\n  -webkit-appearance: textfield;\n  /* 1 */\n  outline-offset: -2px;\n  /* 2 */\n}\n\n/**\n * Remove the inner padding and cancel buttons in Chrome and Safari on macOS.\n */\n\n[type=\"search\"]::-webkit-search-cancel-button,\n[type=\"search\"]::-webkit-search-decoration {\n  -webkit-appearance: none;\n}\n\n/**\n * 1. Correct the inability to style clickable types in iOS and Safari.\n * 2. Change font properties to `inherit` in Safari.\n */\n\n::-webkit-file-upload-button {\n  -webkit-appearance: button;\n  /* 1 */\n  font: inherit;\n  /* 2 */\n}\n\n/* Interactive elements (https://html.spec.whatwg.org/multipage/forms.html#interactive-elements)\n   ========================================================================== */\n\n/*\n * Add the correct display in IE 9-.\n * 1. Add the correct display in Edge, IE, and Firefox.\n */\n\ndetails,\nmenu {\n  display: block;\n}\n\n/*\n * Add the correct display in all browsers.\n */\n\nsummary {\n  display: list-item;\n}\n\n/* Scripting (https://html.spec.whatwg.org/multipage/scripting.html#scripting-3)\n   ========================================================================== */\n\n/**\n * Add the correct display in IE 9-.\n */\n\ncanvas {\n  display: inline-block;\n}\n\n/**\n * Add the correct display in IE.\n */\n\ntemplate {\n  display: none;\n}\n\n/* User interaction (https://html.spec.whatwg.org/multipage/interaction.html#editing)\n   ========================================================================== */\n\n/*\n * Remove the tapping delay on clickable elements (opinionated).\n * 1. Remove the tapping delay in IE 10.\n */\n\na,\narea,\nbutton,\ninput,\nlabel,\nselect,\nsummary,\ntextarea,\n[tabindex] {\n  -ms-touch-action: manipulation;\n  /* 1 */\n  touch-action: manipulation;\n}\n\n/**\n * Add the correct display in IE 10-.\n */\n\n[hidden] {\n  display: none;\n}\n\n/* ARIA (https://w3c.github.io/html-aria/)\n   ========================================================================== */\n\n/**\n * Change the cursor on busy elements (opinionated).\n */\n\n[aria-busy=\"true\"] {\n  cursor: progress;\n}\n\n/*\n * Change the cursor on control elements (opinionated).\n */\n\n[aria-controls] {\n  cursor: pointer;\n}\n\n/*\n * Change the display on visually hidden accessible elements (opinionated).\n */\n\n[aria-hidden=\"false\"][hidden]:not(:focus) {\n  clip: rect(0, 0, 0, 0);\n  display: inherit;\n  position: absolute;\n}\n\n/*\n * Change the cursor on disabled, not-editable, or otherwise\n * inoperable elements (opinionated).\n */\n\n[aria-disabled] {\n  cursor: default;\n}\n\n/* eslint-disable selector-pseudo-element-colon-notation */\n\n/**\n * For modern browsers\n * 1. The space content is one way to avoid an Opera bug when the\n *    contenteditable attribute is included anywhere else in the document.\n *    Otherwise it causes space to appear at the top and bottom of elements\n *    that are clearfixed.\n * 2. The use of `table` rather than `block` is only necessary if using\n *    `:before` to contain the top-margins of child elements.\n */\n\n:root {\n  --vh-offset: 0px;\n}\n\n.cf:before,\n.cf:after {\n  content: \" \";\n  /* 1 */\n  display: table;\n  /* 2 */\n}\n\n.cf:after {\n  clear: both;\n}\n\n/**\n * For IE 6/7 only\n * Include this rule to trigger hasLayout and contain floats.\n */\n\n.cf {\n  *zoom: 1;\n}\n\n/* Hide the text. */\n\n.hide-text {\n  display: block;\n  overflow: hidden;\n  text-indent: 100%;\n  white-space: nowrap;\n}\n\nimg {\n  max-height: 100%;\n  max-width: 100%;\n}\n\ntextarea,\ninput,\nbutton,\n.mobile-nav-link {\n  outline: none;\n}\n\n.container {\n  margin: 0 auto;\n  padding: 0;\n}\n\nbody.front {\n  background: #262626;\n  overflow: scroll;\n}\n\nbody.front.no-scroll {\n  overflow: hidden;\n}\n\nbody.front .fullscreen {\n  background-color: #262626;\n}\n\n@media screen and (max-width: 414px) {\n  body.front .fullscreen .fullscreen-wrapper {\n    overflow: hidden;\n  }\n}\n\nbody.front .fullscreen .fullscreen-wrapper .wrap.container {\n  max-width: 100%;\n  width: 100%;\n}\n\nbody.front .fullscreen .fullscreen-wrapper .wrap.container > .content {\n  margin: 0;\n}\n\nbody.front #body-overlay {\n  background: rgba(255, 255, 255, 0.5);\n  bottom: 0;\n  left: 0;\n  position: fixed;\n  right: 0;\n  top: 0;\n  z-index: -300;\n}\n\nbody.front .main {\n  margin: 0 auto;\n  max-width: 600px;\n}\n\nbody.front .main .alignleft {\n  margin-bottom: 0.55em;\n  margin-right: 1.4em;\n}\n\nbody.front .main .alignright {\n  margin-bottom: 0.55em;\n  margin-left: 1.4em;\n}\n\n@media screen and (max-width: 414px) {\n  body.front .main {\n    width: 90%;\n  }\n}\n\nbody.front.page-template-template-projects .main,\nbody.front.single-projects .main {\n  display: flex;\n  flex-direction: column;\n  justify-content: flex-start;\n  align-items: center;\n  margin: 0 auto;\n  max-width: 600px;\n}\n\nbody.front.page-template-template-projects .main > *,\nbody.front.single-projects .main > * {\n  transition-duration: .25s;\n  transition-property: opacity;\n}\n\nbody.front.page-template-template-projects .main.centered-image > *:not(.centered-image-transition-duration),\nbody.front.single-projects .main.centered-image > *:not(.centered-image-transition-duration) {\n  opacity: 0;\n}\n\nbody.front.page-template-template-projects .main p,\nbody.front.single-projects .main p {\n  margin-top: 0;\n}\n\nbody.front.centered-image #back-to-top {\n  opacity: 0;\n}\n\n/** Search form */\n\n/**\n * WordPress Generated Classes\n * @see http://codex.wordpress.org/CSS#WordPress_Generated_Classes\n */\n\n/** Media alignment */\n\n.alignnone {\n  margin-left: 0;\n  margin-right: 0;\n  max-width: 100%;\n  height: auto;\n}\n\n.aligncenter {\n  display: block;\n  margin: 0.5rem auto;\n  height: auto;\n}\n\n.alignleft,\n.alignright {\n  margin-bottom: 0.5rem;\n  height: auto;\n}\n\n@media (min-width: 30rem) {\n  .alignleft {\n    float: left;\n    margin-right: 0.5rem;\n  }\n\n  .alignright {\n    float: right;\n    margin-left: 0.5rem;\n  }\n}\n\n/** Captions */\n\n/** Text meant only for screen readers */\n\n.screen-reader-text {\n  position: absolute;\n  width: 1px;\n  height: 1px;\n  padding: 0;\n  margin: -1px;\n  overflow: hidden;\n  clip: rect(0, 0, 0, 0);\n  border: 0;\n  color: #000;\n  background: #fff;\n}\n\n.modal {\n  max-width: 30000px;\n  width: 100vw;\n}\n\n.modal .modal-dialog {\n  max-width: 30000px;\n  height: 100vh;\n  width: 100vw;\n}\n\n.modal .modal-dialog .modal-content {\n  max-width: 100%;\n  height: 100vh;\n  top: 0 !important;\n  left: 0 !important;\n  transform: translate(0, 0) !important;\n}\n\n.modal .modal-dialog .modal-content .modal-body {\n  position: absolute;\n  width: 100%;\n  height: 100%;\n  display: flex;\n  flex-direction: column;\n  justify-content: center;\n  padding-top: 39px;\n}\n\n.modal .modal-dialog .modal-content .modal-body .video-embed,\n.modal .modal-dialog .modal-content .modal-body .video-embed * {\n  max-height: calc(100vh - 27px);\n}\n\n.modal .modal-dialog .modal-content .modal-body button {\n  background: url(\"/app/themes/stone-roberts-anew/dist/images/closeout-icon-lightgrey.png\") no-repeat center center/contain transparent !important;\n  height: 17px;\n  padding: 0;\n  width: 17px;\n  text-align: left;\n  position: absolute;\n  left: 3px;\n  top: 10px;\n  z-index: 200;\n}\n\n.modal .modal-dialog .modal-content .modal-body iframe {\n  display: block;\n  margin: 0 auto;\n}\n\n.nav-primary {\n  background: #262626;\n  transform: translateY(-120vh);\n  position: fixed;\n  z-index: 19;\n  height: 100vh;\n  width: 100vw;\n  margin: 0 auto;\n  padding: 24px 13vh;\n  max-height: 100vh;\n  max-width: none;\n  overflow: scroll;\n  top: 0;\n  transition-duration: .25s;\n  transition-property: transform;\n}\n\n@media screen and (max-width: 414px) {\n  .nav-primary {\n    padding: 10vh;\n  }\n}\n\n@media screen and (min-width: 415px) and (max-width: 767px) {\n  .nav-primary {\n    padding: 6vh 18vh;\n  }\n}\n\n@media screen and (min-width: 768px) and (max-width: 1023px) {\n  .nav-primary {\n    padding: 24px 11vw;\n  }\n}\n\n.custom-nav {\n  display: grid;\n  grid-template-columns: 1fr 1fr 1fr;\n  grid-gap: 3vw;\n  margin: 0 auto;\n  max-width: 1200px;\n  padding: 0;\n}\n\n@media screen and (max-width: 414px) {\n  .custom-nav {\n    grid-template-columns: 1fr;\n  }\n}\n\n@media screen and (min-width: 415px) and (max-width: 767px) {\n  .custom-nav {\n    grid-template-columns: 1fr 1fr;\n  }\n}\n\n.custom-nav .list-item {\n  display: block;\n  height: auto;\n  margin: 0 0 1.8em;\n  max-height: none;\n  max-width: none;\n  width: auto;\n}\n\n.custom-nav .list-item:hover .nav-item-image,\n.custom-nav .list-item:active .nav-item-image {\n  transform: scale(1.01);\n  transition-duration: .25s;\n  transition-property: transform;\n}\n\n.custom-nav .list-item .nav-item {\n  display: flex;\n  flex-direction: column;\n  height: 100%;\n}\n\n.custom-nav .list-item .nav-item-header {\n  display: flex;\n  flex-direction: column;\n  flex-grow: 0;\n  font-size: 18px;\n  justify-content: flex-end;\n  margin-bottom: 13px;\n  text-transform: uppercase;\n  letter-spacing: 1.1px;\n}\n\n.custom-nav .list-item .nav-item-image {\n  background-size: cover;\n  display: block;\n  flex-grow: 0;\n  height: unset;\n  max-width: 100%;\n  padding-bottom: 100%;\n  width: 100%;\n}\n\n.custom-nav .list-item .nav-item-short-text {\n  display: block;\n  flex-grow: 0;\n  margin-top: 0.4em;\n}\n\nbody.home .custom-nav {\n  width: 90%;\n}\n\n.audio {\n  margin-top: 73px;\n  padding: 0 23px;\n  position: relative;\n}\n\n.audio .audio-piece .duration,\n.audio .audio-piece .timer {\n  background: rgba(0, 0, 0, 0.5);\n  bottom: 0;\n  color: #fff;\n  padding: .5em;\n  position: absolute;\n}\n\n.audio .audio-piece .duration.timer,\n.audio .audio-piece .timer.timer {\n  left: -2em;\n}\n\n.audio .audio-piece .duration.duration,\n.audio .audio-piece .timer.duration {\n  right: -2em;\n}\n\n.audio .audio-piece button {\n  background-color: gray;\n  border: 0 solid;\n  border-radius: .1em;\n  padding: 1.2em;\n  color: #fff;\n}\n\n.audio .audio-piece .span-value-wrap {\n  height: 50px;\n  position: relative;\n  width: 100%;\n}\n\n.audio .audio-piece .span-value-wrap .span-value {\n  background-color: #646464;\n  border-radius: 0;\n  display: block;\n  height: 100%;\n  overflow: visible;\n  width: 0;\n}\n\n.audio .audio-piece .span-value-wrap .span-value .span-value-jump {\n  box-sizing: content-box;\n  height: 100%;\n  width: 0;\n}\n\n.audio .audio-piece .span-value-wrap .span-value .span-value-jump div {\n  height: 100%;\n  width: 100%;\n}\n\n.audio .audio-piece .span-value-wrap:hover .span-value-jump div {\n  background-color: rgba(79, 105, 61, 0.5);\n}\n\n.video {\n  position: relative;\n  width: 100%;\n}\n\n.video .wrap {\n  overflow: hidden;\n  position: relative;\n}\n\n.video .wrap .video-play-screenshot {\n  overflow: hidden;\n  display: block;\n  height: 100%;\n  width: 100%;\n  position: absolute;\n  top: 0;\n  left: 0;\n  background-size: cover;\n  background-position: center;\n  z-index: 1;\n}\n\n.video .caption {\n  margin-top: 10px;\n}\n\n.video .caption p {\n  color: #bcbcbc;\n  font-size: 15px;\n  line-height: 19px;\n}\n\n.video .play-button {\n  background: url(\"/app/themes/stone-roberts-anew/dist/images/play.svg\") no-repeat 50%/28% transparent;\n  border: none;\n  display: block;\n  position: absolute;\n  width: 100%;\n  height: 100%;\n  top: 0;\n  left: 0;\n  z-index: 2;\n}\n\n@media screen and (max-width: 767px) {\n  .video {\n    background-size: 22%;\n  }\n}\n\n@media screen and (min-width: 768px) {\n  .video .play-button {\n    background-size: 20%;\n  }\n\n  .video .play-button:hover {\n    cursor: pointer;\n  }\n}\n\n.video.playing .play-button,\n.video.playing .video-play-screenshot {\n  display: none;\n}\n\n.carousel-wrap {\n  overflow: hidden;\n  position: relative;\n}\n\n.carousel-wrap .carousel {\n  width: 100%;\n}\n\n.carousel-wrap .carousel .carousel-cell {\n  max-width: 100vw;\n  width: 100%;\n}\n\n.carousel-wrap .carousel .carousel-cell figure {\n  margin-bottom: 0;\n  width: 100% !important;\n}\n\n.carousel-wrap .carousel .carousel-cell figure img {\n  width: 100%;\n}\n\n.carousel-wrap .carousel .carousel-cell .text {\n  background: rgba(0, 0, 0, 0.5);\n  bottom: 0;\n  color: #fff;\n  margin: 0;\n  padding: 0;\n  position: absolute;\n  text-align: left;\n  width: 100%;\n}\n\n.carousel-wrap .carousel .flickity-prev-next-button {\n  display: none;\n  width: 55px;\n  height: 77px;\n}\n\n@media screen and (min-width: 768px) {\n  .carousel-wrap .carousel .flickity-page-dots {\n    bottom: 45px;\n  }\n\n  .carousel-wrap .carousel .flickity-page-dots .dot {\n    height: 13px;\n    width: 13px;\n    background: #fff;\n  }\n}\n\n@media screen and (min-width: 1024px) {\n  .carousel-wrap .carousel .flickity-page-dots {\n    bottom: 59px;\n  }\n\n  .carousel-wrap .carousel .flickity-prev-next-button {\n    display: block;\n  }\n}\n\n.carousel-wrap .carousel .flickity-prev-next-button {\n  background: transparent;\n  display: block;\n  top: 72%;\n}\n\n.carousel-wrap .carousel .flickity-prev-next-button path {\n  fill: #fff;\n  opacity: .4;\n}\n\n.carousel-wrap .carousel .flickity-prev-next-button {\n  top: 73.2%;\n}\n\n.carousel-wrap .carousel .flickity-prev-next-button.previous {\n  left: 31px;\n}\n\n.carousel-wrap .carousel .flickity-prev-next-button.next {\n  right: 20px;\n}\n\n.center-scroll-arrows {\n  position: fixed;\n  left: unset;\n  right: 22px;\n  top: 18px;\n  height: 100px;\n  display: none;\n  flex-direction: column;\n  justify-content: space-between;\n  z-index: 50;\n}\n\n.center-scroll-arrows div {\n  background: url(\"/app/themes/stone-roberts-anew/dist/images/arrow.png\") no-repeat center/contain transparent;\n  height: 32px;\n  width: 30px;\n}\n\n.center-scroll-arrows div.next {\n  transform: rotate(180deg);\n}\n\n.center-scroll-arrows div:hover {\n  cursor: pointer;\n}\n\n.center-scroll-arrows.hide-next .next {\n  opacity: .15;\n  visibility: visible;\n}\n\n.center-scroll-arrows.hide-previous .prev {\n  opacity: .15;\n  visibility: visible;\n}\n\n.template-projects .center-scroll-arrows {\n  display: flex;\n}\n\n#thumbnails-nav {\n  background-color: rgba(0, 0, 0, 0.9);\n  height: 100vh;\n  left: 0;\n  opacity: 1;\n  overflow: scroll;\n  padding: 0 4vw 8vw;\n  position: fixed;\n  top: 0;\n  transition-duration: .1s;\n  transition-property: transform, opacity;\n  width: 100vw;\n  z-index: 300;\n}\n\n#thumbnails-nav h1 {\n  font-size: 18px;\n  letter-spacing: 3.7px;\n  height: 8vw;\n  width: 100%;\n  text-align: center;\n  margin: 0 0 -2vh 0 !important;\n  display: flex;\n  justify-content: center;\n  align-items: center;\n}\n\n#thumbnails-nav .thumbnails-wrap {\n  align-content: flex-start;\n  display: flex;\n  flex-wrap: wrap;\n  justify-content: center;\n}\n\n#thumbnails-nav .thumbnail-wrap {\n  height: 21vw;\n  padding: 2vh;\n  width: auto;\n}\n\n#thumbnails-nav .thumbnail {\n  height: 100%;\n  width: auto;\n}\n\n#thumbnails-nav .thumbnail:hover {\n  cursor: pointer;\n}\n\n#thumbnails-nav.hide {\n  opacity: 0;\n  transform: translateX(-100vw);\n}\n\n#thumbnail-trigger {\n  height: 20px;\n  left: unset;\n  top: 60px;\n  right: 21px;\n  position: fixed;\n  transition-duration: .1s;\n  transition-property: top;\n  width: 30px;\n  z-index: 301;\n}\n\n#thumbnail-trigger:hover {\n  cursor: pointer;\n}\n\n#thumbnail-trigger > div {\n  background-color: #b3b3b3;\n  float: left;\n  height: 7px;\n  margin: 0 3px 3px 0;\n  width: 7px;\n}\n\nbody:not(.template-projects) #thumbnail-trigger {\n  display: none;\n}\n\n.is-touch #thumbnail-trigger {\n  top: 10px;\n  right: 10px;\n}\n\n.artwork_piece {\n  display: flex;\n  justify-content: center;\n  max-width: 100vw !important;\n  min-width: 100%;\n  padding-top: 55px;\n  position: relative;\n  transition-property: width, height;\n  transition-duration: 0.5s;\n}\n\n@keyframes loadingH {\n  0% {\n    width: 15px;\n  }\n\n  50% {\n    width: 75px;\n    padding: 4px;\n  }\n\n  100% {\n    width: 15px;\n  }\n}\n\n.artwork_piece .line {\n  border-radius: 15px;\n  display: inline-block;\n  height: 15px;\n  background-color: #b3b3b3;\n  width: 100%;\n}\n\n.artwork_piece .loading-image {\n  display: block;\n  position: absolute;\n  top: 50%;\n  width: 100%;\n}\n\n.artwork_piece .loading-image .line {\n  animation: loadingH 1.5s cubic-bezier(0.17, 0.37, 0.43, 0.67) infinite;\n}\n\n.artwork_piece .artwork-title {\n  position: absolute;\n  top: 0;\n  left: 0;\n}\n\n.artwork_piece .image-wrap {\n  display: inline-block;\n  max-height: 100%;\n  max-width: 100%;\n  position: relative;\n  text-align: center;\n  width: 100%;\n}\n\n.artwork_piece .image-wrap .image-space-placeholder {\n  margin: 0 auto;\n  position: relative;\n  transition-duration: 0.5s;\n  width: 100%;\n  z-index: 2;\n}\n\n.artwork_piece .image-wrap .image-space-placeholder .center-image-wrap,\n.artwork_piece .image-wrap .image-space-placeholder .zoomy-wrap {\n  align-items: baseline;\n  display: flex;\n  justify-content: center;\n}\n\n.artwork_piece .image-wrap .image-space-placeholder .main-img {\n  background-color: #363636;\n  flex-grow: 0;\n  flex-shrink: 0;\n  min-height: 125px;\n  position: static;\n  transition-duration: 0.5s;\n}\n\n.artwork_piece .image-wrap .image-space-placeholder .artwork-image-wrap {\n  margin: 0 auto;\n}\n\n.artwork_piece .image-wrap .caption {\n  display: inline-block;\n  margin-right: 1%;\n  width: calc(100% - 158px);\n}\n\n.artwork_piece .image-wrap .artwork-meta {\n  display: flex;\n  position: static;\n  text-align: left;\n  width: 100%;\n}\n\n.artwork_piece .image-wrap .artwork-meta .caption p {\n  margin: 0;\n}\n\n.artwork_piece .image-wrap .artwork-meta .actions {\n  display: block;\n  position: absolute;\n  right: 0;\n  flex-grow: 0;\n  flex-shrink: 0;\n  transition-duration: .5s;\n  z-index: 20;\n}\n\n.artwork_piece .image-wrap .artwork-meta .actions .icon {\n  display: inline-block;\n  height: 34px;\n  margin: 0 10px;\n  width: 30px;\n}\n\n.artwork_piece .image-wrap .artwork-meta .actions .icon:hover {\n  cursor: pointer;\n}\n\n.artwork_piece .image-wrap .artwork-meta .actions .info {\n  background: url(\"/app/themes/stone-roberts-anew/dist/images/artwork-scale.png\") no-repeat center/contain transparent;\n}\n\n.artwork_piece .image-wrap .artwork-meta .actions .zoom {\n  background: url(\"/app/themes/stone-roberts-anew/dist/images/zoom.png\") no-repeat center/contain transparent;\n}\n\n.artwork_piece .image-wrap .artwork-meta .actions .share {\n  background: url(\"/app/themes/stone-roberts-anew/dist/images/share.png\") no-repeat center/contain transparent;\n}\n\n.artwork_piece .image-wrap .piece-comparison {\n  background: #fff;\n  display: flex;\n  left: 0;\n  margin: 0;\n  padding: 0;\n  position: fixed;\n  right: 0;\n  top: 0;\n  transform: translateY(110vh);\n  transition-duration: .5s;\n  z-index: 400;\n  height: 100vh;\n}\n\n.artwork_piece .image-wrap .piece-comparison .piece-comparison-wrap {\n  align-items: center;\n  display: flex;\n  height: 100%;\n  justify-content: center;\n  margin: 0 auto;\n  overflow: hidden;\n  padding: 0;\n  width: 100%;\n}\n\n.artwork_piece .image-wrap .piece-comparison .piece-comparison-wrap.piece-comparison-processed {\n  visibility: visible !important;\n}\n\n.artwork_piece .image-wrap .piece-comparison .piece-comparison-wrap .close {\n  background: url(\"/app/themes/stone-roberts-anew/dist/images/close.png\") no-repeat center/contain transparent;\n  height: 18px;\n  width: 17px;\n}\n\n.artwork_piece .image-wrap .piece-comparison .comparison-image-wrap {\n  align-items: center;\n  box-shadow: -2px 1px 5px 0px #525356;\n  padding: 0;\n  border: 10px solid #383838;\n  flex-direction: column;\n  flex-grow: 0;\n  display: flex;\n  justify-content: flex-end;\n  position: static;\n  margin: 0 0 5%;\n  max-height: 100%;\n  top: 19%;\n  z-index: 1;\n}\n\n.artwork_piece .image-wrap .piece-comparison .comparison-image-wrap .comparison-image {\n  border: 30px solid #fff;\n  flex-shrink: 1;\n  height: auto;\n  max-height: none;\n  max-width: none;\n  width: 100%;\n}\n\n.artwork_piece .image-wrap .piece-comparison .compared-to {\n  height: 100vh;\n  left: 0;\n  max-height: none;\n  max-width: none;\n  object-fit: cover;\n  position: absolute;\n  top: 0;\n  transition-duration: 250ms;\n  transition-property: width, height;\n  width: 100vw;\n}\n\n.artwork_piece .image-wrap .piece-comparison .close {\n  color: #0f0f0f;\n  position: absolute;\n  right: 20px;\n  top: 20px;\n  z-index: 5;\n}\n\n.artwork_piece .image-wrap .piece-comparison .close:hover {\n  cursor: pointer;\n}\n\n.artwork_piece.show-info .piece-comparison {\n  transform: translateY(0vh);\n}\n\n.artwork_piece .zoomy-wrap {\n  height: 100%;\n  position: absolute;\n  top: 0;\n  width: 100%;\n  z-index: 10;\n}\n\n.artwork_piece .zoomy-wrap .zoom-img {\n  background-color: #0f0f0f;\n  position: absolute;\n  max-height: none;\n  max-width: none;\n  padding: 10px;\n  width: 150%;\n  height: auto;\n}\n\n.artwork_piece .zoomy-wrap .mouse-map-wrap {\n  align-items: center;\n  background-color: #333333;\n  background-origin: border-box;\n  background-repeat: no-repeat;\n  background-size: 100%;\n  display: flex;\n  height: 100%;\n  justify-content: center;\n  overflow: hidden;\n  opacity: 0;\n  position: relative;\n  transition-duration: 0.5s;\n  transition-property: transform, background-size, width, height;\n  width: 100%;\n}\n\n.artwork_piece .zoomy-wrap .mouse-map-wrap[zoom-enabled]:hover {\n  cursor: zoom-in;\n}\n\n.artwork_piece .zoomy-wrap .mouse-map-wrap .mouse-map {\n  opacity: .4;\n  height: 100%;\n  width: 100%;\n  margin: 0 auto;\n  transition-duration: 0.5s;\n  transition-property: transform, background-size, width, height;\n}\n\n.artwork_piece.loaded .loading-image {\n  display: none;\n}\n\n.artwork_piece.zoomed .mouse-map-wrap {\n  opacity: 1;\n}\n\n.artwork_piece.zoomed .mouse-map-wrap:hover {\n  cursor: zoom-out !important;\n}\n\n.artwork_piece.zoomed .main-img {\n  visibility: hidden;\n}\n\n.artwork_piece.centered .image-space-placeholder {\n  z-index: 50;\n}\n\n.artwork_piece.centered .center-image-wrap,\n.artwork_piece.centered .zoomy-wrap {\n  align-items: center !important;\n  bottom: 0;\n  height: auto !important;\n  position: fixed;\n  left: 0;\n  right: 0;\n  top: 0;\n}\n\n.artwork_piece.centered .artwork-meta {\n  display: none;\n}\n\n.artwork_piece.centered.width .image-space-placeholder,\n.artwork_piece.centered.width .image-ratio-holder {\n  width: 100%;\n}\n\n.artwork_piece.centered.height .image-wrap,\n.artwork_piece.centered.height .image-space-placeholder,\n.artwork_piece.centered.height .image-ratio-holder {\n  width: 100%;\n}\n\n.artwork_piece:not(.zoomed) .artwork-meta:hover {\n  bottom: 0;\n}\n\n.artwork_piece:not(.zoomed) .artwork-meta:hover .caption p {\n  opacity: 1;\n}\n\n.artwork_piece.centered-image-transition-duration .main-img {\n  transition-duration: 0.5s;\n}\n\n.artwork_piece.zoomed-delay .mouse-map-wrap {\n  opacity: 1 !important;\n}\n\n.artwork_piece .actions .zoom {\n  display: none !important;\n}\n\n.artwork_piece[zoom-enabled] .actions .zoom {\n  display: inline-block !important;\n}\n\nbody.artworks-processed .artwork_piece {\n  width: 100vw;\n}\n\nbody.centered-image .main > *,\nbody.centered-image .banner .brand {\n  opacity: 0;\n}\n\nbody.centered-image .main > *.centered,\nbody.centered-image .banner .brand.centered {\n  opacity: 1 !important;\n}\n\nbody.centered-image .main > *.centered h3,\nbody.centered-image .banner .brand.centered h3 {\n  opacity: 0;\n}\n\nbody.centered-image #thumbnail-trigger,\nbody.centered-image .hamburger,\nbody.centered-image .center-scroll-arrows,\nbody.centered-image .fullscreen-toggle {\n  opacity: .1;\n  transition-duration: .25s;\n}\n\nbody.centered-image #thumbnail-trigger:hover,\nbody.centered-image .hamburger:hover,\nbody.centered-image .center-scroll-arrows:hover,\nbody.centered-image .fullscreen-toggle:hover {\n  opacity: 1;\n}\n\nbody.is-touch .artwork_piece .main-img {\n  max-width: 100vw;\n  max-height: none !important;\n  position: static !important;\n}\n\nbody.is-touch .artwork_piece .artwork-meta {\n  padding: 1.2em;\n}\n\nbody.is-touch .artwork_piece.width .main-img {\n  height: auto;\n  width: 100vw;\n}\n\nbody.is-touch .artwork_piece.height .main-img {\n  /* If you need to support browser without CSS var support */\n  height: 100vh;\n  /* enable vh fix */\n  height: calc(100vh - var(--vh-offset));\n  width: auto;\n}\n\nbody.is-touch.zoomed {\n  overflow: hidden;\n}\n\nbody.is-touch .artwork-title {\n  left: 5%;\n}\n\nbody.viewport-resizing .artwork_piece {\n  max-width: 100% !important;\n}\n\nbody.orientation-landscape.zoomed .artwork-meta {\n  z-index: 0;\n}\n\n@media screen and (max-width: 630px) {\n  body .artwork_piece .main-img {\n    max-width: 100vw;\n    max-height: none !important;\n    position: static !important;\n  }\n\n  body .artwork_piece .artwork-meta {\n    padding: 1.2em;\n  }\n\n  body .artwork_piece.width .main-img {\n    height: auto;\n    width: 100vw;\n  }\n\n  body .artwork_piece.height .main-img {\n    /* If you need to support browser without CSS var support */\n    height: 100vh;\n    /* enable vh fix */\n    height: calc(100vh - var(--vh-offset));\n    width: auto;\n  }\n}\n\n@media screen and (min-width: 768px) and (max-width: 100000px) {\n  body.template-projects header.banner {\n    margin-bottom: 121px;\n  }\n}\n\nbody.template-projects .page-header {\n  display: none;\n}\n\n.dev-share-buttons {\n  flex-direction: row;\n  justify-content: center;\n  align-items: center;\n  position: absolute;\n}\n\n.dev-share-buttons a {\n  background: none;\n  font-size: 32px;\n  display: inline-block;\n  padding: 10px;\n  margin: 32px 5px 0;\n}\n\n.dev-share-buttons a:hover {\n  background: none;\n}\n\n.dev-share-buttons svg {\n  color: #b3b3b3;\n}\n\n.dev-share-buttons .link-input-wrap {\n  display: flex;\n  justify-content: center;\n  left: 0;\n  position: absolute;\n  width: 100%;\n  top: 35%;\n}\n\n.dev-share-buttons .link-input-wrap input {\n  width: 50%;\n}\n\n.dev-share-buttons .close {\n  background: url(\"/app/themes/stone-roberts-anew/dist/images/close.png\") no-repeat center/contain transparent;\n  height: 18px;\n  width: 17px;\n}\n\n.dev-share-buttons .close svg {\n  display: none;\n}\n\n.body_text p:last-child {\n  margin-bottom: 0;\n}\n\n#splash-modal {\n  display: block;\n  background-color: #262626;\n  background-size: cover;\n  background-position: center;\n  height: 100vh;\n  left: 0;\n  opacity: 0;\n  position: fixed;\n  top: 0;\n  transition-duration: .25s;\n  transition-property: opacity;\n  width: 100vw;\n  z-index: -1;\n}\n\n#splash-modal:hover {\n  cursor: pointer;\n}\n\n.show-splash #splash-modal {\n  opacity: 1;\n  z-index: 400;\n}\n\n.show-splash-transition #splash-modal {\n  z-index: 400;\n}\n\nheader.banner {\n  margin-bottom: 70px;\n}\n\n@media screen and (min-width: 0px) and (max-width: 767px) {\n  header.banner {\n    margin-bottom: 0;\n  }\n}\n\nheader.banner .container {\n  display: flex;\n  justify-content: center;\n  overflow: auto;\n}\n\nheader.banner .container .brand {\n  background-color: #262626;\n  display: block;\n  height: auto;\n  line-height: 1em;\n  margin: 0 auto;\n  max-width: 100%;\n  text-align: center;\n  padding: 31px 0 0;\n  font-size: 30px;\n  font-weight: bold;\n  position: static;\n  top: 0;\n  left: 0;\n  width: 399px;\n}\n\n@media screen and (min-width: 0px) and (max-width: 767px) {\n  header.banner .container .brand {\n    width: calc( 100% - 131px);\n    margin: 84px 0 69px;\n    padding: 0;\n  }\n}\n\nheader.banner .container .brand span {\n  display: block;\n  background: url(\"/app/themes/stone-roberts-anew/dist/images/logo.png\") no-repeat center/contain transparent;\n  height: 88px;\n}\n\nheader.banner .container .nav-primary {\n  z-index: 300;\n}\n\nheader.banner .container .nav-primary .nav {\n  padding: 0;\n}\n\nheader.banner .container .nav-primary .nav li {\n  display: inline-block;\n  list-style-type: none;\n  margin: 0 .3em;\n}\n\nheader.banner .fullscreen-toggle {\n  background-image: url(\"/app/themes/stone-roberts-anew/dist/images/fullscreen-in.png\") !important;\n  left: 22px;\n  right: unset;\n  top: 26px;\n  width: 33px !important;\n  z-index: 301;\n}\n\n.hamburger {\n  z-index: 307 !important;\n  top: 57px;\n  left: 9px;\n}\n\n.home .hamburger,\n.home .nav-primary {\n  display: none;\n}\n\n.fullscreen:fullscreen .fullscreen-toggle {\n  background-image: url(\"/app/themes/stone-roberts-anew/dist/images/fullscreen-out.png\") !important;\n  display: block !important;\n}\n\n.no-fullscreen .hamburger {\n  left: 1px;\n  top: -5px;\n}\n\nfooter.content-info {\n  padding: 30px 0;\n}\n\nbody.home .main {\n  max-width: unset;\n  width: 100vw;\n}\n\n.post-main-content figure {\n  display: block;\n  margin-left: auto;\n  margin-right: auto;\n}\n\nhtml {\n  background: transparent;\n}\n\nbody#tinymce {\n  margin: 12px !important;\n}\n\nbody.front {\n  color: #fff;\n  font-family: \"Whitney SSm A\", \"Whitney SSm B\";\n  font-weight: 400;\n  font-style: normal;\n  line-height: 23px;\n}\n\nbody.front a {\n  color: #fff;\n  text-decoration: none;\n}\n\nbody.front .fullscreen {\n  background: #262626;\n}\n\nbody.front .fullscreen .fullscreen-modal {\n  background-color: rgba(0, 0, 0, 0.8);\n  z-index: 400;\n}\n\nbody.front .fullscreen .main > * {\n  margin-bottom: 33px;\n}\n\nbody.front .fullscreen .main .page-header {\n  margin-top: 40px;\n  margin-bottom: 60px;\n}\n\nbody.front .fullscreen .main .page-header h1 {\n  font-size: 18px;\n  letter-spacing: 3.7px;\n}\n\nbody.front .fullscreen .main h1,\nbody.front .fullscreen .main h2,\nbody.front .fullscreen .main h3,\nbody.front .fullscreen .main h4,\nbody.front .fullscreen .main h5 {\n  font-weight: 100;\n  font-size: 14px;\n  letter-spacing: 0.21em;\n  text-transform: uppercase;\n}\n\nbody.front .fullscreen .main .artwork_piece .artwork-meta {\n  margin-top: 10px;\n}\n\nbody.front .fullscreen .main .artwork_piece .artwork-meta .caption p {\n  color: #bcbcbc;\n  font-size: 15px;\n  line-height: 19px;\n}\n\n","@import \"common/variables\";\n\n/** Import everything from autoload */\n;\n\n/**\n * Import npm dependencies\n *\n * Prefix your imports with `~` to grab from node_modules/\n * @see https://github.com/webpack-contrib/sass-loader#imports\n */\n// @import \"~some-node-module\";\n\n/** Import theme styles */\n@import url('https://cloud.typography.com/7063492/6582372/css/fonts.css');\n@import \"~sanitize.css\";\n@import \"common/global\";\n@import \"components/buttons\";\n@import \"components/comments\";\n@import \"components/forms\";\n@import \"components/wp-classes\";\n@import \"components/modal\";\n@import \"components/custom-main-navigation\";\n@import \"components/audio\";\n@import \"components/embed\";\n@import \"components/flickity\";\n@import \"components/center-scroll-to\";\n@import \"components/thumbnails-nav\";\n@import \"components/artwork-piece\";\n@import \"components/share\";\n@import \"components/body-text\";\n@import \"components/splash\";\n@import \"layouts/header\";\n@import \"layouts/sidebar\";\n@import \"layouts/footer\";\n@import \"layouts/pages\";\n@import \"layouts/posts\";\n@import \"layouts/tinymce\";\n@import \"common/custom-client\";","/*! sanitize.css v5.0.0 | CC0 License | github.com/jonathantneal/sanitize.css */\n\n/* Document (https://html.spec.whatwg.org/multipage/semantics.html#semantics)\n   ========================================================================== */\n\n/**\n * 1. Remove repeating backgrounds in all browsers (opinionated).\n * 2. Add box sizing inheritence in all browsers (opinionated).\n */\n\n*,\n::before,\n::after {\n\tbackground-repeat: no-repeat; /* 1 */\n\tbox-sizing: inherit; /* 2 */\n}\n\n/**\n * 1. Add text decoration inheritance in all browsers (opinionated).\n * 2. Add vertical alignment inheritence in all browsers (opinionated).\n */\n\n::before,\n::after {\n\ttext-decoration: inherit; /* 1 */\n\tvertical-align: inherit; /* 2 */\n}\n\n/**\n * 1. Add border box sizing in all browsers (opinionated).\n * 2. Add the default cursor in all browsers (opinionated).\n * 3. Prevent font size adjustments after orientation changes in IE and iOS.\n */\n\nhtml {\n\tbox-sizing: border-box; /* 1 */\n\tcursor: default; /* 2 */\n\t-ms-text-size-adjust: 100%; /* 3 */\n\t-webkit-text-size-adjust: 100%; /* 3 */\n}\n\n/* Sections (https://html.spec.whatwg.org/multipage/semantics.html#sections)\n   ========================================================================== */\n\n/**\n * Add the correct display in IE 9-.\n */\n\narticle,\naside,\nfooter,\nheader,\nnav,\nsection {\n\tdisplay: block;\n}\n\n/**\n * Remove the margin in all browsers (opinionated).\n */\n\nbody {\n\tmargin: 0;\n}\n\n/**\n * Correct the font size and margin on `h1` elements within `section` and\n * `article` contexts in Chrome, Firefox, and Safari.\n */\n\nh1 {\n\tfont-size: 2em;\n\tmargin: .67em 0;\n}\n\n/* Grouping content (https://html.spec.whatwg.org/multipage/semantics.html#grouping-content)\n   ========================================================================== */\n\n/**\n * Add the correct display in IE 9-.\n * 1. Add the correct display in IE.\n */\n\nfigcaption,\nfigure,\nmain { /* 1 */\n\tdisplay: block;\n}\n\n/**\n * Add the correct margin in IE 8.\n */\n\nfigure {\n\tmargin: 1em 40px;\n}\n\n/**\n * 1. Add the correct box sizing in Firefox.\n * 2. Show the overflow in Edge and IE.\n */\n\nhr {\n\tbox-sizing: content-box; /* 1 */\n\theight: 0; /* 1 */\n\toverflow: visible; /* 2 */\n}\n\n/**\n * Remove the list style on navigation lists in all browsers (opinionated).\n */\n\nnav ol,\nnav ul {\n\tlist-style: none;\n}\n\n/**\n * 1. Correct the inheritance and scaling of font size in all browsers.\n * 2. Correct the odd `em` font sizing in all browsers.\n */\n\npre {\n\tfont-family: monospace, monospace; /* 1 */\n\tfont-size: 1em; /* 2 */\n}\n\n/* Text-level semantics (https://html.spec.whatwg.org/multipage/semantics.html#text-level-semantics)\n   ========================================================================== */\n\n/**\n * 1. Remove the gray background on active links in IE 10.\n * 2. Remove gaps in links underline in iOS 8+ and Safari 8+.\n */\n\na {\n\tbackground-color: transparent; /* 1 */\n\t-webkit-text-decoration-skip: objects; /* 2 */\n}\n\n/**\n * 1. Remove the bottom border in Firefox 39-.\n * 2. Add the correct text decoration in Chrome, Edge, IE, Opera, and Safari.\n */\n\nabbr[title] {\n\tborder-bottom: none; /* 1 */\n\ttext-decoration: underline; /* 2 */\n\ttext-decoration: underline dotted; /* 2 */\n}\n\n/**\n * Prevent the duplicate application of `bolder` by the next rule in Safari 6.\n */\n\nb,\nstrong {\n\tfont-weight: inherit;\n}\n\n/**\n * Add the correct font weight in Chrome, Edge, and Safari.\n */\n\nb,\nstrong {\n\tfont-weight: bolder;\n}\n\n/**\n * 1. Correct the inheritance and scaling of font size in all browsers.\n * 2. Correct the odd `em` font sizing in all browsers.\n */\n\ncode,\nkbd,\nsamp {\n\tfont-family: monospace, monospace; /* 1 */\n\tfont-size: 1em; /* 2 */\n}\n\n/**\n * Add the correct font style in Android 4.3-.\n */\n\ndfn {\n\tfont-style: italic;\n}\n\n/**\n * Add the correct background and color in IE 9-.\n */\n\nmark {\n\tbackground-color: #ffff00;\n\tcolor: #000000;\n}\n\n/**\n * Add the correct font size in all browsers.\n */\n\nsmall {\n\tfont-size: 80%;\n}\n\n/**\n * Prevent `sub` and `sup` elements from affecting the line height in\n * all browsers.\n */\n\nsub,\nsup {\n\tfont-size: 75%;\n\tline-height: 0;\n\tposition: relative;\n\tvertical-align: baseline;\n}\n\nsub {\n\tbottom: -.25em;\n}\n\nsup {\n\ttop: -.5em;\n}\n\n/*\n * Remove the text shadow on text selections (opinionated).\n * 1. Restore the coloring undone by defining the text shadow (opinionated).\n */\n\n::-moz-selection {\n\tbackground-color: #b3d4fc; /* 1 */\n\tcolor: #000000; /* 1 */\n\ttext-shadow: none;\n}\n\n::selection {\n\tbackground-color: #b3d4fc; /* 1 */\n\tcolor: #000000; /* 1 */\n\ttext-shadow: none;\n}\n\n/* Embedded content (https://html.spec.whatwg.org/multipage/embedded-content.html#embedded-content)\n   ========================================================================== */\n\n/*\n * Change the alignment on media elements in all browers (opinionated).\n */\n\naudio,\ncanvas,\niframe,\nimg,\nsvg,\nvideo {\n\tvertical-align: middle;\n}\n\n/**\n * Add the correct display in IE 9-.\n */\n\naudio,\nvideo {\n\tdisplay: inline-block;\n}\n\n/**\n * Add the correct display in iOS 4-7.\n */\n\naudio:not([controls]) {\n\tdisplay: none;\n\theight: 0;\n}\n\n/**\n * Remove the border on images inside links in IE 10-.\n */\n\nimg {\n\tborder-style: none;\n}\n\n/**\n * Change the fill color to match the text color in all browsers (opinionated).\n */\n\nsvg {\n\tfill: currentColor;\n}\n\n/**\n * Hide the overflow in IE.\n */\n\nsvg:not(:root) {\n\toverflow: hidden;\n}\n\n/* Tabular data (https://html.spec.whatwg.org/multipage/tables.html#tables)\n   ========================================================================== */\n\n/**\n * Collapse border spacing\n */\n\ntable {\n\tborder-collapse: collapse;\n}\n\n/* Forms (https://html.spec.whatwg.org/multipage/forms.html#forms)\n   ========================================================================== */\n\n/**\n * Remove the margin in Firefox and Safari.\n */\n\nbutton,\ninput,\noptgroup,\nselect,\ntextarea {\n\tmargin: 0;\n}\n\n/**\n * Inherit styling in all browsers (opinionated).\n */\n\nbutton,\ninput,\nselect,\ntextarea {\n\tbackground-color: transparent;\n\tcolor: inherit;\n\tfont-size: inherit;\n\tline-height: inherit;\n}\n\n/**\n * Show the overflow in IE.\n * 1. Show the overflow in Edge.\n */\n\nbutton,\ninput { /* 1 */\n\toverflow: visible;\n}\n\n/**\n * Remove the inheritance of text transform in Edge, Firefox, and IE.\n * 1. Remove the inheritance of text transform in Firefox.\n */\n\nbutton,\nselect { /* 1 */\n\ttext-transform: none;\n}\n\n/**\n * 1. Prevent a WebKit bug where (2) destroys native `audio` and `video`\n *    controls in Android 4.\n * 2. Correct the inability to style clickable types in iOS and Safari.\n */\n\nbutton,\nhtml [type=\"button\"], /* 1 */\n[type=\"reset\"],\n[type=\"submit\"] {\n\t-webkit-appearance: button; /* 2 */\n}\n\n/**\n * Remove the inner border and padding in Firefox.\n */\n\nbutton::-moz-focus-inner,\n[type=\"button\"]::-moz-focus-inner,\n[type=\"reset\"]::-moz-focus-inner,\n[type=\"submit\"]::-moz-focus-inner {\n\tborder-style: none;\n\tpadding: 0;\n}\n\n/**\n * Restore the focus styles unset by the previous rule.\n */\n\nbutton:-moz-focusring,\n[type=\"button\"]:-moz-focusring,\n[type=\"reset\"]:-moz-focusring,\n[type=\"submit\"]:-moz-focusring {\n\toutline: 1px dotted ButtonText;\n}\n\n/**\n * 1. Correct the text wrapping in Edge and IE.\n * 2. Correct the color inheritance from `fieldset` elements in IE.\n * 3. Remove the padding so developers are not caught out when they zero out\n *    `fieldset` elements in all browsers.\n */\n\nlegend {\n\tbox-sizing: border-box; /* 1 */\n\tcolor: inherit; /* 2 */\n\tdisplay: table; /* 1 */\n\tmax-width: 100%; /* 1 */\n\tpadding: 0; /* 3 */\n\twhite-space: normal; /* 1 */\n}\n\n/**\n * 1. Add the correct display in IE 9-.\n * 2. Add the correct vertical alignment in Chrome, Firefox, and Opera.\n */\n\nprogress {\n\tdisplay: inline-block; /* 1 */\n\tvertical-align: baseline; /* 2 */\n}\n\n/**\n * 1. Remove the default vertical scrollbar in IE.\n * 2. Change the resize direction on textareas in all browsers (opinionated).\n */\n\ntextarea {\n\toverflow: auto; /* 1 */\n\tresize: vertical; /* 2 */\n}\n\n/**\n * 1. Add the correct box sizing in IE 10-.\n * 2. Remove the padding in IE 10-.\n */\n\n[type=\"checkbox\"],\n[type=\"radio\"] {\n\tbox-sizing: border-box; /* 1 */\n\tpadding: 0; /* 2 */\n}\n\n/**\n * Correct the cursor style of increment and decrement buttons in Chrome.\n */\n\n[type=\"number\"]::-webkit-inner-spin-button,\n[type=\"number\"]::-webkit-outer-spin-button {\n\theight: auto;\n}\n\n/**\n * 1. Correct the odd appearance in Chrome and Safari.\n * 2. Correct the outline style in Safari.\n */\n\n[type=\"search\"] {\n\t-webkit-appearance: textfield; /* 1 */\n\toutline-offset: -2px; /* 2 */\n}\n\n/**\n * Remove the inner padding and cancel buttons in Chrome and Safari on macOS.\n */\n\n[type=\"search\"]::-webkit-search-cancel-button,\n[type=\"search\"]::-webkit-search-decoration {\n\t-webkit-appearance: none;\n}\n\n/**\n * 1. Correct the inability to style clickable types in iOS and Safari.\n * 2. Change font properties to `inherit` in Safari.\n */\n\n::-webkit-file-upload-button {\n\t-webkit-appearance: button; /* 1 */\n\tfont: inherit; /* 2 */\n}\n\n/* Interactive elements (https://html.spec.whatwg.org/multipage/forms.html#interactive-elements)\n   ========================================================================== */\n\n/*\n * Add the correct display in IE 9-.\n * 1. Add the correct display in Edge, IE, and Firefox.\n */\n\ndetails, /* 1 */\nmenu {\n\tdisplay: block;\n}\n\n/*\n * Add the correct display in all browsers.\n */\n\nsummary {\n\tdisplay: list-item;\n}\n\n/* Scripting (https://html.spec.whatwg.org/multipage/scripting.html#scripting-3)\n   ========================================================================== */\n\n/**\n * Add the correct display in IE 9-.\n */\n\ncanvas {\n\tdisplay: inline-block;\n}\n\n/**\n * Add the correct display in IE.\n */\n\ntemplate {\n\tdisplay: none;\n}\n\n/* User interaction (https://html.spec.whatwg.org/multipage/interaction.html#editing)\n   ========================================================================== */\n\n/*\n * Remove the tapping delay on clickable elements (opinionated).\n * 1. Remove the tapping delay in IE 10.\n */\n\na,\narea,\nbutton,\ninput,\nlabel,\nselect,\nsummary,\ntextarea,\n[tabindex] {\n\t-ms-touch-action: manipulation; /* 1 */\n\ttouch-action: manipulation;\n}\n\n/**\n * Add the correct display in IE 10-.\n */\n\n[hidden] {\n\tdisplay: none;\n}\n\n/* ARIA (https://w3c.github.io/html-aria/)\n   ========================================================================== */\n\n/**\n * Change the cursor on busy elements (opinionated).\n */\n\n[aria-busy=\"true\"] {\n\tcursor: progress;\n}\n\n/*\n * Change the cursor on control elements (opinionated).\n */\n\n[aria-controls] {\n\tcursor: pointer;\n}\n\n/*\n * Change the display on visually hidden accessible elements (opinionated).\n */\n\n[aria-hidden=\"false\"][hidden]:not(:focus) {\n\tclip: rect(0, 0, 0, 0);\n\tdisplay: inherit;\n\tposition: absolute;\n}\n\n/*\n * Change the cursor on disabled, not-editable, or otherwise\n * inoperable elements (opinionated).\n */\n\n[aria-disabled] {\n\tcursor: default;\n}\n","/* eslint-disable selector-pseudo-element-colon-notation */\n/**\n * For modern browsers\n * 1. The space content is one way to avoid an Opera bug when the\n *    contenteditable attribute is included anywhere else in the document.\n *    Otherwise it causes space to appear at the top and bottom of elements\n *    that are clearfixed.\n * 2. The use of `table` rather than `block` is only necessary if using\n *    `:before` to contain the top-margins of child elements.\n */\n:root {\n  --vh-offset: 0px;\n}\n.cf:before,\n.cf:after {\n  content: \" \"; /* 1 */\n  display: table; /* 2 */\n}\n\n.cf:after {\n  clear: both;\n}\n\n/**\n * For IE 6/7 only\n * Include this rule to trigger hasLayout and contain floats.\n */\n.cf {\n  *zoom: 1;\n}\n\n/* Hide the text. */\n.hide-text {\n  display: block;\n  overflow: hidden;\n  text-indent: 100%;\n  white-space: nowrap;\n}\n\nimg {\n  max-height: 100%;\n  max-width: 100%;\n}\n\ntextarea, input, button, .mobile-nav-link {\n  outline: none;\n}\n\n.container {\n  margin: 0 auto;\n  padding: 0;\n}\n\nbody.front {\n  background: $background;\n  overflow: scroll;\n\n  &.no-scroll {\n    overflow: hidden;\n  }\n\n  .fullscreen {\n    //background: transparent;\n    background-color: $background;\n    //transition-duration: .75s;\n\n    .fullscreen-wrapper {\n      @include breakpoint($xs) {\n        overflow: hidden;\n      }\n\n      .wrap.container {\n        max-width: 100%;\n        width: 100%;\n\n        > .content {\n          margin: 0;\n\n          .main {\n\n          }\n        }\n      }\n    }\n  }\n\n  #body-overlay {\n    background: rgba(255, 255, 255, .5);\n    bottom: 0;\n    left: 0;\n    position: fixed;\n    right: 0;\n    top: 0;\n    z-index: -300\n  }\n\n  .main{\n    margin: 0 auto;\n    max-width: $main-content-max-width;\n\n\n\n    .alignleft{\n      margin-bottom: $image-margin-vertical;\n      margin-right: $image-margin-horizontal;\n    }\n\n    .alignright{\n      margin-bottom: $image-margin-vertical;\n      margin-left: $image-margin-horizontal;\n    }\n\n    @include breakpoint($xs) {\n      width: 90%;\n    }\n  }\n\n  &.page-template-template-projects, &.single-projects {\n    .main {\n      display: flex;\n      flex-direction: column;\n      justify-content: flex-start;\n      align-items: center;\n      margin: 0 auto;\n      max-width: $main-content-max-width;\n\n      > * {\n        transition-duration: .25s;\n        transition-property: opacity;\n      }\n\n      &.centered-image > *:not(.centered-image-transition-duration) {\n        opacity: 0;\n      }\n\n      p {\n        margin-top: 0;\n      }\n    }\n  }\n\n  &.centered-image {\n    #back-to-top {\n      opacity: 0;\n    }\n  }\n}\n","/*********************\nBREAKPOINTS\n*********************/\n\n/** Import everything from autoload */\n\n/**\n * Import npm dependencies\n *\n * Prefix your imports with `~` to grab from node_modules/\n * @see https://github.com/webpack-contrib/sass-loader#imports\n */\n\n/** Import theme styles */\n\n@import url(\"https://cloud.typography.com/7063492/6582372/css/fonts.css\");\n\n/*! sanitize.css v5.0.0 | CC0 License | github.com/jonathantneal/sanitize.css */\n\n/* Document (https://html.spec.whatwg.org/multipage/semantics.html#semantics)\n   ========================================================================== */\n\n/**\n * 1. Remove repeating backgrounds in all browsers (opinionated).\n * 2. Add box sizing inheritence in all browsers (opinionated).\n */\n\n*,\n::before,\n::after {\n  background-repeat: no-repeat;\n  /* 1 */\n  -webkit-box-sizing: inherit;\n          box-sizing: inherit;\n  /* 2 */\n}\n\n/**\n * 1. Add text decoration inheritance in all browsers (opinionated).\n * 2. Add vertical alignment inheritence in all browsers (opinionated).\n */\n\n::before,\n::after {\n  text-decoration: inherit;\n  /* 1 */\n  vertical-align: inherit;\n  /* 2 */\n}\n\n/**\n * 1. Add border box sizing in all browsers (opinionated).\n * 2. Add the default cursor in all browsers (opinionated).\n * 3. Prevent font size adjustments after orientation changes in IE and iOS.\n */\n\nhtml {\n  -webkit-box-sizing: border-box;\n          box-sizing: border-box;\n  /* 1 */\n  cursor: default;\n  /* 2 */\n  -ms-text-size-adjust: 100%;\n  /* 3 */\n  -webkit-text-size-adjust: 100%;\n  /* 3 */\n}\n\n/* Sections (https://html.spec.whatwg.org/multipage/semantics.html#sections)\n   ========================================================================== */\n\n/**\n * Add the correct display in IE 9-.\n */\n\narticle,\naside,\nfooter,\nheader,\nnav,\nsection {\n  display: block;\n}\n\n/**\n * Remove the margin in all browsers (opinionated).\n */\n\nbody {\n  margin: 0;\n}\n\n/**\n * Correct the font size and margin on `h1` elements within `section` and\n * `article` contexts in Chrome, Firefox, and Safari.\n */\n\nh1 {\n  font-size: 2em;\n  margin: .67em 0;\n}\n\n/* Grouping content (https://html.spec.whatwg.org/multipage/semantics.html#grouping-content)\n   ========================================================================== */\n\n/**\n * Add the correct display in IE 9-.\n * 1. Add the correct display in IE.\n */\n\nfigcaption,\nfigure,\nmain {\n  /* 1 */\n  display: block;\n}\n\n/**\n * Add the correct margin in IE 8.\n */\n\nfigure {\n  margin: 1em 40px;\n}\n\n/**\n * 1. Add the correct box sizing in Firefox.\n * 2. Show the overflow in Edge and IE.\n */\n\nhr {\n  -webkit-box-sizing: content-box;\n          box-sizing: content-box;\n  /* 1 */\n  height: 0;\n  /* 1 */\n  overflow: visible;\n  /* 2 */\n}\n\n/**\n * Remove the list style on navigation lists in all browsers (opinionated).\n */\n\nnav ol,\nnav ul {\n  list-style: none;\n}\n\n/**\n * 1. Correct the inheritance and scaling of font size in all browsers.\n * 2. Correct the odd `em` font sizing in all browsers.\n */\n\npre {\n  font-family: monospace, monospace;\n  /* 1 */\n  font-size: 1em;\n  /* 2 */\n}\n\n/* Text-level semantics (https://html.spec.whatwg.org/multipage/semantics.html#text-level-semantics)\n   ========================================================================== */\n\n/**\n * 1. Remove the gray background on active links in IE 10.\n * 2. Remove gaps in links underline in iOS 8+ and Safari 8+.\n */\n\na {\n  background-color: transparent;\n  /* 1 */\n  -webkit-text-decoration-skip: objects;\n  /* 2 */\n}\n\n/**\n * 1. Remove the bottom border in Firefox 39-.\n * 2. Add the correct text decoration in Chrome, Edge, IE, Opera, and Safari.\n */\n\nabbr[title] {\n  border-bottom: none;\n  /* 1 */\n  text-decoration: underline;\n  /* 2 */\n  -webkit-text-decoration: underline dotted;\n          text-decoration: underline dotted;\n  /* 2 */\n}\n\n/**\n * Prevent the duplicate application of `bolder` by the next rule in Safari 6.\n */\n\nb,\nstrong {\n  font-weight: inherit;\n}\n\n/**\n * Add the correct font weight in Chrome, Edge, and Safari.\n */\n\nb,\nstrong {\n  font-weight: bolder;\n}\n\n/**\n * 1. Correct the inheritance and scaling of font size in all browsers.\n * 2. Correct the odd `em` font sizing in all browsers.\n */\n\ncode,\nkbd,\nsamp {\n  font-family: monospace, monospace;\n  /* 1 */\n  font-size: 1em;\n  /* 2 */\n}\n\n/**\n * Add the correct font style in Android 4.3-.\n */\n\ndfn {\n  font-style: italic;\n}\n\n/**\n * Add the correct background and color in IE 9-.\n */\n\nmark {\n  background-color: #ffff00;\n  color: #000000;\n}\n\n/**\n * Add the correct font size in all browsers.\n */\n\nsmall {\n  font-size: 80%;\n}\n\n/**\n * Prevent `sub` and `sup` elements from affecting the line height in\n * all browsers.\n */\n\nsub,\nsup {\n  font-size: 75%;\n  line-height: 0;\n  position: relative;\n  vertical-align: baseline;\n}\n\nsub {\n  bottom: -.25em;\n}\n\nsup {\n  top: -.5em;\n}\n\n/*\n * Remove the text shadow on text selections (opinionated).\n * 1. Restore the coloring undone by defining the text shadow (opinionated).\n */\n\n::-moz-selection {\n  background-color: #b3d4fc;\n  /* 1 */\n  color: #000000;\n  /* 1 */\n  text-shadow: none;\n}\n\n::selection {\n  background-color: #b3d4fc;\n  /* 1 */\n  color: #000000;\n  /* 1 */\n  text-shadow: none;\n}\n\n/* Embedded content (https://html.spec.whatwg.org/multipage/embedded-content.html#embedded-content)\n   ========================================================================== */\n\n/*\n * Change the alignment on media elements in all browers (opinionated).\n */\n\naudio,\ncanvas,\niframe,\nimg,\nsvg,\nvideo {\n  vertical-align: middle;\n}\n\n/**\n * Add the correct display in IE 9-.\n */\n\naudio,\nvideo {\n  display: inline-block;\n}\n\n/**\n * Add the correct display in iOS 4-7.\n */\n\naudio:not([controls]) {\n  display: none;\n  height: 0;\n}\n\n/**\n * Remove the border on images inside links in IE 10-.\n */\n\nimg {\n  border-style: none;\n}\n\n/**\n * Change the fill color to match the text color in all browsers (opinionated).\n */\n\nsvg {\n  fill: currentColor;\n}\n\n/**\n * Hide the overflow in IE.\n */\n\nsvg:not(:root) {\n  overflow: hidden;\n}\n\n/* Tabular data (https://html.spec.whatwg.org/multipage/tables.html#tables)\n   ========================================================================== */\n\n/**\n * Collapse border spacing\n */\n\ntable {\n  border-collapse: collapse;\n}\n\n/* Forms (https://html.spec.whatwg.org/multipage/forms.html#forms)\n   ========================================================================== */\n\n/**\n * Remove the margin in Firefox and Safari.\n */\n\nbutton,\ninput,\noptgroup,\nselect,\ntextarea {\n  margin: 0;\n}\n\n/**\n * Inherit styling in all browsers (opinionated).\n */\n\nbutton,\ninput,\nselect,\ntextarea {\n  background-color: transparent;\n  color: inherit;\n  font-size: inherit;\n  line-height: inherit;\n}\n\n/**\n * Show the overflow in IE.\n * 1. Show the overflow in Edge.\n */\n\nbutton,\ninput {\n  /* 1 */\n  overflow: visible;\n}\n\n/**\n * Remove the inheritance of text transform in Edge, Firefox, and IE.\n * 1. Remove the inheritance of text transform in Firefox.\n */\n\nbutton,\nselect {\n  /* 1 */\n  text-transform: none;\n}\n\n/**\n * 1. Prevent a WebKit bug where (2) destroys native `audio` and `video`\n *    controls in Android 4.\n * 2. Correct the inability to style clickable types in iOS and Safari.\n */\n\nbutton,\nhtml [type=\"button\"],\n[type=\"reset\"],\n[type=\"submit\"] {\n  -webkit-appearance: button;\n  /* 2 */\n}\n\n/**\n * Remove the inner border and padding in Firefox.\n */\n\nbutton::-moz-focus-inner,\n[type=\"button\"]::-moz-focus-inner,\n[type=\"reset\"]::-moz-focus-inner,\n[type=\"submit\"]::-moz-focus-inner {\n  border-style: none;\n  padding: 0;\n}\n\n/**\n * Restore the focus styles unset by the previous rule.\n */\n\nbutton:-moz-focusring,\n[type=\"button\"]:-moz-focusring,\n[type=\"reset\"]:-moz-focusring,\n[type=\"submit\"]:-moz-focusring {\n  outline: 1px dotted ButtonText;\n}\n\n/**\n * 1. Correct the text wrapping in Edge and IE.\n * 2. Correct the color inheritance from `fieldset` elements in IE.\n * 3. Remove the padding so developers are not caught out when they zero out\n *    `fieldset` elements in all browsers.\n */\n\nlegend {\n  -webkit-box-sizing: border-box;\n          box-sizing: border-box;\n  /* 1 */\n  color: inherit;\n  /* 2 */\n  display: table;\n  /* 1 */\n  max-width: 100%;\n  /* 1 */\n  padding: 0;\n  /* 3 */\n  white-space: normal;\n  /* 1 */\n}\n\n/**\n * 1. Add the correct display in IE 9-.\n * 2. Add the correct vertical alignment in Chrome, Firefox, and Opera.\n */\n\nprogress {\n  display: inline-block;\n  /* 1 */\n  vertical-align: baseline;\n  /* 2 */\n}\n\n/**\n * 1. Remove the default vertical scrollbar in IE.\n * 2. Change the resize direction on textareas in all browsers (opinionated).\n */\n\ntextarea {\n  overflow: auto;\n  /* 1 */\n  resize: vertical;\n  /* 2 */\n}\n\n/**\n * 1. Add the correct box sizing in IE 10-.\n * 2. Remove the padding in IE 10-.\n */\n\n[type=\"checkbox\"],\n[type=\"radio\"] {\n  -webkit-box-sizing: border-box;\n          box-sizing: border-box;\n  /* 1 */\n  padding: 0;\n  /* 2 */\n}\n\n/**\n * Correct the cursor style of increment and decrement buttons in Chrome.\n */\n\n[type=\"number\"]::-webkit-inner-spin-button,\n[type=\"number\"]::-webkit-outer-spin-button {\n  height: auto;\n}\n\n/**\n * 1. Correct the odd appearance in Chrome and Safari.\n * 2. Correct the outline style in Safari.\n */\n\n[type=\"search\"] {\n  -webkit-appearance: textfield;\n  /* 1 */\n  outline-offset: -2px;\n  /* 2 */\n}\n\n/**\n * Remove the inner padding and cancel buttons in Chrome and Safari on macOS.\n */\n\n[type=\"search\"]::-webkit-search-cancel-button,\n[type=\"search\"]::-webkit-search-decoration {\n  -webkit-appearance: none;\n}\n\n/**\n * 1. Correct the inability to style clickable types in iOS and Safari.\n * 2. Change font properties to `inherit` in Safari.\n */\n\n::-webkit-file-upload-button {\n  -webkit-appearance: button;\n  /* 1 */\n  font: inherit;\n  /* 2 */\n}\n\n/* Interactive elements (https://html.spec.whatwg.org/multipage/forms.html#interactive-elements)\n   ========================================================================== */\n\n/*\n * Add the correct display in IE 9-.\n * 1. Add the correct display in Edge, IE, and Firefox.\n */\n\ndetails,\nmenu {\n  display: block;\n}\n\n/*\n * Add the correct display in all browsers.\n */\n\nsummary {\n  display: list-item;\n}\n\n/* Scripting (https://html.spec.whatwg.org/multipage/scripting.html#scripting-3)\n   ========================================================================== */\n\n/**\n * Add the correct display in IE 9-.\n */\n\ncanvas {\n  display: inline-block;\n}\n\n/**\n * Add the correct display in IE.\n */\n\ntemplate {\n  display: none;\n}\n\n/* User interaction (https://html.spec.whatwg.org/multipage/interaction.html#editing)\n   ========================================================================== */\n\n/*\n * Remove the tapping delay on clickable elements (opinionated).\n * 1. Remove the tapping delay in IE 10.\n */\n\na,\narea,\nbutton,\ninput,\nlabel,\nselect,\nsummary,\ntextarea,\n[tabindex] {\n  -ms-touch-action: manipulation;\n  /* 1 */\n  touch-action: manipulation;\n}\n\n/**\n * Add the correct display in IE 10-.\n */\n\n[hidden] {\n  display: none;\n}\n\n/* ARIA (https://w3c.github.io/html-aria/)\n   ========================================================================== */\n\n/**\n * Change the cursor on busy elements (opinionated).\n */\n\n[aria-busy=\"true\"] {\n  cursor: progress;\n}\n\n/*\n * Change the cursor on control elements (opinionated).\n */\n\n[aria-controls] {\n  cursor: pointer;\n}\n\n/*\n * Change the display on visually hidden accessible elements (opinionated).\n */\n\n[aria-hidden=\"false\"][hidden]:not(:focus) {\n  clip: rect(0, 0, 0, 0);\n  display: inherit;\n  position: absolute;\n}\n\n/*\n * Change the cursor on disabled, not-editable, or otherwise\n * inoperable elements (opinionated).\n */\n\n[aria-disabled] {\n  cursor: default;\n}\n\n/* eslint-disable selector-pseudo-element-colon-notation */\n\n/**\n * For modern browsers\n * 1. The space content is one way to avoid an Opera bug when the\n *    contenteditable attribute is included anywhere else in the document.\n *    Otherwise it causes space to appear at the top and bottom of elements\n *    that are clearfixed.\n * 2. The use of `table` rather than `block` is only necessary if using\n *    `:before` to contain the top-margins of child elements.\n */\n\n:root {\n  --vh-offset: 0px;\n}\n\n.cf:before,\n.cf:after {\n  content: \" \";\n  /* 1 */\n  display: table;\n  /* 2 */\n}\n\n.cf:after {\n  clear: both;\n}\n\n/**\n * For IE 6/7 only\n * Include this rule to trigger hasLayout and contain floats.\n */\n\n.cf {\n  *zoom: 1;\n}\n\n/* Hide the text. */\n\n.hide-text {\n  display: block;\n  overflow: hidden;\n  text-indent: 100%;\n  white-space: nowrap;\n}\n\nimg {\n  max-height: 100%;\n  max-width: 100%;\n}\n\ntextarea,\ninput,\nbutton,\n.mobile-nav-link {\n  outline: none;\n}\n\n.container {\n  margin: 0 auto;\n  padding: 0;\n}\n\nbody.front {\n  background: #262626;\n  overflow: scroll;\n}\n\nbody.front.no-scroll {\n  overflow: hidden;\n}\n\nbody.front .fullscreen {\n  background-color: #262626;\n}\n\n@media screen and (max-width: 414px) {\n  body.front .fullscreen .fullscreen-wrapper {\n    overflow: hidden;\n  }\n}\n\nbody.front .fullscreen .fullscreen-wrapper .wrap.container {\n  max-width: 100%;\n  width: 100%;\n}\n\nbody.front .fullscreen .fullscreen-wrapper .wrap.container > .content {\n  margin: 0;\n}\n\nbody.front #body-overlay {\n  background: rgba(255, 255, 255, 0.5);\n  bottom: 0;\n  left: 0;\n  position: fixed;\n  right: 0;\n  top: 0;\n  z-index: -300;\n}\n\nbody.front .main {\n  margin: 0 auto;\n  max-width: 600px;\n}\n\nbody.front .main .alignleft {\n  margin-bottom: 0.55em;\n  margin-right: 1.4em;\n}\n\nbody.front .main .alignright {\n  margin-bottom: 0.55em;\n  margin-left: 1.4em;\n}\n\n@media screen and (max-width: 414px) {\n  body.front .main {\n    width: 90%;\n  }\n}\n\nbody.front.page-template-template-projects .main,\nbody.front.single-projects .main {\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-orient: vertical;\n  -webkit-box-direction: normal;\n      -ms-flex-direction: column;\n          flex-direction: column;\n  -webkit-box-pack: start;\n      -ms-flex-pack: start;\n          justify-content: flex-start;\n  -webkit-box-align: center;\n      -ms-flex-align: center;\n          align-items: center;\n  margin: 0 auto;\n  max-width: 600px;\n}\n\nbody.front.page-template-template-projects .main > *,\nbody.front.single-projects .main > * {\n  -webkit-transition-duration: .25s;\n       -o-transition-duration: .25s;\n          transition-duration: .25s;\n  -webkit-transition-property: opacity;\n  -o-transition-property: opacity;\n  transition-property: opacity;\n}\n\nbody.front.page-template-template-projects .main.centered-image > *:not(.centered-image-transition-duration),\nbody.front.single-projects .main.centered-image > *:not(.centered-image-transition-duration) {\n  opacity: 0;\n}\n\nbody.front.page-template-template-projects .main p,\nbody.front.single-projects .main p {\n  margin-top: 0;\n}\n\nbody.front.centered-image #back-to-top {\n  opacity: 0;\n}\n\n/** Search form */\n\n/**\n * WordPress Generated Classes\n * @see http://codex.wordpress.org/CSS#WordPress_Generated_Classes\n */\n\n/** Media alignment */\n\n.alignnone {\n  margin-left: 0;\n  margin-right: 0;\n  max-width: 100%;\n  height: auto;\n}\n\n.aligncenter {\n  display: block;\n  margin: 0.5rem auto;\n  height: auto;\n}\n\n.alignleft,\n.alignright {\n  margin-bottom: 0.5rem;\n  height: auto;\n}\n\n@media (min-width: 30rem) {\n  .alignleft {\n    float: left;\n    margin-right: 0.5rem;\n  }\n\n  .alignright {\n    float: right;\n    margin-left: 0.5rem;\n  }\n}\n\n/** Captions */\n\n/** Text meant only for screen readers */\n\n.screen-reader-text {\n  position: absolute;\n  width: 1px;\n  height: 1px;\n  padding: 0;\n  margin: -1px;\n  overflow: hidden;\n  clip: rect(0, 0, 0, 0);\n  border: 0;\n  color: #000;\n  background: #fff;\n}\n\n.modal {\n  max-width: 30000px;\n  width: 100vw;\n}\n\n.modal .modal-dialog {\n  max-width: 30000px;\n  height: 100vh;\n  width: 100vw;\n}\n\n.modal .modal-dialog .modal-content {\n  max-width: 100%;\n  height: 100vh;\n  top: 0 !important;\n  left: 0 !important;\n  -webkit-transform: translate(0, 0) !important;\n       -o-transform: translate(0, 0) !important;\n          transform: translate(0, 0) !important;\n}\n\n.modal .modal-dialog .modal-content .modal-body {\n  position: absolute;\n  width: 100%;\n  height: 100%;\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-orient: vertical;\n  -webkit-box-direction: normal;\n      -ms-flex-direction: column;\n          flex-direction: column;\n  -webkit-box-pack: center;\n      -ms-flex-pack: center;\n          justify-content: center;\n  padding-top: 39px;\n}\n\n.modal .modal-dialog .modal-content .modal-body .video-embed,\n.modal .modal-dialog .modal-content .modal-body .video-embed * {\n  max-height: calc(100vh - 27px);\n}\n\n.modal .modal-dialog .modal-content .modal-body button {\n  background: url(\"/app/themes/stone-roberts-anew/dist/images/closeout-icon-lightgrey.png\") no-repeat center center/contain transparent !important;\n  height: 17px;\n  padding: 0;\n  width: 17px;\n  text-align: left;\n  position: absolute;\n  left: 3px;\n  top: 10px;\n  z-index: 200;\n}\n\n.modal .modal-dialog .modal-content .modal-body iframe {\n  display: block;\n  margin: 0 auto;\n}\n\n.nav-primary {\n  background: #262626;\n  -webkit-transform: translateY(-120vh);\n       -o-transform: translateY(-120vh);\n          transform: translateY(-120vh);\n  position: fixed;\n  z-index: 19;\n  height: 100vh;\n  width: 100vw;\n  margin: 0 auto;\n  padding: 24px 13vh;\n  max-height: 100vh;\n  max-width: none;\n  overflow: scroll;\n  top: 0;\n  -webkit-transition-duration: .25s;\n       -o-transition-duration: .25s;\n          transition-duration: .25s;\n  -webkit-transition-property: -webkit-transform;\n  transition-property: -webkit-transform;\n  -o-transition-property: -o-transform;\n  transition-property: transform;\n  transition-property: transform, -webkit-transform, -o-transform;\n}\n\n@media screen and (max-width: 414px) {\n  .nav-primary {\n    padding: 10vh;\n  }\n}\n\n@media screen and (min-width: 415px) and (max-width: 767px) {\n  .nav-primary {\n    padding: 6vh 18vh;\n  }\n}\n\n@media screen and (min-width: 768px) and (max-width: 1023px) {\n  .nav-primary {\n    padding: 24px 11vw;\n  }\n}\n\n.custom-nav {\n  display: grid;\n  grid-template-columns: 1fr 1fr 1fr;\n  grid-gap: 3vw;\n  margin: 0 auto;\n  max-width: 1200px;\n  padding: 0;\n}\n\n@media screen and (max-width: 414px) {\n  .custom-nav {\n    grid-template-columns: 1fr;\n  }\n}\n\n@media screen and (min-width: 415px) and (max-width: 767px) {\n  .custom-nav {\n    grid-template-columns: 1fr 1fr;\n  }\n}\n\n.custom-nav .list-item {\n  display: block;\n  height: auto;\n  margin: 0 0 1.8em;\n  max-height: none;\n  max-width: none;\n  width: auto;\n}\n\n.custom-nav .list-item:hover .nav-item-image,\n.custom-nav .list-item:active .nav-item-image {\n  -webkit-transform: scale(1.01);\n       -o-transform: scale(1.01);\n          transform: scale(1.01);\n  -webkit-transition-duration: .25s;\n       -o-transition-duration: .25s;\n          transition-duration: .25s;\n  -webkit-transition-property: -webkit-transform;\n  transition-property: -webkit-transform;\n  -o-transition-property: -o-transform;\n  transition-property: transform;\n  transition-property: transform, -webkit-transform, -o-transform;\n}\n\n.custom-nav .list-item .nav-item {\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-orient: vertical;\n  -webkit-box-direction: normal;\n      -ms-flex-direction: column;\n          flex-direction: column;\n  height: 100%;\n}\n\n.custom-nav .list-item .nav-item-header {\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-orient: vertical;\n  -webkit-box-direction: normal;\n      -ms-flex-direction: column;\n          flex-direction: column;\n  -webkit-box-flex: 0;\n      -ms-flex-positive: 0;\n          flex-grow: 0;\n  font-size: 18px;\n  -webkit-box-pack: end;\n      -ms-flex-pack: end;\n          justify-content: flex-end;\n  margin-bottom: 13px;\n  text-transform: uppercase;\n  letter-spacing: 1.1px;\n}\n\n.custom-nav .list-item .nav-item-image {\n  background-size: cover;\n  display: block;\n  -webkit-box-flex: 0;\n      -ms-flex-positive: 0;\n          flex-grow: 0;\n  height: unset;\n  max-width: 100%;\n  padding-bottom: 100%;\n  width: 100%;\n}\n\n.custom-nav .list-item .nav-item-short-text {\n  display: block;\n  -webkit-box-flex: 0;\n      -ms-flex-positive: 0;\n          flex-grow: 0;\n  margin-top: 0.4em;\n}\n\nbody.home .custom-nav {\n  width: 90%;\n}\n\n.audio {\n  margin-top: 73px;\n  padding: 0 23px;\n  position: relative;\n}\n\n.audio .audio-piece .duration,\n.audio .audio-piece .timer {\n  background: rgba(0, 0, 0, 0.5);\n  bottom: 0;\n  color: #fff;\n  padding: .5em;\n  position: absolute;\n}\n\n.audio .audio-piece .duration.timer,\n.audio .audio-piece .timer.timer {\n  left: -2em;\n}\n\n.audio .audio-piece .duration.duration,\n.audio .audio-piece .timer.duration {\n  right: -2em;\n}\n\n.audio .audio-piece button {\n  background-color: gray;\n  border: 0 solid;\n  border-radius: .1em;\n  padding: 1.2em;\n  color: #fff;\n}\n\n.audio .audio-piece .span-value-wrap {\n  height: 50px;\n  position: relative;\n  width: 100%;\n}\n\n.audio .audio-piece .span-value-wrap .span-value {\n  background-color: #646464;\n  border-radius: 0;\n  display: block;\n  height: 100%;\n  overflow: visible;\n  width: 0;\n}\n\n.audio .audio-piece .span-value-wrap .span-value .span-value-jump {\n  -webkit-box-sizing: content-box;\n          box-sizing: content-box;\n  height: 100%;\n  width: 0;\n}\n\n.audio .audio-piece .span-value-wrap .span-value .span-value-jump div {\n  height: 100%;\n  width: 100%;\n}\n\n.audio .audio-piece .span-value-wrap:hover .span-value-jump div {\n  background-color: rgba(79, 105, 61, 0.5);\n}\n\n.video {\n  position: relative;\n  width: 100%;\n}\n\n.video .wrap {\n  overflow: hidden;\n  position: relative;\n}\n\n.video .wrap .video-play-screenshot {\n  overflow: hidden;\n  display: block;\n  height: 100%;\n  width: 100%;\n  position: absolute;\n  top: 0;\n  left: 0;\n  background-size: cover;\n  background-position: center;\n  z-index: 1;\n}\n\n.video .caption {\n  margin-top: 10px;\n}\n\n.video .caption p {\n  color: #bcbcbc;\n  font-size: 15px;\n  line-height: 19px;\n}\n\n.video .play-button {\n  background: url(\"/app/themes/stone-roberts-anew/dist/images/play.svg\") no-repeat 50%/28% transparent;\n  border: none;\n  display: block;\n  position: absolute;\n  width: 100%;\n  height: 100%;\n  top: 0;\n  left: 0;\n  z-index: 2;\n}\n\n@media screen and (max-width: 767px) {\n  .video {\n    background-size: 22%;\n  }\n}\n\n@media screen and (min-width: 768px) {\n  .video .play-button {\n    background-size: 20%;\n  }\n\n  .video .play-button:hover {\n    cursor: pointer;\n  }\n}\n\n.video.playing .play-button,\n.video.playing .video-play-screenshot {\n  display: none;\n}\n\n.carousel-wrap {\n  overflow: hidden;\n  position: relative;\n}\n\n.carousel-wrap .carousel {\n  width: 100%;\n}\n\n.carousel-wrap .carousel .carousel-cell {\n  max-width: 100vw;\n  width: 100%;\n}\n\n.carousel-wrap .carousel .carousel-cell figure {\n  margin-bottom: 0;\n  width: 100% !important;\n}\n\n.carousel-wrap .carousel .carousel-cell figure img {\n  width: 100%;\n}\n\n.carousel-wrap .carousel .carousel-cell .text {\n  background: rgba(0, 0, 0, 0.5);\n  bottom: 0;\n  color: #fff;\n  margin: 0;\n  padding: 0;\n  position: absolute;\n  text-align: left;\n  width: 100%;\n}\n\n.carousel-wrap .carousel .flickity-prev-next-button {\n  display: none;\n  width: 55px;\n  height: 77px;\n}\n\n@media screen and (min-width: 768px) {\n  .carousel-wrap .carousel .flickity-page-dots {\n    bottom: 45px;\n  }\n\n  .carousel-wrap .carousel .flickity-page-dots .dot {\n    height: 13px;\n    width: 13px;\n    background: #fff;\n  }\n}\n\n@media screen and (min-width: 1024px) {\n  .carousel-wrap .carousel .flickity-page-dots {\n    bottom: 59px;\n  }\n\n  .carousel-wrap .carousel .flickity-prev-next-button {\n    display: block;\n  }\n}\n\n.carousel-wrap .carousel .flickity-prev-next-button {\n  background: transparent;\n  display: block;\n  top: 72%;\n}\n\n.carousel-wrap .carousel .flickity-prev-next-button path {\n  fill: #fff;\n  opacity: .4;\n}\n\n.carousel-wrap .carousel .flickity-prev-next-button {\n  top: 73.2%;\n}\n\n.carousel-wrap .carousel .flickity-prev-next-button.previous {\n  left: 31px;\n}\n\n.carousel-wrap .carousel .flickity-prev-next-button.next {\n  right: 20px;\n}\n\n.center-scroll-arrows {\n  position: fixed;\n  left: unset;\n  right: 22px;\n  top: 18px;\n  height: 100px;\n  display: none;\n  -webkit-box-orient: vertical;\n  -webkit-box-direction: normal;\n      -ms-flex-direction: column;\n          flex-direction: column;\n  -webkit-box-pack: justify;\n      -ms-flex-pack: justify;\n          justify-content: space-between;\n  z-index: 50;\n}\n\n.center-scroll-arrows div {\n  background: url(\"/app/themes/stone-roberts-anew/dist/images/arrow.png\") no-repeat center/contain transparent;\n  height: 32px;\n  width: 30px;\n}\n\n.center-scroll-arrows div.next {\n  -webkit-transform: rotate(180deg);\n       -o-transform: rotate(180deg);\n          transform: rotate(180deg);\n}\n\n.center-scroll-arrows div:hover {\n  cursor: pointer;\n}\n\n.center-scroll-arrows.hide-next .next {\n  opacity: .15;\n  visibility: visible;\n}\n\n.center-scroll-arrows.hide-previous .prev {\n  opacity: .15;\n  visibility: visible;\n}\n\n.template-projects .center-scroll-arrows {\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n}\n\n#thumbnails-nav {\n  background-color: rgba(0, 0, 0, 0.9);\n  height: 100vh;\n  left: 0;\n  opacity: 1;\n  overflow: scroll;\n  padding: 0 4vw 8vw;\n  position: fixed;\n  top: 0;\n  -webkit-transition-duration: .1s;\n       -o-transition-duration: .1s;\n          transition-duration: .1s;\n  -webkit-transition-property: opacity, -webkit-transform;\n  transition-property: opacity, -webkit-transform;\n  -o-transition-property: opacity, -o-transform;\n  transition-property: transform, opacity;\n  transition-property: transform, opacity, -webkit-transform, -o-transform;\n  width: 100vw;\n  z-index: 300;\n}\n\n#thumbnails-nav h1 {\n  font-size: 18px;\n  letter-spacing: 3.7px;\n  height: 8vw;\n  width: 100%;\n  text-align: center;\n  margin: 0 0 -2vh 0 !important;\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-pack: center;\n      -ms-flex-pack: center;\n          justify-content: center;\n  -webkit-box-align: center;\n      -ms-flex-align: center;\n          align-items: center;\n}\n\n#thumbnails-nav .thumbnails-wrap {\n  -ms-flex-line-pack: start;\n      align-content: flex-start;\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  -ms-flex-wrap: wrap;\n      flex-wrap: wrap;\n  -webkit-box-pack: center;\n      -ms-flex-pack: center;\n          justify-content: center;\n}\n\n#thumbnails-nav .thumbnail-wrap {\n  height: 21vw;\n  padding: 2vh;\n  width: auto;\n}\n\n#thumbnails-nav .thumbnail {\n  height: 100%;\n  width: auto;\n}\n\n#thumbnails-nav .thumbnail:hover {\n  cursor: pointer;\n}\n\n#thumbnails-nav.hide {\n  opacity: 0;\n  -webkit-transform: translateX(-100vw);\n       -o-transform: translateX(-100vw);\n          transform: translateX(-100vw);\n}\n\n#thumbnail-trigger {\n  height: 20px;\n  left: unset;\n  top: 60px;\n  right: 21px;\n  position: fixed;\n  -webkit-transition-duration: .1s;\n       -o-transition-duration: .1s;\n          transition-duration: .1s;\n  -webkit-transition-property: top;\n  -o-transition-property: top;\n  transition-property: top;\n  width: 30px;\n  z-index: 301;\n}\n\n#thumbnail-trigger:hover {\n  cursor: pointer;\n}\n\n#thumbnail-trigger > div {\n  background-color: #b3b3b3;\n  float: left;\n  height: 7px;\n  margin: 0 3px 3px 0;\n  width: 7px;\n}\n\nbody:not(.template-projects) #thumbnail-trigger {\n  display: none;\n}\n\n.is-touch #thumbnail-trigger {\n  top: 10px;\n  right: 10px;\n}\n\n.artwork_piece {\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-pack: center;\n      -ms-flex-pack: center;\n          justify-content: center;\n  max-width: 100vw !important;\n  min-width: 100%;\n  padding-top: 55px;\n  position: relative;\n  -webkit-transition-property: width, height;\n  -o-transition-property: width, height;\n  transition-property: width, height;\n  -webkit-transition-duration: 0.5s;\n       -o-transition-duration: 0.5s;\n          transition-duration: 0.5s;\n}\n\n@-webkit-keyframes loadingH {\n  0% {\n    width: 15px;\n  }\n\n  50% {\n    width: 75px;\n    padding: 4px;\n  }\n\n  100% {\n    width: 15px;\n  }\n}\n\n@-o-keyframes loadingH {\n  0% {\n    width: 15px;\n  }\n\n  50% {\n    width: 75px;\n    padding: 4px;\n  }\n\n  100% {\n    width: 15px;\n  }\n}\n\n@keyframes loadingH {\n  0% {\n    width: 15px;\n  }\n\n  50% {\n    width: 75px;\n    padding: 4px;\n  }\n\n  100% {\n    width: 15px;\n  }\n}\n\n.artwork_piece .line {\n  border-radius: 15px;\n  display: inline-block;\n  height: 15px;\n  background-color: #b3b3b3;\n  width: 100%;\n}\n\n.artwork_piece .loading-image {\n  display: block;\n  position: absolute;\n  top: 50%;\n  width: 100%;\n}\n\n.artwork_piece .loading-image .line {\n  -webkit-animation: loadingH 1.5s cubic-bezier(0.17, 0.37, 0.43, 0.67) infinite;\n       -o-animation: loadingH 1.5s cubic-bezier(0.17, 0.37, 0.43, 0.67) infinite;\n          animation: loadingH 1.5s cubic-bezier(0.17, 0.37, 0.43, 0.67) infinite;\n}\n\n.artwork_piece .artwork-title {\n  position: absolute;\n  top: 0;\n  left: 0;\n}\n\n.artwork_piece .image-wrap {\n  display: inline-block;\n  max-height: 100%;\n  max-width: 100%;\n  position: relative;\n  text-align: center;\n  width: 100%;\n}\n\n.artwork_piece .image-wrap .image-space-placeholder {\n  margin: 0 auto;\n  position: relative;\n  -webkit-transition-duration: 0.5s;\n       -o-transition-duration: 0.5s;\n          transition-duration: 0.5s;\n  width: 100%;\n  z-index: 2;\n}\n\n.artwork_piece .image-wrap .image-space-placeholder .center-image-wrap,\n.artwork_piece .image-wrap .image-space-placeholder .zoomy-wrap {\n  -webkit-box-align: baseline;\n      -ms-flex-align: baseline;\n          align-items: baseline;\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-pack: center;\n      -ms-flex-pack: center;\n          justify-content: center;\n}\n\n.artwork_piece .image-wrap .image-space-placeholder .main-img {\n  background-color: #363636;\n  -webkit-box-flex: 0;\n      -ms-flex-positive: 0;\n          flex-grow: 0;\n  -ms-flex-negative: 0;\n      flex-shrink: 0;\n  min-height: 125px;\n  position: static;\n  -webkit-transition-duration: 0.5s;\n       -o-transition-duration: 0.5s;\n          transition-duration: 0.5s;\n}\n\n.artwork_piece .image-wrap .image-space-placeholder .artwork-image-wrap {\n  margin: 0 auto;\n}\n\n.artwork_piece .image-wrap .caption {\n  display: inline-block;\n  margin-right: 1%;\n  width: calc(100% - 158px);\n}\n\n.artwork_piece .image-wrap .artwork-meta {\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  position: static;\n  text-align: left;\n  width: 100%;\n}\n\n.artwork_piece .image-wrap .artwork-meta .caption p {\n  margin: 0;\n}\n\n.artwork_piece .image-wrap .artwork-meta .actions {\n  display: block;\n  position: absolute;\n  right: 0;\n  -webkit-box-flex: 0;\n      -ms-flex-positive: 0;\n          flex-grow: 0;\n  -ms-flex-negative: 0;\n      flex-shrink: 0;\n  -webkit-transition-duration: .5s;\n       -o-transition-duration: .5s;\n          transition-duration: .5s;\n  z-index: 20;\n}\n\n.artwork_piece .image-wrap .artwork-meta .actions .icon {\n  display: inline-block;\n  height: 34px;\n  margin: 0 10px;\n  width: 30px;\n}\n\n.artwork_piece .image-wrap .artwork-meta .actions .icon:hover {\n  cursor: pointer;\n}\n\n.artwork_piece .image-wrap .artwork-meta .actions .info {\n  background: url(\"/app/themes/stone-roberts-anew/dist/images/artwork-scale.png\") no-repeat center/contain transparent;\n}\n\n.artwork_piece .image-wrap .artwork-meta .actions .zoom {\n  background: url(\"/app/themes/stone-roberts-anew/dist/images/zoom.png\") no-repeat center/contain transparent;\n}\n\n.artwork_piece .image-wrap .artwork-meta .actions .share {\n  background: url(\"/app/themes/stone-roberts-anew/dist/images/share.png\") no-repeat center/contain transparent;\n}\n\n.artwork_piece .image-wrap .piece-comparison {\n  background: #fff;\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  left: 0;\n  margin: 0;\n  padding: 0;\n  position: fixed;\n  right: 0;\n  top: 0;\n  -webkit-transform: translateY(110vh);\n       -o-transform: translateY(110vh);\n          transform: translateY(110vh);\n  -webkit-transition-duration: .5s;\n       -o-transition-duration: .5s;\n          transition-duration: .5s;\n  z-index: 400;\n  height: 100vh;\n}\n\n.artwork_piece .image-wrap .piece-comparison .piece-comparison-wrap {\n  -webkit-box-align: center;\n      -ms-flex-align: center;\n          align-items: center;\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  height: 100%;\n  -webkit-box-pack: center;\n      -ms-flex-pack: center;\n          justify-content: center;\n  margin: 0 auto;\n  overflow: hidden;\n  padding: 0;\n  width: 100%;\n}\n\n.artwork_piece .image-wrap .piece-comparison .piece-comparison-wrap.piece-comparison-processed {\n  visibility: visible !important;\n}\n\n.artwork_piece .image-wrap .piece-comparison .piece-comparison-wrap .close {\n  background: url(\"/app/themes/stone-roberts-anew/dist/images/close.png\") no-repeat center/contain transparent;\n  height: 18px;\n  width: 17px;\n}\n\n.artwork_piece .image-wrap .piece-comparison .comparison-image-wrap {\n  -webkit-box-align: center;\n      -ms-flex-align: center;\n          align-items: center;\n  -webkit-box-shadow: -2px 1px 5px 0px #525356;\n          box-shadow: -2px 1px 5px 0px #525356;\n  padding: 0;\n  border: 10px solid #383838;\n  -webkit-box-orient: vertical;\n  -webkit-box-direction: normal;\n      -ms-flex-direction: column;\n          flex-direction: column;\n  -webkit-box-flex: 0;\n      -ms-flex-positive: 0;\n          flex-grow: 0;\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-pack: end;\n      -ms-flex-pack: end;\n          justify-content: flex-end;\n  position: static;\n  margin: 0 0 5%;\n  max-height: 100%;\n  top: 19%;\n  z-index: 1;\n}\n\n.artwork_piece .image-wrap .piece-comparison .comparison-image-wrap .comparison-image {\n  border: 30px solid #fff;\n  -ms-flex-negative: 1;\n      flex-shrink: 1;\n  height: auto;\n  max-height: none;\n  max-width: none;\n  width: 100%;\n}\n\n.artwork_piece .image-wrap .piece-comparison .compared-to {\n  height: 100vh;\n  left: 0;\n  max-height: none;\n  max-width: none;\n  -o-object-fit: cover;\n     object-fit: cover;\n  position: absolute;\n  top: 0;\n  -webkit-transition-duration: 250ms;\n       -o-transition-duration: 250ms;\n          transition-duration: 250ms;\n  -webkit-transition-property: width, height;\n  -o-transition-property: width, height;\n  transition-property: width, height;\n  width: 100vw;\n}\n\n.artwork_piece .image-wrap .piece-comparison .close {\n  color: #0f0f0f;\n  position: absolute;\n  right: 20px;\n  top: 20px;\n  z-index: 5;\n}\n\n.artwork_piece .image-wrap .piece-comparison .close:hover {\n  cursor: pointer;\n}\n\n.artwork_piece.show-info .piece-comparison {\n  -webkit-transform: translateY(0vh);\n       -o-transform: translateY(0vh);\n          transform: translateY(0vh);\n}\n\n.artwork_piece .zoomy-wrap {\n  height: 100%;\n  position: absolute;\n  top: 0;\n  width: 100%;\n  z-index: 10;\n}\n\n.artwork_piece .zoomy-wrap .zoom-img {\n  background-color: #0f0f0f;\n  position: absolute;\n  max-height: none;\n  max-width: none;\n  padding: 10px;\n  width: 150%;\n  height: auto;\n}\n\n.artwork_piece .zoomy-wrap .mouse-map-wrap {\n  -webkit-box-align: center;\n      -ms-flex-align: center;\n          align-items: center;\n  background-color: #333333;\n  background-origin: border-box;\n  background-repeat: no-repeat;\n  background-size: 100%;\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  height: 100%;\n  -webkit-box-pack: center;\n      -ms-flex-pack: center;\n          justify-content: center;\n  overflow: hidden;\n  opacity: 0;\n  position: relative;\n  -webkit-transition-duration: 0.5s;\n       -o-transition-duration: 0.5s;\n          transition-duration: 0.5s;\n  -webkit-transition-property: background-size, width, height, -webkit-transform;\n  transition-property: background-size, width, height, -webkit-transform;\n  -o-transition-property: background-size, width, height, -o-transform;\n  transition-property: transform, background-size, width, height;\n  transition-property: transform, background-size, width, height, -webkit-transform, -o-transform;\n  width: 100%;\n}\n\n.artwork_piece .zoomy-wrap .mouse-map-wrap[zoom-enabled]:hover {\n  cursor: -webkit-zoom-in;\n  cursor: zoom-in;\n}\n\n.artwork_piece .zoomy-wrap .mouse-map-wrap .mouse-map {\n  opacity: .4;\n  height: 100%;\n  width: 100%;\n  margin: 0 auto;\n  -webkit-transition-duration: 0.5s;\n       -o-transition-duration: 0.5s;\n          transition-duration: 0.5s;\n  -webkit-transition-property: background-size, width, height, -webkit-transform;\n  transition-property: background-size, width, height, -webkit-transform;\n  -o-transition-property: background-size, width, height, -o-transform;\n  transition-property: transform, background-size, width, height;\n  transition-property: transform, background-size, width, height, -webkit-transform, -o-transform;\n}\n\n.artwork_piece.loaded .loading-image {\n  display: none;\n}\n\n.artwork_piece.zoomed .mouse-map-wrap {\n  opacity: 1;\n}\n\n.artwork_piece.zoomed .mouse-map-wrap:hover {\n  cursor: -webkit-zoom-out !important;\n  cursor: zoom-out !important;\n}\n\n.artwork_piece.zoomed .main-img {\n  visibility: hidden;\n}\n\n.artwork_piece.centered .image-space-placeholder {\n  z-index: 50;\n}\n\n.artwork_piece.centered .center-image-wrap,\n.artwork_piece.centered .zoomy-wrap {\n  -webkit-box-align: center !important;\n      -ms-flex-align: center !important;\n          align-items: center !important;\n  bottom: 0;\n  height: auto !important;\n  position: fixed;\n  left: 0;\n  right: 0;\n  top: 0;\n}\n\n.artwork_piece.centered .artwork-meta {\n  display: none;\n}\n\n.artwork_piece.centered.width .image-space-placeholder,\n.artwork_piece.centered.width .image-ratio-holder {\n  width: 100%;\n}\n\n.artwork_piece.centered.height .image-wrap,\n.artwork_piece.centered.height .image-space-placeholder,\n.artwork_piece.centered.height .image-ratio-holder {\n  width: 100%;\n}\n\n.artwork_piece:not(.zoomed) .artwork-meta:hover {\n  bottom: 0;\n}\n\n.artwork_piece:not(.zoomed) .artwork-meta:hover .caption p {\n  opacity: 1;\n}\n\n.artwork_piece.centered-image-transition-duration .main-img {\n  -webkit-transition-duration: 0.5s;\n       -o-transition-duration: 0.5s;\n          transition-duration: 0.5s;\n}\n\n.artwork_piece.zoomed-delay .mouse-map-wrap {\n  opacity: 1 !important;\n}\n\n.artwork_piece .actions .zoom {\n  display: none !important;\n}\n\n.artwork_piece[zoom-enabled] .actions .zoom {\n  display: inline-block !important;\n}\n\nbody.artworks-processed .artwork_piece {\n  width: 100vw;\n}\n\nbody.centered-image .main > *,\nbody.centered-image .banner .brand {\n  opacity: 0;\n}\n\nbody.centered-image .main > *.centered,\nbody.centered-image .banner .brand.centered {\n  opacity: 1 !important;\n}\n\nbody.centered-image .main > *.centered h3,\nbody.centered-image .banner .brand.centered h3 {\n  opacity: 0;\n}\n\nbody.centered-image #thumbnail-trigger,\nbody.centered-image .hamburger,\nbody.centered-image .center-scroll-arrows,\nbody.centered-image .fullscreen-toggle {\n  opacity: .1;\n  -webkit-transition-duration: .25s;\n       -o-transition-duration: .25s;\n          transition-duration: .25s;\n}\n\nbody.centered-image #thumbnail-trigger:hover,\nbody.centered-image .hamburger:hover,\nbody.centered-image .center-scroll-arrows:hover,\nbody.centered-image .fullscreen-toggle:hover {\n  opacity: 1;\n}\n\nbody.is-touch .artwork_piece .main-img {\n  max-width: 100vw;\n  max-height: none !important;\n  position: static !important;\n}\n\nbody.is-touch .artwork_piece .artwork-meta {\n  padding: 1.2em;\n}\n\nbody.is-touch .artwork_piece.width .main-img {\n  height: auto;\n  width: 100vw;\n}\n\nbody.is-touch .artwork_piece.height .main-img {\n  /* If you need to support browser without CSS var support */\n  height: 100vh;\n  /* enable vh fix */\n  height: calc(100vh - var(--vh-offset));\n  width: auto;\n}\n\nbody.is-touch.zoomed {\n  overflow: hidden;\n}\n\nbody.is-touch .artwork-title {\n  left: 5%;\n}\n\nbody.viewport-resizing .artwork_piece {\n  max-width: 100% !important;\n}\n\nbody.orientation-landscape.zoomed .artwork-meta {\n  z-index: 0;\n}\n\n@media screen and (max-width: 630px) {\n  body .artwork_piece .main-img {\n    max-width: 100vw;\n    max-height: none !important;\n    position: static !important;\n  }\n\n  body .artwork_piece .artwork-meta {\n    padding: 1.2em;\n  }\n\n  body .artwork_piece.width .main-img {\n    height: auto;\n    width: 100vw;\n  }\n\n  body .artwork_piece.height .main-img {\n    /* If you need to support browser without CSS var support */\n    height: 100vh;\n    /* enable vh fix */\n    height: calc(100vh - var(--vh-offset));\n    width: auto;\n  }\n}\n\n@media screen and (min-width: 768px) and (max-width: 100000px) {\n  body.template-projects header.banner {\n    margin-bottom: 121px;\n  }\n}\n\nbody.template-projects .page-header {\n  display: none;\n}\n\n.dev-share-buttons {\n  -webkit-box-orient: horizontal;\n  -webkit-box-direction: normal;\n      -ms-flex-direction: row;\n          flex-direction: row;\n  -webkit-box-pack: center;\n      -ms-flex-pack: center;\n          justify-content: center;\n  -webkit-box-align: center;\n      -ms-flex-align: center;\n          align-items: center;\n  position: absolute;\n}\n\n.dev-share-buttons a {\n  background: none;\n  font-size: 32px;\n  display: inline-block;\n  padding: 10px;\n  margin: 32px 5px 0;\n}\n\n.dev-share-buttons a:hover {\n  background: none;\n}\n\n.dev-share-buttons svg {\n  color: #b3b3b3;\n}\n\n.dev-share-buttons .link-input-wrap {\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-pack: center;\n      -ms-flex-pack: center;\n          justify-content: center;\n  left: 0;\n  position: absolute;\n  width: 100%;\n  top: 35%;\n}\n\n.dev-share-buttons .link-input-wrap input {\n  width: 50%;\n}\n\n.dev-share-buttons .close {\n  background: url(\"/app/themes/stone-roberts-anew/dist/images/close.png\") no-repeat center/contain transparent;\n  height: 18px;\n  width: 17px;\n}\n\n.dev-share-buttons .close svg {\n  display: none;\n}\n\n.body_text p:last-child {\n  margin-bottom: 0;\n}\n\n#splash-modal {\n  display: block;\n  background-color: #262626;\n  background-size: cover;\n  background-position: center;\n  height: 100vh;\n  left: 0;\n  opacity: 0;\n  position: fixed;\n  top: 0;\n  -webkit-transition-duration: .25s;\n       -o-transition-duration: .25s;\n          transition-duration: .25s;\n  -webkit-transition-property: opacity;\n  -o-transition-property: opacity;\n  transition-property: opacity;\n  width: 100vw;\n  z-index: -1;\n}\n\n#splash-modal:hover {\n  cursor: pointer;\n}\n\n.show-splash #splash-modal {\n  opacity: 1;\n  z-index: 400;\n}\n\n.show-splash-transition #splash-modal {\n  z-index: 400;\n}\n\nheader.banner {\n  margin-bottom: 70px;\n}\n\n@media screen and (min-width: 0px) and (max-width: 767px) {\n  header.banner {\n    margin-bottom: 0;\n  }\n}\n\nheader.banner .container {\n  display: -webkit-box;\n  display: -ms-flexbox;\n  display: flex;\n  -webkit-box-pack: center;\n      -ms-flex-pack: center;\n          justify-content: center;\n  overflow: auto;\n}\n\nheader.banner .container .brand {\n  background-color: #262626;\n  display: block;\n  height: auto;\n  line-height: 1em;\n  margin: 0 auto;\n  max-width: 100%;\n  text-align: center;\n  padding: 31px 0 0;\n  font-size: 30px;\n  font-weight: bold;\n  position: static;\n  top: 0;\n  left: 0;\n  width: 399px;\n}\n\n@media screen and (min-width: 0px) and (max-width: 767px) {\n  header.banner .container .brand {\n    width: calc( 100% - 131px);\n    margin: 84px 0 69px;\n    padding: 0;\n  }\n}\n\nheader.banner .container .brand span {\n  display: block;\n  background: url(\"/app/themes/stone-roberts-anew/dist/images/logo.png\") no-repeat center/contain transparent;\n  height: 88px;\n}\n\nheader.banner .container .nav-primary {\n  z-index: 300;\n}\n\nheader.banner .container .nav-primary .nav {\n  padding: 0;\n}\n\nheader.banner .container .nav-primary .nav li {\n  display: inline-block;\n  list-style-type: none;\n  margin: 0 .3em;\n}\n\nheader.banner .fullscreen-toggle {\n  background-image: url(\"/app/themes/stone-roberts-anew/dist/images/fullscreen-in.png\") !important;\n  left: 22px;\n  right: unset;\n  top: 26px;\n  width: 33px !important;\n  z-index: 301;\n}\n\n.hamburger {\n  z-index: 307 !important;\n  top: 57px;\n  left: 9px;\n}\n\n.home .hamburger,\n.home .nav-primary {\n  display: none;\n}\n\n.fullscreen:-webkit-full-screen .fullscreen-toggle {\n  background-image: url(\"/app/themes/stone-roberts-anew/dist/images/fullscreen-out.png\") !important;\n  display: block !important;\n}\n\n.fullscreen:-moz-full-screen .fullscreen-toggle {\n  background-image: url(\"/app/themes/stone-roberts-anew/dist/images/fullscreen-out.png\") !important;\n  display: block !important;\n}\n\n.fullscreen:-ms-fullscreen .fullscreen-toggle {\n  background-image: url(\"/app/themes/stone-roberts-anew/dist/images/fullscreen-out.png\") !important;\n  display: block !important;\n}\n\n.fullscreen:fullscreen .fullscreen-toggle {\n  background-image: url(\"/app/themes/stone-roberts-anew/dist/images/fullscreen-out.png\") !important;\n  display: block !important;\n}\n\n.no-fullscreen .hamburger {\n  left: 1px;\n  top: -5px;\n}\n\nfooter.content-info {\n  padding: 30px 0;\n}\n\nbody.home .main {\n  max-width: unset;\n  width: 100vw;\n}\n\n.post-main-content figure {\n  display: block;\n  margin-left: auto;\n  margin-right: auto;\n}\n\nhtml {\n  background: transparent;\n}\n\nbody#tinymce {\n  margin: 12px !important;\n}\n\nbody.front {\n  color: #fff;\n  font-family: \"Whitney SSm A\", \"Whitney SSm B\";\n  font-weight: 400;\n  font-style: normal;\n  line-height: 23px;\n}\n\nbody.front a {\n  color: #fff;\n  text-decoration: none;\n}\n\nbody.front .fullscreen {\n  background: #262626;\n}\n\nbody.front .fullscreen .fullscreen-modal {\n  background-color: rgba(0, 0, 0, 0.8);\n  z-index: 400;\n}\n\nbody.front .fullscreen .main > * {\n  margin-bottom: 33px;\n}\n\nbody.front .fullscreen .main .page-header {\n  margin-top: 40px;\n  margin-bottom: 60px;\n}\n\nbody.front .fullscreen .main .page-header h1 {\n  font-size: 18px;\n  letter-spacing: 3.7px;\n}\n\nbody.front .fullscreen .main h1,\nbody.front .fullscreen .main h2,\nbody.front .fullscreen .main h3,\nbody.front .fullscreen .main h4,\nbody.front .fullscreen .main h5 {\n  font-weight: 100;\n  font-size: 14px;\n  letter-spacing: 0.21em;\n  text-transform: uppercase;\n}\n\nbody.front .fullscreen .main .artwork_piece .artwork-meta {\n  margin-top: 10px;\n}\n\nbody.front .fullscreen .main .artwork_piece .artwork-meta .caption p {\n  color: #bcbcbc;\n  font-size: 15px;\n  line-height: 19px;\n}\n\n","/** Search form */\n// TODO: .search-form {}\n// TODO: .search-form label {}\n// TODO: .search-form .search-field {}\n// TODO: .search-form .search-submit {}\n","/**\n * WordPress Generated Classes\n * @see http://codex.wordpress.org/CSS#WordPress_Generated_Classes\n */\n\n/** Media alignment */\n.alignnone {\n  margin-left: 0;\n  margin-right: 0;\n  max-width: 100%;\n  height: auto;\n}\n\n.aligncenter {\n  display: block;\n  margin: ($spacer / 2) auto;\n  height: auto;\n}\n\n.alignleft,\n.alignright {\n  margin-bottom: ($spacer / 2);\n  height: auto;\n}\n\n@media (min-width: 30rem) {\n  .alignleft {\n    float: left;\n    margin-right: ($spacer / 2);\n  }\n\n  .alignright {\n    float: right;\n    margin-left: ($spacer / 2);\n  }\n}\n\n/** Captions */\n\n// TODO: .wp-caption {}\n// TODO: .wp-caption img {}\n// TODO: .wp-caption-text {}\n\n/** Text meant only for screen readers */\n.screen-reader-text {\n  position: absolute;\n  width: 1px;\n  height: 1px;\n  padding: 0;\n  margin: -1px;\n  overflow: hidden;\n  clip: rect(0, 0, 0, 0);\n  border: 0;\n  color: #000;\n  background: #fff;\n}\n",".modal {\n  max-width: 30000px;\n  width: 100vw;\n\n  .modal-dialog {\n    max-width: 30000px;\n    height: 100vh;\n    width: 100vw;\n\n    .modal-content {\n      max-width: 100%;\n      height: 100vh;\n      top: 0 !important;\n      left: 0 !important;\n      transform: translate(0, 0) !important;\n\n      .modal-body {\n        position: absolute;\n        width: 100%;\n        height: 100%;\n        display: flex;\n        flex-direction: column;\n        justify-content: center;\n        padding-top: 39px;\n\n        .video-embed, .video-embed * {\n          max-height: calc(100vh - 27px);\n        }\n\n        button {\n          background: url($image-path + 'closeout-icon-lightgrey.png') no-repeat center center/contain transparent !important;\n          height: 17px;\n          padding: 0;\n          width: 17px;\n          text-align: left;\n          position: absolute;\n          left: 3px;\n          top: 10px;\n          z-index: 200;\n        }\n\n        iframe {\n          display: block;\n          margin: 0 auto;\n        }\n      }\n    }\n  }\n}\n",".nav-primary {\n  background: $background;\n  transform: translateY(-120vh);\n  position: fixed;\n  z-index: 19;\n  height: 100vh;\n  width: 100vw;\n  margin: 0 auto;\n  padding: 24px 13vh;\n  max-height: 100vh;\n  max-width: none;\n  overflow: scroll;\n  top: 0;\n  transition-duration: .25s;\n  transition-property: transform;\n\n  @include breakpoint($xs){\n    padding: 10vh;\n  }\n\n  @include breakpoint($sm-only){\n    padding: 6vh 18vh;\n  }\n\n  @include breakpoint($md-only){\n    padding: 24px 11vw;\n  }\n}\n\n.custom-nav {\n  //display: flex;\n  //flex-wrap: wrap;\n  //justify-content: flex-start;\n\n  display: grid;\n  grid-template-columns: 1fr 1fr 1fr;\n  grid-gap: 3vw;\n  margin: 0 auto;\n  max-width: 1200px;\n  padding: 0;\n\n  @include breakpoint($xs){\n    grid-template-columns: 1fr;\n  }\n\n  @include breakpoint($sm-only){\n    grid-template-columns: 1fr 1fr;\n  }\n\n  .list-item {\n    display: block;\n    height: auto;\n    margin: 0 0 1.8em;\n    max-height: none;\n    max-width: none;\n    width: auto;\n\n\n    &:hover .nav-item-image, &:active .nav-item-image{\n      transform: scale(1.01);\n      transition-duration: .25s;\n      transition-property: transform;\n    }\n\n    .nav-item {\n      display: flex;\n      flex-direction: column;\n      height: 100%;\n    }\n\n    .nav-item-header {\n      display: flex;\n      flex-direction: column;\n      flex-grow: 0;\n      font-size: 18px;\n      justify-content: flex-end;\n      margin-bottom: 13px;\n      text-transform: uppercase;\n      letter-spacing: 1.1px;\n    }\n\n    .nav-item-image {\n      background-size: cover;\n      display: block;\n      flex-grow: 0;\n      height: unset;\n      max-width: 100%;\n      padding-bottom: 100%;\n      width: 100%;\n    }\n\n    .nav-item-short-text {\n      display: block;\n      flex-grow: 0;\n      margin-top: 0.4em;\n    }\n  }\n}\n\nbody.home{\n  .custom-nav{\n    width: 90%;\n  }\n}",".audio {\n  margin-top: 73px;\n  padding: 0 23px;\n  position: relative;\n\n  .audio-piece {\n    .duration, .timer{\n      background: rgba(0,0,0,.5);\n      bottom: 0;\n      color: #fff;\n      padding: .5em;\n      position: absolute;\n      \n      &.timer{\n        left: -2em;\n      }\n\n      &.duration{\n        right: -2em;\n      }\n    }\n    \n    button{\n      background-color: gray;\n      border: 0 solid;\n      border-radius: .1em;\n      padding: 1.2em;\n      color: #fff;\n      // position: absolute;\n\n    }\n    .play{\n      \n    }\n\n    .pause{\n\n    }\n\n    .span-value-wrap{\n      height: 50px;\n      position: relative;\n      width: 100%;\n\n      .span-value{\n        background-color:#646464;\n        border-radius: 0;\n        display: block;\n        height: 100%;\n        overflow: visible;\n        width: 0;\n\n        .span-value-jump{\n          box-sizing: content-box;\n          height: 100%;\n          width: 0;\n\n          div{\n            height: 100%;\n            width: 100%;\n\n          }\n          \n        }\n      }\n      &:hover .span-value-jump div{\n        background-color: rgba(79, 105, 61, 0.5);\n        \n      }\n    }\n  }\n}",".video {\n  position: relative;\n  width: 100%;\n\n  .wrap {\n    overflow: hidden;\n    position: relative;\n\n    .video-play-screenshot {\n      overflow: hidden;\n      display: block;\n      height: 100%;\n      width: 100%;\n      position: absolute;\n      top: 0;\n      left: 0;\n      background-size: cover;\n      background-position: center;\n      z-index: 1;\n    }\n  }\n\n  .caption {\n    margin-top: 10px;\n\n    p {\n      color: #bcbcbc;\n      font-size: 15px;\n      line-height: 19px;\n    }\n  }\n\n  .play-button {\n    background: url($image-path + 'play.svg') no-repeat 50%/28% transparent;\n    border: none;\n    display: block;\n    position: absolute;\n    width: 100%;\n    height: 100%;\n    top: 0;\n    left: 0;\n    z-index: 2 ;\n  }\n\n  @media screen and (max-width: $mobile-max-width) {\n    background-size: 22%;\n  }\n\n  @media screen and (min-width: $desktop-min-width) {\n    .play-button {\n      background-size: 20%;\n\n      &:hover {\n        cursor: pointer;\n      }\n    }\n\n    .video-play-screenshot {\n\n    }\n  }\n  \n  &.playing{\n    .play-button, .video-play-screenshot{\n      display: none;\n    }\n  }\n}\n",".carousel-wrap {\n  overflow: hidden;\n  position: relative;\n\n  .carousel {\n    width: 100%;\n\n    .carousel-cell {\n      max-width: 100vw;\n      width: 100%;\n\n      figure {\n        margin-bottom: 0;\n        width: 100% !important;\n\n        img {\n          width: 100%;\n        }\n      }\n\n      .text {\n        background: rgba(0, 0, 0, .5);\n        bottom: 0;\n        color: #fff;\n        margin: 0;\n        padding: 0;\n        position: absolute;\n        text-align: left;\n        width: 100%;\n\n        p {\n\n        }\n      }\n    }\n\n    .flickity-prev-next-button {\n      display: none;\n      width: 55px;\n      height: 77px;\n\n    }\n\n    @media screen and (min-width: 768px) {\n      .carousel-cell {\n        .text {\n\n          p {\n          }\n        }\n      }\n\n      .flickity-page-dots {\n        bottom: 45px;\n\n        .dot {\n          height: 13px;\n          width: 13px;\n          background: #fff;\n        }\n      }\n    }\n\n    @media screen and (min-width: 1024px) {\n      .carousel-cell {\n        .text {\n\n          p {\n\n          }\n\n          h5 {\n          }\n        }\n      }\n\n      .flickity-page-dots {\n        bottom: 59px;\n\n        .dot {\n\n        }\n      }\n\n      .flickity-prev-next-button {\n        display: block;\n      }\n    }\n\n    .flickity-prev-next-button {\n      background: transparent;\n      display: block;\n      top: 72%;\n\n      path {\n        fill: #fff;\n        opacity: .4;\n      }\n    }\n\n    .flickity-prev-next-button {\n      top: 73.2%;\n\n      &.previous {\n        left: 31px;\n      }\n\n      &.next {\n        right: 20px;\n      }\n    }\n  }\n}\n\n\n",".center-scroll-arrows {\n  position: fixed;\n  left: unset;\n  right: 22px;\n  top: 18px;\n  height: 100px;\n  display: none;\n  flex-direction: column;\n  justify-content: space-between;\n  z-index: 50;\n\n  div {\n    background: url($image-path + 'arrow.png') no-repeat center/contain transparent;\n    height: 32px;\n    width: 30px;\n\n    &.prev{\n\n    }\n\n    &.next {\n      transform: rotate(180deg);\n    }\n\n    &:hover{\n      cursor: pointer;\n    }\n  }\n\n  &.hide-next {\n    .next {\n      opacity: .15;\n      visibility: visible;\n    }\n  }\n\n  &.hide-previous {\n    .prev {\n      opacity: .15;\n      visibility: visible;\n    }\n  }\n}\n\n.template-projects .center-scroll-arrows{\n  display: flex;\n}","#thumbnails-nav {\n  background-color: rgba(0, 0, 0, .9);\n  height: 100vh;\n  left: 0;\n  opacity: 1;\n  overflow: scroll;\n  padding: 0 4vw 8vw;\n  position: fixed;\n  top: 0;\n  transition-duration: .1s;\n  transition-property: transform, opacity;\n  width: 100vw;\n  z-index: 300;\n\n  h1 {\n    font-size: 18px;\n    letter-spacing: 3.7px;\n    height: 8vw;\n    width: 100%;\n    text-align: center;\n    margin: 0 0 -2vh 0 !important;\n    display: flex;\n    justify-content: center;\n    align-items: center;\n  }\n\n  .thumbnails-wrap {\n    align-content: flex-start;\n    display: flex;\n    flex-wrap: wrap;\n    justify-content: center;\n  }\n\n  .thumbnail-wrap {\n    height: 21vw;\n    padding: 2vh;\n    width: auto;\n  }\n\n  .thumbnail {\n    height: 100%;\n    width: auto;\n\n    &:hover {\n      cursor: pointer;\n    }\n  }\n\n  &.hide {\n    opacity: 0;\n    transform: translateX(-100vw);\n  }\n}\n\n#thumbnail-trigger {\n  $square-side-length: 7;\n  $square-margin-right: 3;\n  $square-margin-bottom: 3;\n  $wrap-width: ($square-margin-right + $square-side-length) * 3;\n  $wrap-height: ($square-margin-bottom + $square-side-length) * 2;\n  height: $wrap-height + px;\n  left: unset;\n  top: 60px;\n  right: 21px;\n  position: fixed;\n  transition-duration: .1s;\n  transition-property: top;\n  width: $wrap-width + px;\n  z-index: 301;\n\n  &:hover {\n    cursor: pointer;\n  }\n\n  > div {\n    background-color: $icons-color;\n    float: left;\n    height: $square-side-length + px;\n    margin: 0 $square-margin-right + px $square-margin-bottom + px 0;\n    width: $square-side-length + px;\n  }\n\n}\n\nbody:not(.template-projects) #thumbnail-trigger {\n  display: none;\n}\n\n// right now touch does not have any artwork piece button go to capability, so we realign the thumbnail nav\n.is-touch {\n  #thumbnail-trigger {\n    top: 10px;\n    right: 10px;\n  }\n}",".artwork_piece {\n  $zoom-transition-duration: .5s;\n  display: flex;\n  justify-content: center; // max-height: 100vh !important;\n  max-width: 100vw !important;\n  min-width: 100%;\n  padding-top: 55px;\n  position: relative;\n  transition-property: width, height;\n  transition-duration: $zoom-transition-duration;\n\n  @keyframes loadingH {\n    0% {\n      width: 15px;\n    }\n    50% {\n      width: 75px;\n      padding: 4px;\n    }\n    100% {\n      width: 15px;\n    }\n  }\n\n  .line {\n    border-radius: 15px;\n    display: inline-block;\n    height: 15px;\n    background-color: $icons-color;\n    width: 100%;\n  }\n\n  .loading-image {\n    display: block;\n    position: absolute;\n    top: 50%;\n    width: 100%;\n\n    .line {\n      animation: loadingH 1.5s cubic-bezier(.17, .37, .43, .67) infinite;\n    }\n  }\n\n  .artwork-title {\n    position: absolute;\n    top: 0;\n    left: 0;\n  }\n\n  .image-wrap {\n    display: inline-block;\n    max-height: 100%;\n    max-width: 100%; // overflow: hidden;\n    position: relative;\n    text-align: center;\n    width: 100%;\n\n    .image-space-placeholder {\n      margin: 0 auto;\n      position: relative;\n      transition-duration: $zoom-transition-duration;\n      width: 100%;\n      z-index: 2;\n\n      .center-image-wrap, .zoomy-wrap {\n        align-items: baseline;\n        display: flex;\n        justify-content: center;\n      }\n\n      .main-img {\n        background-color: $background-lighter;\n        flex-grow: 0;\n        flex-shrink: 0;\n        min-height: 125px;\n        //max-height: 100vh;\n        position: static;\n        transition-duration: $zoom-transition-duration;\n      }\n\n      .artwork-image-wrap {\n        margin: 0 auto;\n      }\n\n    }\n\n    .caption {\n      display: inline-block;\n      margin-right: 1%;\n      width: calc(100% - 158px);\n    }\n    .artwork-meta {\n      display: flex; // position: absolute;\n      position: static;\n      text-align: left; // top: 100%;\n      width: 100%;\n\n      .caption p {\n        margin: 0;\n      }\n\n      .actions {\n        display: block;\n        position: absolute;\n        right: 0;\n        flex-grow: 0;\n        flex-shrink: 0;\n        transition-duration: .5s;\n        z-index: 20;\n\n        .icon {\n          display: inline-block;\n          height: 34px;\n          margin: 0 10px;\n          width: 30px;\n\n          &:hover {\n            cursor: pointer;\n          }\n        }\n\n        .info {\n          background: url($image-path + 'artwork-scale.png') no-repeat center/contain transparent;\n        }\n\n        .zoom {\n          background: url($image-path + 'zoom.png') no-repeat center/contain transparent;\n        }\n\n        .share {\n          background: url($image-path + 'share.png') no-repeat center/contain transparent;\n        }\n      }\n    }\n\n    .piece-comparison {\n      $piece-comparison-padding: 3vh;\n      background: #fff;\n      display: flex;\n      left: 0;\n      margin: 0;\n      padding: 0;\n      position: fixed;\n      right: 0;\n      top: 0;\n      transform: translateY(110vh);\n      transition-duration: .5s;\n      z-index: 400;\n      height: 100vh;\n\n      .piece-comparison-wrap {\n        align-items: center;\n        display: flex;\n        height: 100%;\n        justify-content: center;\n        margin: 0 auto;\n        overflow: hidden;\n        padding: 0;\n        width: 100%;\n\n        &.piece-comparison-processed {\n          visibility: visible !important;\n        }\n\n        .close {\n          background: url($image-path + 'close.png') no-repeat center/contain transparent;\n          height: 18px;\n          width: 17px;\n        }\n      }\n\n      .comparison-image-wrap {\n        align-items: center;\n        box-shadow: -2px 1px 5px 0px #525356;\n        padding: 0;\n        border: 10px solid #383838;\n        flex-direction: column;\n        flex-grow: 0;\n        display: flex;\n        justify-content: flex-end;\n        //margin-bottom: 29%;\n        position: static;\n        margin: 0 0 5%;\n        max-height: 100%;\n        top: 19%;\n        z-index: 1;\n\n        .comparison-image {\n          border: 30px solid #fff;\n          flex-shrink: 1;\n          height: auto;\n          max-height: none;\n          max-width: none;\n          width: 100%;\n        }\n      }\n      .compared-to {\n        height: 100vh;\n        left: 0;\n        max-height: none;\n        max-width: none;\n        object-fit: cover;\n        position: absolute;\n        top: 0;\n        transition-duration: 250ms;\n        transition-property: width, height;\n        width: 100vw;\n      }\n      .close {\n        color: #0f0f0f;\n        position: absolute;\n        right: 20px;\n        top: 20px;\n        z-index: 5;\n\n        &:hover {\n          cursor: pointer;\n        }\n      }\n    }\n  }\n  &.show-info {\n    .piece-comparison {\n      transform: translateY(0vh);\n    }\n  }\n\n  .zoomy-wrap {\n    height: 100%;\n    position: absolute;\n    top: 0;\n    width: 100%;\n    z-index: 10;\n\n    .zoom-img {\n      background-color: hsla(0, 0%, 6%, 1.0);\n      position: absolute;\n      max-height: none;\n      max-width: none;\n      padding: 10px;\n      width: 150%;\n      height: auto;\n    }\n\n    .mouse-map-wrap {\n      align-items: center;\n      background-color: hsla(0, 0, 20%, 1);\n      background-origin: border-box;\n      background-repeat: no-repeat;\n      background-size: 100%;\n      display: flex;\n      height: 100%;\n      justify-content: center;\n      overflow: hidden;\n      opacity: 0;\n      position: relative;\n      transition-duration: $zoom-transition-duration;\n      transition-property: transform, background-size, width, height;\n      width: 100%;\n      &[zoom-enabled]:hover {\n        cursor: zoom-in;\n      }\n\n      .mouse-map {\n        opacity: .4;\n        height: 100%;\n        width: 100%;\n        margin: 0 auto;\n        transition-duration: $zoom-transition-duration;\n        transition-property: transform, background-size, width, height;\n      }\n    }\n  }\n\n  &.loaded {\n    .loading-image {\n      display: none;\n    }\n\n    .main-img {\n\n    }\n  }\n\n  &.zoomed {\n    .mouse-map-wrap {\n      opacity: 1;\n\n      &:hover {\n        cursor: zoom-out !important;\n      }\n    }\n    .main-img {\n      visibility: hidden;\n    }\n  }\n\n  &.centered {\n    .image-space-placeholder {\n      z-index: 50;\n    }\n\n    .center-image-wrap, .zoomy-wrap {\n      align-items: center !important;\n      bottom: 0;\n      height: auto !important;\n      position: fixed;\n      left: 0;\n      right: 0;\n      top: 0;\n    }\n\n    .artwork-meta {\n      display: none;\n\n      //$width-displayed: 40px;\n      //background-color: hsla(0, 0%, 10%, 1);\n      //align-items: center;\n      //bottom: 0;\n      //display: flex;\n      //justify-content: space-between;\n      //left: calc(100vw - #{$width-displayed});\n      //padding: 0;\n      //position: fixed;\n      //transition-duration: $zoom-transition-duration;\n      //transition-property: left;\n      //width: 100vw;\n      //z-index: 302;\n      //\n      //.artwork_piece {\n      //  width: auto;\n      //}\n      //\n      //&:before {\n      //  content: '';\n      //  height: 30px;\n      //  width: 30px;\n      //  border: solid $icons-color;\n      //  border-width: 0 3px 3px 0;\n      //  display: inline-block;\n      //  padding: 3px;\n      //  transform: rotate(135deg);\n      //  position: absolute;\n      //  left: 12px;\n      //  bottom: 14px;\n      //}\n      //\n      //&:hover {\n      //  left: 0;\n      //  padding-left: 1.2em;\n      //  padding-right: 1.2em;\n      //\n      //}\n      //\n      //.caption {\n      //  padding: 20px 20px 20px 41px;\n      //  width: 81%;\n      //\n      //  p {\n      //    text-align: center;\n      //  }\n      //}\n      //\n      //.actions {\n      //  position: static;\n      //}\n    }\n\n    &.width {\n      .image-space-placeholder, .image-ratio-holder {\n        width: 100%;\n      }\n    }\n\n    &.height {\n      .image-wrap, .image-space-placeholder, .image-ratio-holder {\n        width: 100%;\n      }\n    }\n  }\n\n  &:not(.zoomed) {\n    .artwork-meta {\n      &:hover {\n        bottom: 0;\n        .caption p {\n          opacity: 1;\n        }\n      }\n    }\n  }\n  &.centered-image-transition-duration {\n    .main-img {\n      transition-duration: $zoom-transition-duration;\n    }\n  }\n\n  &.zoomed-delay {\n    .mouse-map-wrap {\n      opacity: 1 !important;\n    }\n  }\n\n  .actions .zoom {\n    display: none !important;\n  }\n\n  &[zoom-enabled] {\n    .actions .zoom {\n      display: inline-block !important;\n    }\n  }\n}\n\nbody.orientation-landscape {\n  .artwork_piece {\n    .zoom-wrap {\n      img {\n      }\n    }\n  }\n}\n\nbody.artworks-processed {\n  .artwork_piece {\n    width: 100vw;\n  }\n}\n\nbody {\n  &.centered-image {\n    .main > *, .banner .brand{\n      opacity: 0;\n      &.centered {\n        opacity: 1 !important;\n\n        h3 {\n          opacity: 0;\n        }\n      }\n    }\n\n    #thumbnail-trigger, .hamburger, .center-scroll-arrows, .fullscreen-toggle {\n      opacity: .1;\n      transition-duration: .25s;\n    }\n\n    #thumbnail-trigger:hover, .hamburger:hover, .center-scroll-arrows:hover, .fullscreen-toggle:hover {\n      opacity: 1;\n    }\n  }\n  &.is-touch {\n    @include nonAnimatingMobile;\n    &.zoomed {\n      overflow: hidden;\n    }\n\n    .artwork-title {\n      left: 5%;\n    }\n  }\n  &.viewport-resizing {\n    .artwork_piece {\n      max-width: 100% !important;\n    }\n  }\n  &.orientation-landscape {\n    .centered {\n\n    }\n    &.zoomed {\n      .artwork-meta {\n        z-index: 0;\n      }\n    }\n  }\n  &.orientation-portrait {\n  }\n\n  @media screen and (max-width: $main-content-max-width + 30px) {\n    @include nonAnimatingMobile;\n  }\n}\n\nbody.template-projects {\n  @include breakpoint($md-lg-only) {\n    header.banner {\n      margin-bottom: 121px;\n    }\n  }\n\n  .page-header {\n    display: none;\n  }\n}",".dev-share-buttons {\n  flex-direction: row;\n  justify-content: center;\n  align-items: center;\n  position: absolute;\n\n  a {\n    background: none;\n    font-size: 32px;\n    display: inline-block;\n    padding: 10px;\n    margin: 32px 5px 0;\n\n    &:hover{\n      background: none;\n    }\n  }\n\n  svg{\n    color: $icons-color;\n  }\n\n  .link-input-wrap {\n    display: flex;\n    justify-content: center;\n    left: 0;\n    position: absolute;\n    width: 100%;\n    top: 35%;\n\n    input {\n      width: 50%;\n    }\n  }\n\n  .close {\n    background: url($image-path + 'close.png') no-repeat center/contain transparent;\n    height: 18px;\n    width: 17px;\n\n    svg {\n      display: none;\n    }\n  }\n}\n",".body_text{\n  p{\n    &:last-child{\n      margin-bottom: 0;\n    }\n  }\n}\n","#splash-modal{\n  display: block;\n  background-color: $background;\n  background-size: cover;\n  background-position: center;\n  height: 100vh;\n  left: 0;\n  opacity: 0;\n  position: fixed;\n  top: 0;\n  transition-duration: .25s;\n  transition-property: opacity;\n  width: 100vw;\n  z-index: -1;\n\n  &:hover{\n    cursor: pointer;\n  }\n}\n\n.show-splash{\n  #splash-modal{\n    opacity: 1;\n    z-index: 400;\n  }\n}\n\n.show-splash-transition{\n  #splash-modal{\n    z-index: 400;\n  }\n}\n","// TODO: .banner .nav li {}\n// TODO: .banner .nav a {}\nheader.banner {\n  margin-bottom: 70px;\n\n  @include breakpoint($xs-sm-only){\n    margin-bottom: 0;\n  }\n\n  .container {\n    display: flex;\n    justify-content: center;\n    overflow: auto;\n\n    .brand {\n      background-color: $background;\n      display: block;\n      height: auto;\n      line-height: 1em;\n      margin: 0 auto;\n      max-width: 100%;\n      text-align: center;\n      padding: 31px 0 0;\n      font-size: 30px;\n      font-weight: bold;\n      position: static;\n      top: 0;\n      left: 0;\n      width: 399px;\n\n      @include breakpoint($xs-sm-only) {\n        width: calc( 100% - 131px );\n        margin: 84px 0 69px;\n        padding: 0;\n      }\n\n      span{\n        display: block;\n        background: url($image-path + 'logo.png') no-repeat center/contain transparent;\n        height: 88px;\n      }\n    }\n    .nav-primary {\n      z-index: 300;\n      .nav {\n        padding: 0;\n        li {\n          display: inline-block;\n          list-style-type: none;\n          margin: 0 .3em;\n        }\n      }\n    }\n  }\n\n  .fullscreen-toggle{\n    background-image: url($image-path + 'fullscreen-in.png') !important;\n    left: 22px;\n    right: unset;\n    top: 26px;\n    width: 33px !important;\n    z-index: 301;\n  }\n}\n\n.hamburger{\n  z-index: 307 !important;\n  top: 57px;\n  left: 9px;\n}\n\n.home {\n  .hamburger, .nav-primary {\n    display: none;\n  }\n}\n\n.fullscreen:fullscreen{\n  .fullscreen-toggle{\n    background-image: url($image-path + 'fullscreen-out.png') !important;\n    display: block !important;\n  }\n}\n\n//if there is no fullscreen capabilities we have a different arrangment of nav icons\n.no-fullscreen{\n  .hamburger{\n      left: 1px;\n      top: -5px;\n  }\n}","footer.content-info{\n  padding: 30px 0;\n}","body.home .main{\n  max-width: unset;\n  width: 100vw;\n}",".blog{\n\n  .main{\n    //margin: 0 auto;\n    //max-width: 470px;\n    //width: 100% !important;\n\n    .posts-main{\n\n    }\n  }\n}\n.post-main-content figure{\n  display: block;\n  margin-left: auto;\n  margin-right: auto;\n}","html{\n  background: transparent;\n}\nbody#tinymce {\n  margin: 12px !important;\n}\n","$whitney-regular: \"Whitney SSm A\", \"Whitney SSm B\";\nbody.front {\n  color: #fff;\n  font-family: $whitney-regular;\n  font-weight: 400;\n  font-style: normal;\n  line-height: 23px;\n\n  a{\n    color: #fff;\n    text-decoration: none;\n  }\n\n  .fullscreen {\n    background: rgba(38, 38, 38, 1.0);\n\n    .fullscreen-modal{\n      background-color: rgba(0,0,0,.8);\n      z-index: 400;\n    }\n\n    .main {\n      > * {\n        margin-bottom: 33px;\n      }\n\n      .page-header {\n        margin-top: 40px;\n        margin-bottom: 60px;\n\n        h1 {\n          font-size: 18px;\n          letter-spacing: 3.7px;\n        }\n      }\n\n      h1, h2, h3, h4, h5 {\n        font-weight: 100;\n        font-size: 14px;\n        letter-spacing: 0.21em;\n        text-transform: uppercase;\n      }\n\n      .artwork_piece {\n        .artwork-meta {\n          margin-top: 10px;\n\n          .caption {\n            p {\n              color: rgba(188, 188, 188, 1.0);\n              font-size: 15px;\n              line-height: 19px;\n            }\n          }\n        }\n      }\n    }\n  }\n}\n"],"sourceRoot":""}]);
+
+// exports
+
+
+/***/ }),
+/* 24 */
+/*!****************************!*\
+  !*** ./scripts/youtube.js ***!
+  \****************************/
+/*! exports provided: processYouTubeIframes */
+/*! all exports used */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "processYouTubeIframes", function() { return processYouTubeIframes; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utilities__ = __webpack_require__(0);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_reframe_js__ = __webpack_require__(9);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_youtube_player__ = __webpack_require__(21);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utilities__ = __webpack_require__(/*! ./utilities */ 1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_reframe_js__ = __webpack_require__(/*! reframe.js */ 25);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_youtube_player__ = __webpack_require__(/*! youtube-player */ 37);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_2_youtube_player___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_2_youtube_player__);
 
 
@@ -2017,7 +4341,12 @@ function processYouTubeIframes() {
 
 
 /***/ }),
-/* 9 */
+/* 25 */
+/*!***************************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/reframe.js/dist/reframe.es.js ***!
+  \***************************************************************************************************************************************************/
+/*! exports provided: default */
+/*! exports used: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2057,13 +4386,18 @@ function reframe(target, cName) {
 
 
 /***/ }),
-/* 10 */
+/* 26 */
+/*!*********************************!*\
+  !*** ./scripts/artwork-info.js ***!
+  \*********************************/
+/*! exports provided: artworkInfo */
+/*! all exports used */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "artworkInfo", function() { return artworkInfo; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_body_scroll_lock__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_body_scroll_lock__ = __webpack_require__(/*! body-scroll-lock */ 3);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_body_scroll_lock___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_body_scroll_lock__);
 
 
@@ -2113,13 +4447,18 @@ var artworkInfo = {
 };
 
 /***/ }),
-/* 11 */
+/* 27 */
+/*!*****************************!*\
+  !*** ./scripts/st-audio.js ***!
+  \*****************************/
+/*! exports provided: stAudio */
+/*! all exports used */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "stAudio", function() { return stAudio; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_howler__ = __webpack_require__(33);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_howler__ = __webpack_require__(/*! howler */ 49);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_howler___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_howler__);
 
 
@@ -2251,7 +4590,12 @@ var audio = {
 var stAudio = audio;
 
 /***/ }),
-/* 12 */
+/* 28 */
+/*!***********************************!*\
+  !*** (webpack)/buildin/global.js ***!
+  \***********************************/
+/*! dynamic exports provided */
+/*! all exports used */
 /***/ (function(module, exports) {
 
 var g;
@@ -2278,7 +4622,12 @@ module.exports = g;
 
 
 /***/ }),
-/* 13 */
+/* 29 */
+/*!******************************!*\
+  !*** ./scripts/more-info.js ***!
+  \******************************/
+/*! exports provided: moreInfo */
+/*! all exports used */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2508,7 +4857,12 @@ var info = {
 var moreInfo = info;
 
 /***/ }),
-/* 14 */
+/* 30 */
+/*!**********************************!*\
+  !*** ./scripts/mousePosition.js ***!
+  \**********************************/
+/*! exports provided: mousePosition */
+/*! all exports used */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -2558,7 +4912,12 @@ var mousePosition = {
 };
 
 /***/ }),
-/* 15 */
+/* 31 */
+/*!**********************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/underscore/underscore.js ***!
+  \**********************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! exports used: default */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global, module) {var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;//     Underscore.js 1.9.1
@@ -4255,36 +6614,47 @@ var mousePosition = {
   }
 }());
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12), __webpack_require__(34)(module)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(/*! ./../webpack/buildin/global.js */ 28), __webpack_require__(/*! ./../webpack/buildin/module.js */ 2)(module)))
 
 /***/ }),
-/* 16 */
+/* 32 */
+/*!*******************************************************************************************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** multi ./build/util/../helpers/hmr-client.js ./scripts/splash-page.js ./scripts/utilities.js ./scripts/youtube.js ./scripts/artwork-info.js ./scripts/st-audio.js ./scripts/more-info.js ./scripts/mousePosition.js ./scripts/zoomy.js ./scripts/thumbnail-nav.js ./scripts/nakasentro.js ./scripts/center-scroll-to.js ./scripts/main.js ./styles/main.scss ***!
+  \*******************************************************************************************************************************************************************************************************************************************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! all exports used */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(17);
-__webpack_require__(0);
-__webpack_require__(8);
-__webpack_require__(10);
-__webpack_require__(11);
-__webpack_require__(13);
-__webpack_require__(14);
-__webpack_require__(5);
-__webpack_require__(7);
-__webpack_require__(2);
-__webpack_require__(6);
-__webpack_require__(37);
-module.exports = __webpack_require__(56);
+__webpack_require__(/*! /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/resources/assets/build/util/../helpers/hmr-client.js */6);
+__webpack_require__(/*! ./scripts/splash-page.js */33);
+__webpack_require__(/*! ./scripts/utilities.js */1);
+__webpack_require__(/*! ./scripts/youtube.js */24);
+__webpack_require__(/*! ./scripts/artwork-info.js */26);
+__webpack_require__(/*! ./scripts/st-audio.js */27);
+__webpack_require__(/*! ./scripts/more-info.js */29);
+__webpack_require__(/*! ./scripts/mousePosition.js */30);
+__webpack_require__(/*! ./scripts/zoomy.js */20);
+__webpack_require__(/*! ./scripts/thumbnail-nav.js */22);
+__webpack_require__(/*! ./scripts/nakasentro.js */4);
+__webpack_require__(/*! ./scripts/center-scroll-to.js */21);
+__webpack_require__(/*! ./scripts/main.js */52);
+module.exports = __webpack_require__(/*! ./styles/main.scss */71);
 
 
 /***/ }),
-/* 17 */
+/* 33 */
+/*!********************************!*\
+  !*** ./scripts/splash-page.js ***!
+  \********************************/
+/*! no exports provided */
+/*! all exports used */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_js_cookie__ = __webpack_require__(18);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_js_cookie__ = __webpack_require__(/*! js-cookie */ 34);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_js_cookie___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_js_cookie__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__ = __webpack_require__(1);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__ = __webpack_require__(/*! body-scroll-lock */ 3);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_body_scroll_lock___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__);
 
 
@@ -4334,7 +6704,12 @@ if (__WEBPACK_IMPORTED_MODULE_0_js_cookie___default.a.get('splashseen') === unde
 }
 
 /***/ }),
-/* 18 */
+/* 34 */
+/*!************************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/js-cookie/src/js.cookie.js ***!
+  \************************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! exports used: default */
 /***/ (function(module, exports, __webpack_require__) {
 
 var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -4509,7 +6884,12 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
 
 
 /***/ }),
-/* 19 */
+/* 35 */
+/*!***********************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/ios-inner-height/index.js ***!
+  \***********************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! exports used: default */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4587,7 +6967,12 @@ module.exports = (function () {
 
 
 /***/ }),
-/* 20 */
+/* 36 */
+/*!***********************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/vh-check/dist/vh-check.js ***!
+  \***********************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! exports used: default */
 /***/ (function(module, exports, __webpack_require__) {
 
 (function (global, factory) {
@@ -4650,7 +7035,12 @@ module.exports = (function () {
 
 
 /***/ }),
-/* 21 */
+/* 37 */
+/*!**************************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/youtube-player/dist/index.js ***!
+  \**************************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! exports used: default */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4662,15 +7052,15 @@ Object.defineProperty(exports, "__esModule", {
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-var _sister = __webpack_require__(22);
+var _sister = __webpack_require__(/*! sister */ 38);
 
 var _sister2 = _interopRequireDefault(_sister);
 
-var _loadYouTubeIframeApi = __webpack_require__(23);
+var _loadYouTubeIframeApi = __webpack_require__(/*! ./loadYouTubeIframeApi */ 39);
 
 var _loadYouTubeIframeApi2 = _interopRequireDefault(_loadYouTubeIframeApi);
 
-var _YouTubePlayer = __webpack_require__(25);
+var _YouTubePlayer = __webpack_require__(/*! ./YouTubePlayer */ 41);
 
 var _YouTubePlayer2 = _interopRequireDefault(_YouTubePlayer);
 
@@ -4749,7 +7139,12 @@ exports.default = function (maybeElementId) {
 module.exports = exports['default'];
 
 /***/ }),
-/* 22 */
+/* 38 */
+/*!******************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/sister/src/sister.js ***!
+  \******************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! all exports used */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4817,7 +7212,12 @@ module.exports = Sister;
 
 
 /***/ }),
-/* 23 */
+/* 39 */
+/*!*****************************************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/youtube-player/dist/loadYouTubeIframeApi.js ***!
+  \*****************************************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! all exports used */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4827,7 +7227,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _loadScript = __webpack_require__(24);
+var _loadScript = __webpack_require__(/*! load-script */ 40);
 
 var _loadScript2 = _interopRequireDefault(_loadScript);
 
@@ -4872,7 +7272,12 @@ exports.default = function (emitter) {
 module.exports = exports['default'];
 
 /***/ }),
-/* 24 */
+/* 40 */
+/*!******************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/load-script/index.js ***!
+  \******************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! all exports used */
 /***/ (function(module, exports) {
 
 
@@ -4943,7 +7348,12 @@ function ieOnEnd (script, cb) {
 
 
 /***/ }),
-/* 25 */
+/* 41 */
+/*!**********************************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/youtube-player/dist/YouTubePlayer.js ***!
+  \**********************************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! all exports used */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -4953,19 +7363,19 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _debug = __webpack_require__(26);
+var _debug = __webpack_require__(/*! debug */ 42);
 
 var _debug2 = _interopRequireDefault(_debug);
 
-var _functionNames = __webpack_require__(29);
+var _functionNames = __webpack_require__(/*! ./functionNames */ 45);
 
 var _functionNames2 = _interopRequireDefault(_functionNames);
 
-var _eventNames = __webpack_require__(30);
+var _eventNames = __webpack_require__(/*! ./eventNames */ 46);
 
 var _eventNames2 = _interopRequireDefault(_eventNames);
 
-var _FunctionStateMap = __webpack_require__(31);
+var _FunctionStateMap = __webpack_require__(/*! ./FunctionStateMap */ 47);
 
 var _FunctionStateMap2 = _interopRequireDefault(_FunctionStateMap);
 
@@ -5145,7 +7555,12 @@ exports.default = YouTubePlayer;
 module.exports = exports['default'];
 
 /***/ }),
-/* 26 */
+/* 42 */
+/*!******************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/debug/src/browser.js ***!
+  \******************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! all exports used */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(process) {/**
@@ -5154,7 +7569,7 @@ module.exports = exports['default'];
  * Expose `debug()` as the module.
  */
 
-exports = module.exports = __webpack_require__(27);
+exports = module.exports = __webpack_require__(/*! ./debug */ 43);
 exports.log = log;
 exports.formatArgs = formatArgs;
 exports.save = save;
@@ -5334,10 +7749,15 @@ function localstorage() {
   } catch (e) {}
 }
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(/*! ./../../process/browser.js */ 19)))
 
 /***/ }),
-/* 27 */
+/* 43 */
+/*!****************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/debug/src/debug.js ***!
+  \****************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! all exports used */
 /***/ (function(module, exports, __webpack_require__) {
 
 
@@ -5353,7 +7773,7 @@ exports.coerce = coerce;
 exports.disable = disable;
 exports.enable = enable;
 exports.enabled = enabled;
-exports.humanize = __webpack_require__(28);
+exports.humanize = __webpack_require__(/*! ms */ 44);
 
 /**
  * The currently active debug mode names, and names to skip.
@@ -5545,7 +7965,12 @@ function coerce(val) {
 
 
 /***/ }),
-/* 28 */
+/* 44 */
+/*!*********************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/ms/index.js ***!
+  \*********************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! all exports used */
 /***/ (function(module, exports) {
 
 /**
@@ -5703,7 +8128,12 @@ function plural(ms, n, name) {
 
 
 /***/ }),
-/* 29 */
+/* 45 */
+/*!**********************************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/youtube-player/dist/functionNames.js ***!
+  \**********************************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! all exports used */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5721,7 +8151,12 @@ exports.default = ['cueVideoById', 'loadVideoById', 'cueVideoByUrl', 'loadVideoB
 module.exports = exports['default'];
 
 /***/ }),
-/* 30 */
+/* 46 */
+/*!*******************************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/youtube-player/dist/eventNames.js ***!
+  \*******************************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! all exports used */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5741,7 +8176,12 @@ exports.default = ['ready', 'stateChange', 'playbackQualityChange', 'playbackRat
 module.exports = exports['default'];
 
 /***/ }),
-/* 31 */
+/* 47 */
+/*!*************************************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/youtube-player/dist/FunctionStateMap.js ***!
+  \*************************************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! all exports used */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5751,7 +8191,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _PlayerStates = __webpack_require__(32);
+var _PlayerStates = __webpack_require__(/*! ./constants/PlayerStates */ 48);
 
 var _PlayerStates2 = _interopRequireDefault(_PlayerStates);
 
@@ -5778,7 +8218,12 @@ exports.default = {
 module.exports = exports['default'];
 
 /***/ }),
-/* 32 */
+/* 48 */
+/*!*******************************************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/youtube-player/dist/constants/PlayerStates.js ***!
+  \*******************************************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! all exports used */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -5798,7 +8243,12 @@ exports.default = {
 module.exports = exports["default"];
 
 /***/ }),
-/* 33 */
+/* 49 */
+/*!*******************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/howler/dist/howler.js ***!
+  \*******************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! exports used: Howl, Howler */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {var __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
@@ -8754,38 +11204,15 @@ module.exports = exports["default"];
   };
 })();
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(/*! ./../../webpack/buildin/global.js */ 28)))
 
 /***/ }),
-/* 34 */
-/***/ (function(module, exports) {
-
-module.exports = function(module) {
-	if(!module.webpackPolyfill) {
-		module.deprecate = function() {};
-		module.paths = [];
-		// module.parent = undefined by default
-		if(!module.children) module.children = [];
-		Object.defineProperty(module, "loaded", {
-			enumerable: true,
-			get: function() {
-				return module.l;
-			}
-		});
-		Object.defineProperty(module, "id", {
-			enumerable: true,
-			get: function() {
-				return module.i;
-			}
-		});
-		module.webpackPolyfill = 1;
-	}
-	return module;
-};
-
-
-/***/ }),
-/* 35 */
+/* 50 */
+/*!****************************************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/smoothscroll-polyfill/dist/smoothscroll.js ***!
+  \****************************************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! exports used: default */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* smoothscroll v0.4.0 - 2018 - Dustan Kasten, Jeremias Menichelli - MIT License */
@@ -9230,12 +11657,17 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 36 */
+/* 51 */
+/*!***************************!*\
+  !*** ./scripts/vh-fix.js ***!
+  \***************************/
+/*! exports provided: initialize */
+/*! exports used: initialize */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "a", function() { return initialize; });
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utilities__ = __webpack_require__(0);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utilities__ = __webpack_require__(/*! ./utilities */ 1);
 
 
 /**
@@ -9324,31 +11756,36 @@ function initialize(elements, desiredElementVh, orientationToFixValue) {
 
 
 /***/ }),
-/* 37 */
+/* 52 */
+/*!*************************!*\
+  !*** ./scripts/main.js ***!
+  \*************************/
+/*! no exports provided */
+/*! all exports used */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
-/* WEBPACK VAR INJECTION */(function(jQuery) {/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__util_Router__ = __webpack_require__(38);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__routes_common__ = __webpack_require__(40);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__routes_home__ = __webpack_require__(45);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__routes_about__ = __webpack_require__(46);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__fortawesome_fontawesome__ = __webpack_require__(47);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__fortawesome_fontawesome_free_solid_faSearchPlus__ = __webpack_require__(48);
+/* WEBPACK VAR INJECTION */(function(jQuery) {/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__util_Router__ = __webpack_require__(/*! ./util/Router */ 53);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__routes_common__ = __webpack_require__(/*! ./routes/common */ 55);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__routes_home__ = __webpack_require__(/*! ./routes/home */ 60);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__routes_about__ = __webpack_require__(/*! ./routes/about */ 61);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__fortawesome_fontawesome__ = __webpack_require__(/*! @fortawesome/fontawesome */ 62);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__fortawesome_fontawesome_free_solid_faSearchPlus__ = __webpack_require__(/*! @fortawesome/fontawesome-free-solid/faSearchPlus */ 63);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__fortawesome_fontawesome_free_solid_faSearchPlus___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_5__fortawesome_fontawesome_free_solid_faSearchPlus__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__fortawesome_fontawesome_free_solid_faInfoCircle__ = __webpack_require__(49);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__fortawesome_fontawesome_free_solid_faInfoCircle__ = __webpack_require__(/*! @fortawesome/fontawesome-free-solid/faInfoCircle */ 64);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__fortawesome_fontawesome_free_solid_faInfoCircle___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_6__fortawesome_fontawesome_free_solid_faInfoCircle__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__fortawesome_fontawesome_free_solid_faShareSquare__ = __webpack_require__(50);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__fortawesome_fontawesome_free_solid_faShareSquare__ = __webpack_require__(/*! @fortawesome/fontawesome-free-solid/faShareSquare */ 65);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_7__fortawesome_fontawesome_free_solid_faShareSquare___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_7__fortawesome_fontawesome_free_solid_faShareSquare__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__fortawesome_fontawesome_free_solid_faTimesCircle__ = __webpack_require__(51);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__fortawesome_fontawesome_free_solid_faTimesCircle__ = __webpack_require__(/*! @fortawesome/fontawesome-free-solid/faTimesCircle */ 66);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__fortawesome_fontawesome_free_solid_faTimesCircle___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_8__fortawesome_fontawesome_free_solid_faTimesCircle__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__fortawesome_fontawesome_free_brands_faFacebook__ = __webpack_require__(52);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__fortawesome_fontawesome_free_brands_faFacebook__ = __webpack_require__(/*! @fortawesome/fontawesome-free-brands/faFacebook */ 67);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_9__fortawesome_fontawesome_free_brands_faFacebook___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_9__fortawesome_fontawesome_free_brands_faFacebook__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__fortawesome_fontawesome_free_brands_faTwitter__ = __webpack_require__(53);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__fortawesome_fontawesome_free_brands_faTwitter__ = __webpack_require__(/*! @fortawesome/fontawesome-free-brands/faTwitter */ 68);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_10__fortawesome_fontawesome_free_brands_faTwitter___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_10__fortawesome_fontawesome_free_brands_faTwitter__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__fortawesome_fontawesome_free_solid_faEnvelope__ = __webpack_require__(54);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__fortawesome_fontawesome_free_solid_faEnvelope__ = __webpack_require__(/*! @fortawesome/fontawesome-free-solid/faEnvelope */ 69);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_11__fortawesome_fontawesome_free_solid_faEnvelope___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_11__fortawesome_fontawesome_free_solid_faEnvelope__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__fortawesome_fontawesome_free_solid_faCopy__ = __webpack_require__(55);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__fortawesome_fontawesome_free_solid_faCopy__ = __webpack_require__(/*! @fortawesome/fontawesome-free-solid/faCopy */ 70);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_12__fortawesome_fontawesome_free_solid_faCopy___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_12__fortawesome_fontawesome_free_solid_faCopy__);
 // import external dependencies
 // import 'jquery';
@@ -9392,14 +11829,19 @@ var routes = new __WEBPACK_IMPORTED_MODULE_0__util_Router__["a" /* default */]({
 // Load Events
 jQuery(document).ready(function () { return routes.loadEvents(); });
 
-/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(3)))
+/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(/*! jquery */ 5)))
 
 /***/ }),
-/* 38 */
+/* 53 */
+/*!********************************!*\
+  !*** ./scripts/util/Router.js ***!
+  \********************************/
+/*! exports provided: default */
+/*! exports used: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__camelCase__ = __webpack_require__(39);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__camelCase__ = __webpack_require__(/*! ./camelCase */ 54);
 
 
 /**
@@ -9463,7 +11905,12 @@ Router.prototype.loadEvents = function loadEvents () {
 
 
 /***/ }),
-/* 39 */
+/* 54 */
+/*!***********************************!*\
+  !*** ./scripts/util/camelCase.js ***!
+  \***********************************/
+/*! exports provided: default */
+/*! exports used: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -9479,19 +11926,24 @@ Router.prototype.loadEvents = function loadEvents () {
 
 
 /***/ }),
-/* 40 */
+/* 55 */
+/*!**********************************!*\
+  !*** ./scripts/routes/common.js ***!
+  \**********************************/
+/*! exports provided: default */
+/*! exports used: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
-/* WEBPACK VAR INJECTION */(function($) {/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__more_info__ = __webpack_require__(13);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__st_audio__ = __webpack_require__(11);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__zoomy__ = __webpack_require__(5);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__nakasentro__ = __webpack_require__(2);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__artwork_info__ = __webpack_require__(10);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__mu_plugins_menu_vertical_push_menu_vertical_push__ = __webpack_require__(41);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__thumbnail_nav__ = __webpack_require__(7);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7_reframe_js__ = __webpack_require__(9);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__youtube__ = __webpack_require__(8);
+/* WEBPACK VAR INJECTION */(function($) {/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__more_info__ = __webpack_require__(/*! ../more-info */ 29);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1__st_audio__ = __webpack_require__(/*! ../st-audio */ 27);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_2__zoomy__ = __webpack_require__(/*! ../zoomy */ 20);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_3__nakasentro__ = __webpack_require__(/*! ../nakasentro */ 4);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_4__artwork_info__ = __webpack_require__(/*! ../artwork-info */ 26);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_5__mu_plugins_menu_vertical_push_menu_vertical_push__ = __webpack_require__(/*! ../../../../../../mu-plugins/menu-vertical-push/menu-vertical-push */ 56);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_6__thumbnail_nav__ = __webpack_require__(/*! ../thumbnail-nav */ 22);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_7_reframe_js__ = __webpack_require__(/*! reframe.js */ 25);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_8__youtube__ = __webpack_require__(/*! ../youtube */ 24);
 
 
 
@@ -9651,17 +12103,22 @@ Router.prototype.loadEvents = function loadEvents () {
 	},
 });
 
-/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(3)))
+/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(/*! jquery */ 5)))
 
 /***/ }),
-/* 41 */
+/* 56 */
+/*!**********************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/mu-plugins/menu-vertical-push/menu-vertical-push.js ***!
+  \**********************************************************************************************************************************/
+/*! exports provided: init */
+/*! exports used: init */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 /* harmony export (immutable) */ __webpack_exports__["a"] = init;
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_hamburgers__ = __webpack_require__(42);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_hamburgers__ = __webpack_require__(/*! hamburgers */ 57);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0_hamburgers___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_0_hamburgers__);
-/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__ = __webpack_require__(44);
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__ = __webpack_require__(/*! body-scroll-lock */ 59);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_body_scroll_lock___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__);
 
 
@@ -9735,10 +12192,14 @@ var outerHeight = function (el) {
 };
 
 /***/ }),
-/* 42 */
+/* 57 */
+/*!*********************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/mu-plugins/menu-vertical-push/node_modules/hamburgers/index.js ***!
+  \*********************************************************************************************************************************************/
+/*! dynamic exports provided */
 /***/ (function(module, exports, __webpack_require__) {
 
-/* WEBPACK VAR INJECTION */(function(__dirname) {var path = __webpack_require__(43);
+/* WEBPACK VAR INJECTION */(function(__dirname) {var path = __webpack_require__(/*! path */ 58);
 
 module.exports = {
   includePaths: [
@@ -9749,7 +12210,12 @@ module.exports = {
 /* WEBPACK VAR INJECTION */}.call(exports, "/"))
 
 /***/ }),
-/* 43 */
+/* 58 */
+/*!**********************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/path-browserify/index.js ***!
+  \**********************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! all exports used */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(process) {// Copyright Joyent, Inc. and other Node contributors.
@@ -9977,10 +12443,15 @@ var substr = 'ab'.substr(-1) === 'b'
     }
 ;
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(/*! ./../process/browser.js */ 19)))
 
 /***/ }),
-/* 44 */
+/* 59 */
+/*!****************************************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/mu-plugins/menu-vertical-push/node_modules/body-scroll-lock/lib/bodyScrollLock.js ***!
+  \****************************************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! exports used: clearAllBodyScrollLocks, disableBodyScroll */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -10137,7 +12608,12 @@ var enableBodyScroll = exports.enableBodyScroll = function enableBodyScroll(targ
 };
 
 /***/ }),
-/* 45 */
+/* 60 */
+/*!********************************!*\
+  !*** ./scripts/routes/home.js ***!
+  \********************************/
+/*! exports provided: default */
+/*! exports used: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -10152,7 +12628,12 @@ var enableBodyScroll = exports.enableBodyScroll = function enableBodyScroll(targ
 
 
 /***/ }),
-/* 46 */
+/* 61 */
+/*!*********************************!*\
+  !*** ./scripts/routes/about.js ***!
+  \*********************************/
+/*! exports provided: default */
+/*! exports used: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -10164,7 +12645,12 @@ var enableBodyScroll = exports.enableBodyScroll = function enableBodyScroll(targ
 
 
 /***/ }),
-/* 47 */
+/* 62 */
+/*!**********************************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/@fortawesome/fontawesome/index.es.js ***!
+  \**********************************************************************************************************************************************************/
+/*! exports provided: config, icon, noAuto, layer, text, library, dom, parse, findIconDefinition, default */
+/*! exports used: default */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -11983,61 +14469,724 @@ var config = api$1.config;
 
 /* harmony default export */ __webpack_exports__["a"] = (api$1);
 
-/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(4)))
+/* WEBPACK VAR INJECTION */}.call(__webpack_exports__, __webpack_require__(/*! ./../../process/browser.js */ 19)))
 
 /***/ }),
-/* 48 */
+/* 63 */
+/*!*************************************************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/@fortawesome/fontawesome-free-solid/faSearchPlus.js ***!
+  \*************************************************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! exports used: default */
 /***/ (function(module, exports) {
 
 module.exports = { prefix: 'fas', iconName: 'search-plus', icon: [512, 512, [], "f00e", "M304 192v32c0 6.6-5.4 12-12 12h-56v56c0 6.6-5.4 12-12 12h-32c-6.6 0-12-5.4-12-12v-56h-56c-6.6 0-12-5.4-12-12v-32c0-6.6 5.4-12 12-12h56v-56c0-6.6 5.4-12 12-12h32c6.6 0 12 5.4 12 12v56h56c6.6 0 12 5.4 12 12zm201 284.7L476.7 505c-9.4 9.4-24.6 9.4-33.9 0L343 405.3c-4.5-4.5-7-10.6-7-17V372c-35.3 27.6-79.7 44-128 44C93.1 416 0 322.9 0 208S93.1 0 208 0s208 93.1 208 208c0 48.3-16.4 92.7-44 128h16.3c6.4 0 12.5 2.5 17 7l99.7 99.7c9.3 9.4 9.3 24.6 0 34zM344 208c0-75.2-60.8-136-136-136S72 132.8 72 208s60.8 136 136 136 136-60.8 136-136z"] };
 
 /***/ }),
-/* 49 */
+/* 64 */
+/*!*************************************************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/@fortawesome/fontawesome-free-solid/faInfoCircle.js ***!
+  \*************************************************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! exports used: default */
 /***/ (function(module, exports) {
 
 module.exports = { prefix: 'fas', iconName: 'info-circle', icon: [512, 512, [], "f05a", "M256 8C119.043 8 8 119.083 8 256c0 136.997 111.043 248 248 248s248-111.003 248-248C504 119.083 392.957 8 256 8zm0 110c23.196 0 42 18.804 42 42s-18.804 42-42 42-42-18.804-42-42 18.804-42 42-42zm56 254c0 6.627-5.373 12-12 12h-88c-6.627 0-12-5.373-12-12v-24c0-6.627 5.373-12 12-12h12v-64h-12c-6.627 0-12-5.373-12-12v-24c0-6.627 5.373-12 12-12h64c6.627 0 12 5.373 12 12v100h12c6.627 0 12 5.373 12 12v24z"] };
 
 /***/ }),
-/* 50 */
+/* 65 */
+/*!**************************************************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/@fortawesome/fontawesome-free-solid/faShareSquare.js ***!
+  \**************************************************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! exports used: default */
 /***/ (function(module, exports) {
 
 module.exports = { prefix: 'fas', iconName: 'share-square', icon: [576, 512, [], "f14d", "M568.482 177.448L424.479 313.433C409.3 327.768 384 317.14 384 295.985v-71.963c-144.575.97-205.566 35.113-164.775 171.353 4.483 14.973-12.846 26.567-25.006 17.33C155.252 383.105 120 326.488 120 269.339c0-143.937 117.599-172.5 264-173.312V24.012c0-21.174 25.317-31.768 40.479-17.448l144.003 135.988c10.02 9.463 10.028 25.425 0 34.896zM384 379.128V448H64V128h50.916a11.99 11.99 0 0 0 8.648-3.693c14.953-15.568 32.237-27.89 51.014-37.676C185.708 80.83 181.584 64 169.033 64H48C21.49 64 0 85.49 0 112v352c0 26.51 21.49 48 48 48h352c26.51 0 48-21.49 48-48v-88.806c0-8.288-8.197-14.066-16.011-11.302a71.83 71.83 0 0 1-34.189 3.377c-7.27-1.046-13.8 4.514-13.8 11.859z"] };
 
 /***/ }),
-/* 51 */
+/* 66 */
+/*!**************************************************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/@fortawesome/fontawesome-free-solid/faTimesCircle.js ***!
+  \**************************************************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! exports used: default */
 /***/ (function(module, exports) {
 
 module.exports = { prefix: 'fas', iconName: 'times-circle', icon: [512, 512, [], "f057", "M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm121.6 313.1c4.7 4.7 4.7 12.3 0 17L338 377.6c-4.7 4.7-12.3 4.7-17 0L256 312l-65.1 65.6c-4.7 4.7-12.3 4.7-17 0L134.4 338c-4.7-4.7-4.7-12.3 0-17l65.6-65-65.6-65.1c-4.7-4.7-4.7-12.3 0-17l39.6-39.6c4.7-4.7 12.3-4.7 17 0l65 65.7 65.1-65.6c4.7-4.7 12.3-4.7 17 0l39.6 39.6c4.7 4.7 4.7 12.3 0 17L312 256l65.6 65.1z"] };
 
 /***/ }),
-/* 52 */
+/* 67 */
+/*!************************************************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/@fortawesome/fontawesome-free-brands/faFacebook.js ***!
+  \************************************************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! exports used: default */
 /***/ (function(module, exports) {
 
 module.exports = { prefix: 'fab', iconName: 'facebook', icon: [448, 512, [], "f09a", "M448 56.7v398.5c0 13.7-11.1 24.7-24.7 24.7H309.1V306.5h58.2l8.7-67.6h-67v-43.2c0-19.6 5.4-32.9 33.5-32.9h35.8v-60.5c-6.2-.8-27.4-2.7-52.2-2.7-51.6 0-87 31.5-87 89.4v49.9h-58.4v67.6h58.4V480H24.7C11.1 480 0 468.9 0 455.3V56.7C0 43.1 11.1 32 24.7 32h398.5c13.7 0 24.8 11.1 24.8 24.7z"] };
 
 /***/ }),
-/* 53 */
+/* 68 */
+/*!***********************************************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/@fortawesome/fontawesome-free-brands/faTwitter.js ***!
+  \***********************************************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! exports used: default */
 /***/ (function(module, exports) {
 
 module.exports = { prefix: 'fab', iconName: 'twitter', icon: [512, 512, [], "f099", "M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"] };
 
 /***/ }),
-/* 54 */
+/* 69 */
+/*!***********************************************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/@fortawesome/fontawesome-free-solid/faEnvelope.js ***!
+  \***********************************************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! exports used: default */
 /***/ (function(module, exports) {
 
 module.exports = { prefix: 'fas', iconName: 'envelope', icon: [512, 512, [], "f0e0", "M502.3 190.8c3.9-3.1 9.7-.2 9.7 4.7V400c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V195.6c0-5 5.7-7.8 9.7-4.7 22.4 17.4 52.1 39.5 154.1 113.6 21.1 15.4 56.7 47.8 92.2 47.6 35.7.3 72-32.8 92.3-47.6 102-74.1 131.6-96.3 154-113.7zM256 320c23.2.4 56.6-29.2 73.4-41.4 132.7-96.3 142.8-104.7 173.4-128.7 5.8-4.5 9.2-11.5 9.2-18.9v-19c0-26.5-21.5-48-48-48H48C21.5 64 0 85.5 0 112v19c0 7.4 3.4 14.3 9.2 18.9 30.6 23.9 40.7 32.4 173.4 128.7 16.8 12.2 50.2 41.8 73.4 41.4z"] };
 
 /***/ }),
-/* 55 */
+/* 70 */
+/*!*******************************************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/@fortawesome/fontawesome-free-solid/faCopy.js ***!
+  \*******************************************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! exports used: default */
 /***/ (function(module, exports) {
 
 module.exports = { prefix: 'fas', iconName: 'copy', icon: [448, 512, [], "f0c5", "M320 448v40c0 13.255-10.745 24-24 24H24c-13.255 0-24-10.745-24-24V120c0-13.255 10.745-24 24-24h72v296c0 30.879 25.121 56 56 56h168zm0-344V0H152c-13.255 0-24 10.745-24 24v368c0 13.255 10.745 24 24 24h272c13.255 0 24-10.745 24-24V128H344c-13.2 0-24-10.8-24-24zm120.971-31.029L375.029 7.029A24 24 0 0 0 358.059 0H352v96h96v-6.059a24 24 0 0 0-7.029-16.97z"] };
 
 /***/ }),
-/* 56 */
+/* 71 */
+/*!**************************!*\
+  !*** ./styles/main.scss ***!
+  \**************************/
+/*! dynamic exports provided */
+/*! all exports used */
+/***/ (function(module, exports, __webpack_require__) {
+
+
+var content = __webpack_require__(/*! !../../../node_modules/cache-loader/dist/cjs.js!../../../node_modules/css-loader??ref--4-3!../../../node_modules/postcss-loader/lib??ref--4-4!../../../node_modules/resolve-url-loader??ref--4-5!../../../node_modules/sass-loader/lib/loader.js??ref--4-6!../../../node_modules/import-glob!./main.scss */ 23);
+
+if(typeof content === 'string') content = [[module.i, content, '']];
+
+var transform;
+var insertInto;
+
+
+
+var options = {"hmr":true}
+
+options.transform = transform
+options.insertInto = undefined;
+
+var update = __webpack_require__(/*! ../../../node_modules/style-loader/lib/addStyles.js */ 73)(content, options);
+
+if(content.locals) module.exports = content.locals;
+
+if(true) {
+	module.hot.accept(/*! !../../../node_modules/cache-loader/dist/cjs.js!../../../node_modules/css-loader??ref--4-3!../../../node_modules/postcss-loader/lib??ref--4-4!../../../node_modules/resolve-url-loader??ref--4-5!../../../node_modules/sass-loader/lib/loader.js??ref--4-6!../../../node_modules/import-glob!./main.scss */ 23, function() {
+		var newContent = __webpack_require__(/*! !../../../node_modules/cache-loader/dist/cjs.js!../../../node_modules/css-loader??ref--4-3!../../../node_modules/postcss-loader/lib??ref--4-4!../../../node_modules/resolve-url-loader??ref--4-5!../../../node_modules/sass-loader/lib/loader.js??ref--4-6!../../../node_modules/import-glob!./main.scss */ 23);
+
+		if(typeof newContent === 'string') newContent = [[module.i, newContent, '']];
+
+		var locals = (function(a, b) {
+			var key, idx = 0;
+
+			for(key in a) {
+				if(!b || a[key] !== b[key]) return false;
+				idx++;
+			}
+
+			for(key in b) idx--;
+
+			return idx === 0;
+		}(content.locals, newContent.locals));
+
+		if(!locals) throw new Error('Aborting CSS HMR due to changed css-modules locals.');
+
+		update(newContent);
+	});
+
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 72 */
+/*!************************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/css-loader/lib/css-base.js ***!
+  \************************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! all exports used */
 /***/ (function(module, exports) {
 
-// removed by extract-text-webpack-plugin
+/*
+	MIT License http://www.opensource.org/licenses/mit-license.php
+	Author Tobias Koppers @sokra
+*/
+// css base code, injected by the css-loader
+module.exports = function(useSourceMap) {
+	var list = [];
+
+	// return the list of modules as css string
+	list.toString = function toString() {
+		return this.map(function (item) {
+			var content = cssWithMappingToString(item, useSourceMap);
+			if(item[2]) {
+				return "@media " + item[2] + "{" + content + "}";
+			} else {
+				return content;
+			}
+		}).join("");
+	};
+
+	// import a list of modules into the list
+	list.i = function(modules, mediaQuery) {
+		if(typeof modules === "string")
+			modules = [[null, modules, ""]];
+		var alreadyImportedModules = {};
+		for(var i = 0; i < this.length; i++) {
+			var id = this[i][0];
+			if(typeof id === "number")
+				alreadyImportedModules[id] = true;
+		}
+		for(i = 0; i < modules.length; i++) {
+			var item = modules[i];
+			// skip already imported module
+			// this implementation is not 100% perfect for weird media query combinations
+			//  when a module is imported multiple times with different media queries.
+			//  I hope this will never occur (Hey this way we have smaller bundles)
+			if(typeof item[0] !== "number" || !alreadyImportedModules[item[0]]) {
+				if(mediaQuery && !item[2]) {
+					item[2] = mediaQuery;
+				} else if(mediaQuery) {
+					item[2] = "(" + item[2] + ") and (" + mediaQuery + ")";
+				}
+				list.push(item);
+			}
+		}
+	};
+	return list;
+};
+
+function cssWithMappingToString(item, useSourceMap) {
+	var content = item[1] || '';
+	var cssMapping = item[3];
+	if (!cssMapping) {
+		return content;
+	}
+
+	if (useSourceMap && typeof btoa === 'function') {
+		var sourceMapping = toComment(cssMapping);
+		var sourceURLs = cssMapping.sources.map(function (source) {
+			return '/*# sourceURL=' + cssMapping.sourceRoot + source + ' */'
+		});
+
+		return [content].concat(sourceURLs).concat([sourceMapping]).join('\n');
+	}
+
+	return [content].join('\n');
+}
+
+// Adapted from convert-source-map (MIT)
+function toComment(sourceMap) {
+	// eslint-disable-next-line no-undef
+	var base64 = btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap))));
+	var data = 'sourceMappingURL=data:application/json;charset=utf-8;base64,' + base64;
+
+	return '/*# ' + data + ' */';
+}
+
+
+/***/ }),
+/* 73 */
+/*!***************************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/style-loader/lib/addStyles.js ***!
+  \***************************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! all exports used */
+/***/ (function(module, exports, __webpack_require__) {
+
+/*
+	MIT License http://www.opensource.org/licenses/mit-license.php
+	Author Tobias Koppers @sokra
+*/
+
+var stylesInDom = {};
+
+var	memoize = function (fn) {
+	var memo;
+
+	return function () {
+		if (typeof memo === "undefined") memo = fn.apply(this, arguments);
+		return memo;
+	};
+};
+
+var isOldIE = memoize(function () {
+	// Test for IE <= 9 as proposed by Browserhacks
+	// @see http://browserhacks.com/#hack-e71d8692f65334173fee715c222cb805
+	// Tests for existence of standard globals is to allow style-loader
+	// to operate correctly into non-standard environments
+	// @see https://github.com/webpack-contrib/style-loader/issues/177
+	return window && document && document.all && !window.atob;
+});
+
+var getTarget = function (target) {
+  return document.querySelector(target);
+};
+
+var getElement = (function (fn) {
+	var memo = {};
+
+	return function(target) {
+                // If passing function in options, then use it for resolve "head" element.
+                // Useful for Shadow Root style i.e
+                // {
+                //   insertInto: function () { return document.querySelector("#foo").shadowRoot }
+                // }
+                if (typeof target === 'function') {
+                        return target();
+                }
+                if (typeof memo[target] === "undefined") {
+			var styleTarget = getTarget.call(this, target);
+			// Special case to return head of iframe instead of iframe itself
+			if (window.HTMLIFrameElement && styleTarget instanceof window.HTMLIFrameElement) {
+				try {
+					// This will throw an exception if access to iframe is blocked
+					// due to cross-origin restrictions
+					styleTarget = styleTarget.contentDocument.head;
+				} catch(e) {
+					styleTarget = null;
+				}
+			}
+			memo[target] = styleTarget;
+		}
+		return memo[target]
+	};
+})();
+
+var singleton = null;
+var	singletonCounter = 0;
+var	stylesInsertedAtTop = [];
+
+var	fixUrls = __webpack_require__(/*! ./urls */ 74);
+
+module.exports = function(list, options) {
+	if (typeof DEBUG !== "undefined" && DEBUG) {
+		if (typeof document !== "object") throw new Error("The style-loader cannot be used in a non-browser environment");
+	}
+
+	options = options || {};
+
+	options.attrs = typeof options.attrs === "object" ? options.attrs : {};
+
+	// Force single-tag solution on IE6-9, which has a hard limit on the # of <style>
+	// tags it will allow on a page
+	if (!options.singleton && typeof options.singleton !== "boolean") options.singleton = isOldIE();
+
+	// By default, add <style> tags to the <head> element
+        if (!options.insertInto) options.insertInto = "head";
+
+	// By default, add <style> tags to the bottom of the target
+	if (!options.insertAt) options.insertAt = "bottom";
+
+	var styles = listToStyles(list, options);
+
+	addStylesToDom(styles, options);
+
+	return function update (newList) {
+		var mayRemove = [];
+
+		for (var i = 0; i < styles.length; i++) {
+			var item = styles[i];
+			var domStyle = stylesInDom[item.id];
+
+			domStyle.refs--;
+			mayRemove.push(domStyle);
+		}
+
+		if(newList) {
+			var newStyles = listToStyles(newList, options);
+			addStylesToDom(newStyles, options);
+		}
+
+		for (var i = 0; i < mayRemove.length; i++) {
+			var domStyle = mayRemove[i];
+
+			if(domStyle.refs === 0) {
+				for (var j = 0; j < domStyle.parts.length; j++) domStyle.parts[j]();
+
+				delete stylesInDom[domStyle.id];
+			}
+		}
+	};
+};
+
+function addStylesToDom (styles, options) {
+	for (var i = 0; i < styles.length; i++) {
+		var item = styles[i];
+		var domStyle = stylesInDom[item.id];
+
+		if(domStyle) {
+			domStyle.refs++;
+
+			for(var j = 0; j < domStyle.parts.length; j++) {
+				domStyle.parts[j](item.parts[j]);
+			}
+
+			for(; j < item.parts.length; j++) {
+				domStyle.parts.push(addStyle(item.parts[j], options));
+			}
+		} else {
+			var parts = [];
+
+			for(var j = 0; j < item.parts.length; j++) {
+				parts.push(addStyle(item.parts[j], options));
+			}
+
+			stylesInDom[item.id] = {id: item.id, refs: 1, parts: parts};
+		}
+	}
+}
+
+function listToStyles (list, options) {
+	var styles = [];
+	var newStyles = {};
+
+	for (var i = 0; i < list.length; i++) {
+		var item = list[i];
+		var id = options.base ? item[0] + options.base : item[0];
+		var css = item[1];
+		var media = item[2];
+		var sourceMap = item[3];
+		var part = {css: css, media: media, sourceMap: sourceMap};
+
+		if(!newStyles[id]) styles.push(newStyles[id] = {id: id, parts: [part]});
+		else newStyles[id].parts.push(part);
+	}
+
+	return styles;
+}
+
+function insertStyleElement (options, style) {
+	var target = getElement(options.insertInto)
+
+	if (!target) {
+		throw new Error("Couldn't find a style target. This probably means that the value for the 'insertInto' parameter is invalid.");
+	}
+
+	var lastStyleElementInsertedAtTop = stylesInsertedAtTop[stylesInsertedAtTop.length - 1];
+
+	if (options.insertAt === "top") {
+		if (!lastStyleElementInsertedAtTop) {
+			target.insertBefore(style, target.firstChild);
+		} else if (lastStyleElementInsertedAtTop.nextSibling) {
+			target.insertBefore(style, lastStyleElementInsertedAtTop.nextSibling);
+		} else {
+			target.appendChild(style);
+		}
+		stylesInsertedAtTop.push(style);
+	} else if (options.insertAt === "bottom") {
+		target.appendChild(style);
+	} else if (typeof options.insertAt === "object" && options.insertAt.before) {
+		var nextSibling = getElement(options.insertInto + " " + options.insertAt.before);
+		target.insertBefore(style, nextSibling);
+	} else {
+		throw new Error("[Style Loader]\n\n Invalid value for parameter 'insertAt' ('options.insertAt') found.\n Must be 'top', 'bottom', or Object.\n (https://github.com/webpack-contrib/style-loader#insertat)\n");
+	}
+}
+
+function removeStyleElement (style) {
+	if (style.parentNode === null) return false;
+	style.parentNode.removeChild(style);
+
+	var idx = stylesInsertedAtTop.indexOf(style);
+	if(idx >= 0) {
+		stylesInsertedAtTop.splice(idx, 1);
+	}
+}
+
+function createStyleElement (options) {
+	var style = document.createElement("style");
+
+	options.attrs.type = "text/css";
+
+	addAttrs(style, options.attrs);
+	insertStyleElement(options, style);
+
+	return style;
+}
+
+function createLinkElement (options) {
+	var link = document.createElement("link");
+
+	options.attrs.type = "text/css";
+	options.attrs.rel = "stylesheet";
+
+	addAttrs(link, options.attrs);
+	insertStyleElement(options, link);
+
+	return link;
+}
+
+function addAttrs (el, attrs) {
+	Object.keys(attrs).forEach(function (key) {
+		el.setAttribute(key, attrs[key]);
+	});
+}
+
+function addStyle (obj, options) {
+	var style, update, remove, result;
+
+	// If a transform function was defined, run it on the css
+	if (options.transform && obj.css) {
+	    result = options.transform(obj.css);
+
+	    if (result) {
+	    	// If transform returns a value, use that instead of the original css.
+	    	// This allows running runtime transformations on the css.
+	    	obj.css = result;
+	    } else {
+	    	// If the transform function returns a falsy value, don't add this css.
+	    	// This allows conditional loading of css
+	    	return function() {
+	    		// noop
+	    	};
+	    }
+	}
+
+	if (options.singleton) {
+		var styleIndex = singletonCounter++;
+
+		style = singleton || (singleton = createStyleElement(options));
+
+		update = applyToSingletonTag.bind(null, style, styleIndex, false);
+		remove = applyToSingletonTag.bind(null, style, styleIndex, true);
+
+	} else if (
+		obj.sourceMap &&
+		typeof URL === "function" &&
+		typeof URL.createObjectURL === "function" &&
+		typeof URL.revokeObjectURL === "function" &&
+		typeof Blob === "function" &&
+		typeof btoa === "function"
+	) {
+		style = createLinkElement(options);
+		update = updateLink.bind(null, style, options);
+		remove = function () {
+			removeStyleElement(style);
+
+			if(style.href) URL.revokeObjectURL(style.href);
+		};
+	} else {
+		style = createStyleElement(options);
+		update = applyToTag.bind(null, style);
+		remove = function () {
+			removeStyleElement(style);
+		};
+	}
+
+	update(obj);
+
+	return function updateStyle (newObj) {
+		if (newObj) {
+			if (
+				newObj.css === obj.css &&
+				newObj.media === obj.media &&
+				newObj.sourceMap === obj.sourceMap
+			) {
+				return;
+			}
+
+			update(obj = newObj);
+		} else {
+			remove();
+		}
+	};
+}
+
+var replaceText = (function () {
+	var textStore = [];
+
+	return function (index, replacement) {
+		textStore[index] = replacement;
+
+		return textStore.filter(Boolean).join('\n');
+	};
+})();
+
+function applyToSingletonTag (style, index, remove, obj) {
+	var css = remove ? "" : obj.css;
+
+	if (style.styleSheet) {
+		style.styleSheet.cssText = replaceText(index, css);
+	} else {
+		var cssNode = document.createTextNode(css);
+		var childNodes = style.childNodes;
+
+		if (childNodes[index]) style.removeChild(childNodes[index]);
+
+		if (childNodes.length) {
+			style.insertBefore(cssNode, childNodes[index]);
+		} else {
+			style.appendChild(cssNode);
+		}
+	}
+}
+
+function applyToTag (style, obj) {
+	var css = obj.css;
+	var media = obj.media;
+
+	if(media) {
+		style.setAttribute("media", media)
+	}
+
+	if(style.styleSheet) {
+		style.styleSheet.cssText = css;
+	} else {
+		while(style.firstChild) {
+			style.removeChild(style.firstChild);
+		}
+
+		style.appendChild(document.createTextNode(css));
+	}
+}
+
+function updateLink (link, options, obj) {
+	var css = obj.css;
+	var sourceMap = obj.sourceMap;
+
+	/*
+		If convertToAbsoluteUrls isn't defined, but sourcemaps are enabled
+		and there is no publicPath defined then lets turn convertToAbsoluteUrls
+		on by default.  Otherwise default to the convertToAbsoluteUrls option
+		directly
+	*/
+	var autoFixUrls = options.convertToAbsoluteUrls === undefined && sourceMap;
+
+	if (options.convertToAbsoluteUrls || autoFixUrls) {
+		css = fixUrls(css);
+	}
+
+	if (sourceMap) {
+		// http://stackoverflow.com/a/26603875
+		css += "\n/*# sourceMappingURL=data:application/json;base64," + btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap)))) + " */";
+	}
+
+	var blob = new Blob([css], { type: "text/css" });
+
+	var oldSrc = link.href;
+
+	link.href = URL.createObjectURL(blob);
+
+	if(oldSrc) URL.revokeObjectURL(oldSrc);
+}
+
+
+/***/ }),
+/* 74 */
+/*!**********************************************************************************************************************************************!*\
+  !*** /Applications/MAMP/htdocs/roundhex/stone-roberts/stone-roberts/web/app/themes/stone-roberts-anew/node_modules/style-loader/lib/urls.js ***!
+  \**********************************************************************************************************************************************/
+/*! dynamic exports provided */
+/*! all exports used */
+/***/ (function(module, exports) {
+
+
+/**
+ * When source maps are enabled, `style-loader` uses a link element with a data-uri to
+ * embed the css on the page. This breaks all relative urls because now they are relative to a
+ * bundle instead of the current page.
+ *
+ * One solution is to only use full urls, but that may be impossible.
+ *
+ * Instead, this function "fixes" the relative urls to be absolute according to the current page location.
+ *
+ * A rudimentary test suite is located at `test/fixUrls.js` and can be run via the `npm test` command.
+ *
+ */
+
+module.exports = function (css) {
+  // get current location
+  var location = typeof window !== "undefined" && window.location;
+
+  if (!location) {
+    throw new Error("fixUrls requires window.location");
+  }
+
+	// blank or null?
+	if (!css || typeof css !== "string") {
+	  return css;
+  }
+
+  var baseUrl = location.protocol + "//" + location.host;
+  var currentDir = baseUrl + location.pathname.replace(/\/[^\/]*$/, "/");
+
+	// convert each url(...)
+	/*
+	This regular expression is just a way to recursively match brackets within
+	a string.
+
+	 /url\s*\(  = Match on the word "url" with any whitespace after it and then a parens
+	   (  = Start a capturing group
+	     (?:  = Start a non-capturing group
+	         [^)(]  = Match anything that isn't a parentheses
+	         |  = OR
+	         \(  = Match a start parentheses
+	             (?:  = Start another non-capturing groups
+	                 [^)(]+  = Match anything that isn't a parentheses
+	                 |  = OR
+	                 \(  = Match a start parentheses
+	                     [^)(]*  = Match anything that isn't a parentheses
+	                 \)  = Match a end parentheses
+	             )  = End Group
+              *\) = Match anything and then a close parens
+          )  = Close non-capturing group
+          *  = Match anything
+       )  = Close capturing group
+	 \)  = Match a close parens
+
+	 /gi  = Get all matches, not the first.  Be case insensitive.
+	 */
+	var fixedCss = css.replace(/url\s*\(((?:[^)(]|\((?:[^)(]+|\([^)(]*\))*\))*)\)/gi, function(fullMatch, origUrl) {
+		// strip quotes (if they exist)
+		var unquotedOrigUrl = origUrl
+			.trim()
+			.replace(/^"(.*)"$/, function(o, $1){ return $1; })
+			.replace(/^'(.*)'$/, function(o, $1){ return $1; });
+
+		// already a full url? no change
+		if (/^(#|data:|http:\/\/|https:\/\/|file:\/\/\/|\s*$)/i.test(unquotedOrigUrl)) {
+		  return fullMatch;
+		}
+
+		// convert the url to a full url
+		var newUrl;
+
+		if (unquotedOrigUrl.indexOf("//") === 0) {
+		  	//TODO: should we add protocol?
+			newUrl = unquotedOrigUrl;
+		} else if (unquotedOrigUrl.indexOf("/") === 0) {
+			// path should be relative to the base url
+			newUrl = baseUrl + unquotedOrigUrl; // already starts with '/'
+		} else {
+			// path should be relative to current directory
+			newUrl = currentDir + unquotedOrigUrl.replace(/^\.\//, ""); // Strip leading './'
+		}
+
+		// send back the fixed url(...)
+		return "url(" + JSON.stringify(newUrl) + ")";
+	});
+
+	// send back the fixed css
+	return fixedCss;
+};
+
 
 /***/ })
 /******/ ]);

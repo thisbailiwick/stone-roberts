@@ -141,17 +141,19 @@ export let nakasentro = {
 	}, 250),
 
 	fullScreenOnChangeEvent: function () {
+		window.setTimeout(function(){
 		// if in fullscreen we want to add remved events which handle scroll when centered and scroll events is not triggered due to fixed elements
-		/* eslint-disable */
-		if (Barba.FullScreen.isFullscreen === false) {
-			/* eslint-enable */
-			nakasentro.removeFullDimensionsCenteredImageScrollEvents.call(this, true);
-		}
+			/* eslint-disable */
+			if (Barba.FullScreen.isFullscreen === false) {
+				/* eslint-enable */
+				nakasentro.removeFullDimensionsCenteredImageScrollEvents.call(this, true);
+			}
 
-		// nakasentro.debounceWindowResize();
-		nakasentro.artworks = Array();
-		utilities.setViewportDimensions();
-		nakasentro.setupValues();
+			// nakasentro.debounceWindowResize();
+			nakasentro.artworks = Array();
+			utilities.setViewportDimensions();
+			nakasentro.setupValues();
+		}, 100);
 	},
 
 	removeFullDimensionsCenteredImageScrollEvents: function (removeAllWheel) {
