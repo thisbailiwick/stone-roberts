@@ -146,13 +146,15 @@ export let nakasentro = {
 			/* eslint-disable */
 			if (Barba.FullScreen.isFullscreen === false) {
 				/* eslint-enable */
-				nakasentro.removeFullDimensionsCenteredImageScrollEvents.call(this, true);
+				nakasentro.removeFullDimensionsCenteredImageScrollEvents.call(nakasentro, true);
 			}
 
+      nakasentro.windowResize();
+
 			// nakasentro.debounceWindowResize();
-			nakasentro.artworks = Array();
-			utilities.setViewportDimensions();
-			nakasentro.setupValues();
+			// nakasentro.artworks = Array();
+			// utilities.setViewportDimensions();
+			// nakasentro.setupValues();
 		}, 100);
 	},
 
@@ -476,7 +478,7 @@ export let nakasentro = {
 		nakasentro.imagesProcessed = true;
 
 		// document.body.classList.add('artworks-processed');
-		window.addEventListener('resize', this.debounceWindowResize);
+		window.addEventListener('resize', this.windowResize);
 		window.addEventListener('resize', function () {
 			if (nakasentro.isResizing === false) {
 				document.body.classList.add('viewport-resizing');
@@ -485,13 +487,14 @@ export let nakasentro = {
 		});
 	},
 
-	debounceWindowResize: _.debounce(function () {
-		let currentViewportDimensions = utilities.getViewportDimensions();
-		if (utilities.windowHeight !== currentViewportDimensions.height || utilities.windowWidth !== currentViewportDimensions.width) {
+	windowResize: _.debounce(function () {
+		// let currentViewportDimensions = utilities.getViewportDimensions();
+		//Todo: utilites width and height are being updated before this runs
+		// if (utilities.windowHeight !== currentViewportDimensions.height || utilities.windowWidth !== currentViewportDimensions.width) {
 			nakasentro.artworks = Array();
-			utilities.setViewportDimensions();
+			// utilities.setViewportDimensions();
 			nakasentro.setupValues();
-		}
+		// }
 		document.body.classList.remove('viewport-resizing');
 		nakasentro.isResizing = false;
 	}, 250),

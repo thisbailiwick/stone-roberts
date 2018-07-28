@@ -93,7 +93,7 @@ var utilities = {
 		this.setViewportDimensions();
 		// add browser orientation class to body
     this.addBrowserOrientationClass();
-		document.addEventListener('barbaFullscreenOnChange', this.fullScreenOnChangeEvent.bind(this), false);
+		// document.addEventListener('barbaFullscreenOnChange', this.fullScreenOnChangeEvent.bind(this), false);
     window.addEventListener('resize', this.windowResize);
 		// throw in closest polyfill
 		// https://developer.mozilla.org/en-US/docs/Web/API/Element/closest
@@ -113,12 +113,13 @@ var utilities = {
   addBrowserOrientationClass: function addBrowserOrientationClass(){
     document.body.classList.add('orientation-' + this.browserOrientation);
   },
-	fullScreenOnChangeEvent: function () {
-		window.setTimeout(function () {
-			utilities.setViewportDimensions();
-			utilities.addBrowserOrientationClass();
-		}, 250);
-	},
+	// fullScreenOnChangeEvent: function () {
+	// 	window.setTimeout(function () {
+   //    console.log('fullscreenonchange event');
+	// 		utilities.setViewportDimensions();
+	// 		utilities.addBrowserOrientationClass();
+	// 	}, 250);
+	// },
   windowResize: __WEBPACK_IMPORTED_MODULE_2_underscore___default.a.debounce(function () {
     utilities.setViewportDimensions();
     utilities.addBrowserOrientationClass();
@@ -573,13 +574,15 @@ var nakasentro = {
 			/* eslint-disable */
 			if (Barba.FullScreen.isFullscreen === false) {
 				/* eslint-enable */
-				nakasentro.removeFullDimensionsCenteredImageScrollEvents.call(this, true);
+				nakasentro.removeFullDimensionsCenteredImageScrollEvents.call(nakasentro, true);
 			}
 
+      nakasentro.windowResize();
+
 			// nakasentro.debounceWindowResize();
-			nakasentro.artworks = Array();
-			__WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].setViewportDimensions();
-			nakasentro.setupValues();
+			// nakasentro.artworks = Array();
+			// utilities.setViewportDimensions();
+			// nakasentro.setupValues();
 		}, 100);
 	},
 
@@ -907,7 +910,7 @@ var nakasentro = {
 		nakasentro.imagesProcessed = true;
 
 		// document.body.classList.add('artworks-processed');
-		window.addEventListener('resize', this.debounceWindowResize);
+		window.addEventListener('resize', this.windowResize);
 		window.addEventListener('resize', function () {
 			if (nakasentro.isResizing === false) {
 				document.body.classList.add('viewport-resizing');
@@ -916,13 +919,14 @@ var nakasentro = {
 		});
 	},
 
-	debounceWindowResize: __WEBPACK_IMPORTED_MODULE_1_underscore___default.a.debounce(function () {
-		var currentViewportDimensions = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].getViewportDimensions();
-		if (__WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowHeight !== currentViewportDimensions.height || __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowWidth !== currentViewportDimensions.width) {
+	windowResize: __WEBPACK_IMPORTED_MODULE_1_underscore___default.a.debounce(function () {
+		// let currentViewportDimensions = utilities.getViewportDimensions();
+		//Todo: utilites width and height are being updated before this runs
+		// if (utilities.windowHeight !== currentViewportDimensions.height || utilities.windowWidth !== currentViewportDimensions.width) {
 			nakasentro.artworks = Array();
-			__WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].setViewportDimensions();
+			// utilities.setViewportDimensions();
 			nakasentro.setupValues();
-		}
+		// }
 		document.body.classList.remove('viewport-resizing');
 		nakasentro.isResizing = false;
 	}, 250),
@@ -3330,12 +3334,12 @@ var zoomy = {
 			leftPercentage = leftPercentage > maxValue
 				? maxValue
 				: leftPercentage;
-			console.log('leftPercentage, topPercentage: ' + leftPercentage, topPercentage);
 
 			this.mouseMapWrap.style.backgroundPosition = leftPercentage + "% " + topPercentage + "%";
 		// }
 	},
 };
+
 
 /***/ }),
 /* 7 */

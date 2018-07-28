@@ -15,7 +15,7 @@ let utilities = {
 		this.setViewportDimensions();
 		// add browser orientation class to body
     this.addBrowserOrientationClass();
-		document.addEventListener('barbaFullscreenOnChange', this.fullScreenOnChangeEvent.bind(this), false);
+		// document.addEventListener('barbaFullscreenOnChange', this.fullScreenOnChangeEvent.bind(this), false);
     window.addEventListener('resize', this.windowResize);
 		// throw in closest polyfill
 		// https://developer.mozilla.org/en-US/docs/Web/API/Element/closest
@@ -35,12 +35,13 @@ let utilities = {
   addBrowserOrientationClass(){
     document.body.classList.add('orientation-' + this.browserOrientation);
   },
-	fullScreenOnChangeEvent: function () {
-		window.setTimeout(function () {
-			utilities.setViewportDimensions();
-			utilities.addBrowserOrientationClass();
-		}, 250);
-	},
+	// fullScreenOnChangeEvent: function () {
+	// 	window.setTimeout(function () {
+   //    console.log('fullscreenonchange event');
+	// 		utilities.setViewportDimensions();
+	// 		utilities.addBrowserOrientationClass();
+	// 	}, 250);
+	// },
   windowResize: _.debounce(function () {
     utilities.setViewportDimensions();
     utilities.addBrowserOrientationClass();

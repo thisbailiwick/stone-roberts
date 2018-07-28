@@ -176,7 +176,6 @@ export let zoomy = {
 			leftPercentage = leftPercentage > maxValue
 				? maxValue
 				: leftPercentage;
-			console.log('leftPercentage, topPercentage: ' + leftPercentage, topPercentage);
 
 			this.mouseMapWrap.style.backgroundPosition = leftPercentage + "% " + topPercentage + "%";
 		// }
