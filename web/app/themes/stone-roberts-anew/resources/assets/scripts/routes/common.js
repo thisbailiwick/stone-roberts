@@ -15,7 +15,6 @@ export default {
 		window.onload = function () {
 			// init menu-vertical-push
 			initMenuVerticalPush.init();
-			// addBackToTop({zIndex: 2});
 		};
 
 		function debounce(func, wait, immediate) {
@@ -100,7 +99,6 @@ export default {
 
 				function checkIfImagesLoaded(imagesCount) {
 					if (imagesCount === 0) {
-						console.log('images loaded');
 						initArtwork();
 
 						//spin up zoomy, must be done after initArtwork
