@@ -33,6 +33,9 @@ let utilities = {
 			};
 	},
   addBrowserOrientationClass(){
+    // remove old orientation
+    document.body.classList.remove('orientation-portrait', 'orientation-landscape');
+    // add new orientation
     document.body.classList.add('orientation-' + this.browserOrientation);
   },
 	// fullScreenOnChangeEvent: function () {
