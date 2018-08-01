@@ -45,6 +45,10 @@
     position: absolute;
     top: 0;
     left: 0;
+
+    @include breakpoint($xs-sm-only) {
+      left: 5%;
+    }
   }
 
   .image-wrap {
@@ -244,34 +248,36 @@
       height: auto;
     }
 
-    .mouse-map-wrap {
-      align-items: center;
-      background-color: hsla(0, 0, 20%, 1);
-      background-origin: border-box;
-      background-repeat: no-repeat;
-      background-size: 100%;
-      display: flex;
-      height: 100%;
-      justify-content: center;
-      overflow: hidden;
-      opacity: 0;
-      position: relative;
-      transition-duration: $zoom-transition-duration;
-      transition-property: transform, background-size, width, height;
-      width: 100%;
-      &[zoom-enabled]:hover {
-        cursor: zoom-in;
-      }
+  }
 
-      .mouse-map {
-        opacity: .4;
-        height: 100%;
-        width: 100%;
-        margin: 0 auto;
-        transition-duration: $zoom-transition-duration;
-        transition-property: transform, background-size, width, height;
-      }
+  .mouse-map-wrap {
+    align-items: center;
+    background-color: hsla(0, 0, 20%, 1);
+    background-origin: border-box;
+    background-repeat: no-repeat;
+    background-size: 100%;
+    display: flex;
+    height: 100%;
+    justify-content: center;
+    overflow: hidden;
+    opacity: 0;
+    position: relative;
+    transition-duration: $zoom-transition-duration;
+    transition-property: transform, background-size, width, height;
+    width: 100%;
+    &[zoom-enabled]:hover {
+      cursor: zoom-in;
     }
+
+  }
+
+  .mouse-map {
+    opacity: .4;
+    height: 100%;
+    width: 100%;
+    margin: 0 auto;
+    transition-duration: $zoom-transition-duration;
+    transition-property: transform, background-size, width, height;
   }
 
   &.loaded {
@@ -431,7 +437,7 @@ body.artworks-processed {
 
 body {
   &.centered-image {
-    .main > *, .banner .brand{
+    .main > *, .banner .brand {
       opacity: 0;
       &.centered {
         opacity: 1 !important;
@@ -460,6 +466,25 @@ body {
     .artwork-title {
       left: 5%;
     }
+
+    .image-ratio-holder {
+      display: none;
+    }
+
+    .mouse-map {
+      height: calc(100% - 40px);
+      width: calc(100% - 40px);
+    }
+
+    .zoomy-wrap{
+      left: 50%;
+      -webkit-transform: translateX(-50%);
+      transform: translateX(-50%);
+    }
+
+    .dev-share-buttons__item--copy{
+      display: none !important;
+    }
   }
   &.viewport-resizing {
     .artwork_piece {
@@ -475,8 +500,6 @@ body {
         z-index: 0;
       }
     }
-  }
-  &.orientation-portrait {
   }
 
   @media screen and (max-width: $main-content-max-width + 30px) {

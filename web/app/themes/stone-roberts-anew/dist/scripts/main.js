@@ -81,176 +81,178 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 
 var utilities = {
-	windowHeight: null,
-	windowWidth: null,
-	windowRatioWidth: null,
-	windowRatioHeight: null,
-	windowHalfHeight: null,
-	browserOrientation: null,
-	bodyOverlay: document.getElementById('body-overlay'),
-	init: function () {
-		__WEBPACK_IMPORTED_MODULE_1_vh_check___default()('vh-offset');
-		this.setViewportDimensions();
-		// add browser orientation class to body
+  windowHeight: null,
+  windowWidth: null,
+  windowRatioWidth: null,
+  windowRatioHeight: null,
+  windowHalfHeight: null,
+  browserOrientation: null,
+  bodyOverlay: document.getElementById('body-overlay'),
+  init: function () {
+    __WEBPACK_IMPORTED_MODULE_1_vh_check___default()('vh-offset');
+    this.setViewportDimensions();
+    // add browser orientation class to body
     this.addBrowserOrientationClass();
-		// document.addEventListener('barbaFullscreenOnChange', this.fullScreenOnChangeEvent.bind(this), false);
+    // document.addEventListener('barbaFullscreenOnChange', this.fullScreenOnChangeEvent.bind(this), false);
     window.addEventListener('resize', this.windowResize);
-		// throw in closest polyfill
-		// https://developer.mozilla.org/en-US/docs/Web/API/Element/closest
-		if (!Element.prototype.matches) { Element.prototype.matches = Element.prototype.msMatchesSelector || Element.prototype.webkitMatchesSelector; }
+    // throw in closest polyfill
+    // https://developer.mozilla.org/en-US/docs/Web/API/Element/closest
+    if (!Element.prototype.matches) { Element.prototype.matches = Element.prototype.msMatchesSelector || Element.prototype.webkitMatchesSelector; }
 
-		if (!Element.prototype.closest)
-			{ Element.prototype.closest = function (s) {
-				var el = this;
-				if (!document.documentElement.contains(el)) { return null; }
-				do {
-					if (el.matches(s)) { return el; }
-					el = el.parentElement || el.parentNode;
-				} while (el !== null && el.nodeType === 1);
-				return null;
-			}; }
-	},
-  addBrowserOrientationClass: function addBrowserOrientationClass(){
+    if (!Element.prototype.closest)
+      { Element.prototype.closest = function (s) {
+        var el = this;
+        if (!document.documentElement.contains(el)) { return null; }
+        do {
+          if (el.matches(s)) { return el; }
+          el = el.parentElement || el.parentNode;
+        } while (el !== null && el.nodeType === 1);
+        return null;
+      }; }
+  },
+  addBrowserOrientationClass: function addBrowserOrientationClass() {
     // remove old orientation
     document.body.classList.remove('orientation-portrait', 'orientation-landscape');
     // add new orientation
     document.body.classList.add('orientation-' + this.browserOrientation);
   },
-	// fullScreenOnChangeEvent: function () {
-	// 	window.setTimeout(function () {
-   //    console.log('fullscreenonchange event');
-	// 		utilities.setViewportDimensions();
-	// 		utilities.addBrowserOrientationClass();
-	// 	}, 250);
-	// },
+  // fullScreenOnChangeEvent: function () {
+  // 	window.setTimeout(function () {
+  //    console.log('fullscreenonchange event');
+  // 		utilities.setViewportDimensions();
+  // 		utilities.addBrowserOrientationClass();
+  // 	}, 250);
+  // },
   windowResize: __WEBPACK_IMPORTED_MODULE_2_underscore___default.a.debounce(function () {
     utilities.setViewportDimensions();
     utilities.addBrowserOrientationClass();
   }, 250),
-	getViewportDimensions: function () {
-		// TODO: will this work with fullscreen?
-		var w = window,
-			d = document,
-			e = d.documentElement,
-			g = d.getElementsByTagName("body")[0],
-			x = w.innerWidth || e.clientWidth || g.clientWidth,
-			y = /*innerHeight() || */w.innerHeight || e.clientHeight || g.clientHeight;
-		return {width: x, height: y};
-	},
-	setViewportDimensions: function () {
-		var viewportDimensions = this.getViewportDimensions();
-		this.windowHeight = viewportDimensions.height;
-		this.windowWidth = viewportDimensions.width;
-		this.windowRatioWidth = this.windowWidth / this.windowHeight;
-		this.windowRatioHeight = this.windowHeight / this.windowWidth;
-		this.windowHalfHeight = this.windowHeight / 2;
-		this.browserOrientation = this.getBrowserOrientation();
-	},
-	isElementVerticallyInViewport: function (el) {
-		var bounding = el.getBoundingClientRect();
+  getViewportDimensions: function () {
+    // TODO: will this work with fullscreen?
+    var w = window,
+      d = document,
+      e = d.documentElement,
+      g = d.getElementsByTagName("body")[0],
+      x = w.innerWidth || e.clientWidth || g.clientWidth,
+      y = /*innerHeight() || */w.innerHeight || e.clientHeight || g.clientHeight;
+    return {width: x, height: y};
+  },
+  setViewportDimensions: function () {
+    var viewportDimensions = this.getViewportDimensions();
+    this.windowHeight = viewportDimensions.height;
+    this.windowWidth = viewportDimensions.width;
+    this.windowRatioWidth = this.windowWidth / this.windowHeight;
+    this.windowRatioHeight = this.windowHeight / this.windowWidth;
+    this.windowHalfHeight = this.windowHeight / 2;
+    this.browserOrientation = this.getBrowserOrientation();
+  },
+  isElementVerticallyInViewport: function (el) {
+    var bounding = el.getBoundingClientRect();
 
-		return (
-			bounding.top >= 0 &&
-			bounding.top <= (__WEBPACK_IMPORTED_MODULE_0_ios_inner_height___default()() || document.documentElement.clientHeight)
-			||
-			bounding.bottom <= (__WEBPACK_IMPORTED_MODULE_0_ios_inner_height___default()() || document.documentElement.clientHeight) &&
-			bounding.bottom >= 0
-		);
-	},
-	isTouchDevice: function () {
-		return "ontouchstart" in document.documentElement;
-	},
-	getElementOffsetFromDoc: function (el) {
-		// https://stanko.github.io/javascript-get-element-offset/
-		var rect = el.getBoundingClientRect();
+    return (
+      bounding.top >= 0 &&
+      bounding.top <= (__WEBPACK_IMPORTED_MODULE_0_ios_inner_height___default()() || document.documentElement.clientHeight)
+      ||
+      bounding.bottom <= (__WEBPACK_IMPORTED_MODULE_0_ios_inner_height___default()() || document.documentElement.clientHeight) &&
+      bounding.bottom >= 0
+    );
+  },
+  isTouchDevice: function () {
+    return "ontouchstart" in document.documentElement;
+  },
+  getElementOffsetFromDoc: function (el) {
+    // https://stanko.github.io/javascript-get-element-offset/
+    var rect = el.getBoundingClientRect();
 
-		return {
-			top: rect.top + window.pageYOffset,
-			left: rect.left + window.pageXOffset,
-		};
-	},
-	getSiblingsWithClass: function (child, skipMe, elementClass) {
-		var r = [];
-		for (; child; child = child.nextSibling) {
-			if (child.nodeType == 1 && child != skipMe && child.classList.contains(elementClass)) {
-				r.push(child);
-			}
-		}
-		return r;
-	},
+    return {
+      top: rect.top + window.pageYOffset,
+      left: rect.left + window.pageXOffset,
+    };
+  },
+  getSiblingsWithClass: function (child, skipMe, elementClass) {
+    var r = [];
+    for (; child; child = child.nextSibling) {
+      if (child.nodeType == 1 && child != skipMe && child.classList.contains(elementClass)) {
+        r.push(child);
+      }
+    }
+    return r;
+  },
 
-	// return the first element which has class
-	getSiblingByClass: function (element, elementClass) {
-		return this.getSiblingsWithClass(element.parentNode.firstChild, element, elementClass)[0];
-	},
+  // return the first element which has class
+  getSiblingByClass: function (element, elementClass) {
+    return this.getSiblingsWithClass(element.parentNode.firstChild, element, elementClass)[0];
+  },
 
-	getImageSizeChangeTechnique: function (image, container, xPadding, yPadding) {
-		container = typeof container != 'undefined'
-			?
-			container
-			:
-			null;
-		xPadding = typeof xPadding != 'undefined'
-			?
-			xPadding
-			:
-			0;
-		yPadding = typeof yPadding != 'undefined'
-			?
-			yPadding
-			:
-			0;
-		var containerRatioWidth = null;
-		var containerRatioHeight = null;
-		if (container != null) {
-			containerRatioWidth = (container.clientWidth - xPadding) / (container.clientHeight - yPadding);
-		} else {
-			containerRatioWidth = this.windowRatioWidth;
-			containerRatioHeight = this.windowRatioHeight;
+  getImageSizeChangeTechnique: function (image, container, xPadding, yPadding) {
+    container = typeof container != 'undefined'
+      ?
+      container
+      :
+      null;
+    xPadding = typeof xPadding != 'undefined'
+      ?
+      xPadding
+      :
+      0;
+    yPadding = typeof yPadding != 'undefined'
+      ?
+      yPadding
+      :
+      0;
+    var containerRatioWidth = null;
+    var containerRatioHeight = null;
+    if (container != null) {
+      containerRatioWidth = (container.clientWidth - xPadding) / (container.clientHeight - yPadding);
+    } else {
+      containerRatioWidth = this.windowRatioWidth;
+      containerRatioHeight = this.windowRatioHeight;
 
-		}
+    }
 
-		// figure out which way to change image size
-		var imageRatioWidth = image.naturalWidth / image.naturalHeight;
-		var imageRatioHeight = image.naturalHeight / image.naturalWidth;
+    // figure out which way to change image size
+    var imageRatioWidth = image.naturalWidth / image.naturalHeight;
+    var imageRatioHeight = image.naturalHeight / image.naturalWidth;
 
-		if (imageRatioWidth > containerRatioWidth) {
-			return "width";
-		} else if (imageRatioHeight > containerRatioHeight) {
-			return "height";
-		}
+    if (imageRatioWidth > containerRatioWidth) {
+      return "width";
+    } else if (imageRatioHeight > containerRatioHeight) {
+      return "height";
+    }
 
-	},
+  },
 
-	getBrowserOrientation: function () {
-		return this.windowHeight > this.windowWidth
-			?
-			"portrait"
-			:
-			"landscape";
-	},
+  getBrowserOrientation: function () {
+    return this.windowHeight > this.windowWidth
+      ?
+      "portrait"
+      :
+      "landscape";
+  },
 
-	showOverlay: function () {
-		document.body.classList.add('show-body-overlay');
-	},
+  showOverlay: function () {
+    document.body.classList.add('show-body-overlay');
+  },
 
-	hideOverlay: function () {
-		document.body.classList.remove('show-body-overlay');
-	},
+  hideOverlay: function () {
+    document.body.classList.remove('show-body-overlay');
+  },
 
-	addCssToPage: function (styles, id) {
-		var style = document.createElement('style');
-		style.type = 'text/css';
-		style.innerHTML = styles;
-		style.setAttribute('id', id);
-		document.getElementsByTagName('head')[0].appendChild(style);
-	},
-	removeCssFromPage: function (ids) {
-		ids.forEach(function (id) {
-			var el = document.getElementById(id);
-			el.parentNode.removeChild(el);
-		});
-	},
+  addCssToPage: function (styles, id) {
+    var style = document.createElement('style');
+    style.type = 'text/css';
+    style.innerHTML = styles;
+    style.setAttribute('id', id);
+    document.getElementsByTagName('head')[0].appendChild(style);
+  },
+  removeCssFromPage: function (ids) {
+    ids.forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el !== null) {
+        el.parentNode.removeChild(el);
+      }
+    });
+  },
 };
 
 utilities.init();
@@ -437,758 +439,778 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 
 var nakasentro = {
-	fullscreen: document.querySelector('.fullscreen'),
-	fullscreenWrapper: document.querySelector('.fullscreen-wrapper'),
-	artworks_elements: document.querySelectorAll('.artwork_piece'),
-	artworks: Array(),
-	mainContentWidth: null,
-	mainContentWrap: document.querySelector('.content>.main'),
-	imageCentered: false,
-	imageCenteredTrue: false, // tracks when image has gone fulldimension and get's toggled out of fulldimension but is still within the considered centered range
-	imageCenteredElement: null,
-	scrollBeingThrottled: false,
-	isTouchDevice: false,
-	// helps us not process items in the midst of resizing
-	isResizing: false,
-	consideredCenteredPercentage: 10,
-	recentlyAddedCenteredClasses: false,
-	recentlyRemovedCenteredClasses: false,
-	fixedImageScrollReleaseCount: 0,
-	imagesProcessed: false,
-	mouse_map_less_percentage: .3,
-	delayedTransitionInProgress: false,
+  fullscreen: document.querySelector('.fullscreen'),
+  fullscreenWrapper: document.querySelector('.fullscreen-wrapper'),
+  artworks_elements: document.querySelectorAll('.artwork_piece'),
+  artworks: Array(),
+  mainContentWidth: null,
+  mainContentWrap: document.querySelector('.content>.main'),
+  imageCentered: false,
+  imageCenteredTrue: false, // tracks when image has gone fulldimension and get's toggled out of fulldimension but is still within the considered centered range
+  imageCenteredElement: null,
+  scrollBeingThrottled: false,
+  isTouchDevice: false,
+  // helps us not process items in the midst of resizing
+  isResizing: false,
+  consideredCenteredPercentage: 10,
+  recentlyAddedCenteredClasses: false,
+  recentlyRemovedCenteredClasses: false,
+  fixedImageScrollReleaseCount: 0,
+  imagesProcessed: false,
+  mouse_map_less_percentage: .3,
+  delayedTransitionInProgress: false,
+  windowWidth: 0,
 
-	init: function () {
-		//reset values
-		this.reset();
+  init: function () {
+    //reset values
+    this.reset();
 
-		this.isTouchDevice = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].isTouchDevice();
+    this.isTouchDevice = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].isTouchDevice();
 
-		if (this.isTouchDevice === false) {
+    if (this.isTouchDevice === false) {
 
-			// setup values
-			this.setupValues(true);
-			// for when not in fullscreen
-			window.addEventListener('scroll', function () {
-					if (!this.isResizing && nakasentro.imagesProcessed === true) {
-						nakasentro.checkArtworks();
-					}
-				}.bind(this)
-			);
-			window.addEventListener('scroll', function () {
-					if (!nakasentro.isResizing && nakasentro.imagesProcessed === true) {
-						nakasentro.checkArtworks();
-					}
-				}
-			);
+      // setup values
+      this.setupValues(true);
+      // for when not in fullscreen
+      window.addEventListener('scroll', function () {
+          if (!this.isResizing && nakasentro.imagesProcessed === true) {
+            nakasentro.checkArtworks();
+          }
+        }.bind(this)
+      );
+      window.addEventListener('scroll', function () {
+          if (!nakasentro.isResizing && nakasentro.imagesProcessed === true) {
+            nakasentro.checkArtworks();
+          }
+        }
+      );
 
-			// for when in fullscreen
-			nakasentro.fullscreen.addEventListener('scroll', function () {
-				if (!this.isResizing && nakasentro.imagesProcessed === true) {
-					nakasentro.checkArtworks();
-				}
-			});
+      // for when in fullscreen
+      nakasentro.fullscreen.addEventListener('scroll', function () {
+        if (!this.isResizing && nakasentro.imagesProcessed === true) {
+          nakasentro.checkArtworks();
+        }
+      });
 
-			// add event to handle any code needed when there is a fullscreen change event
-			document.addEventListener('barbaFullscreenOnChange', this.fullScreenOnChangeEvent.bind(this), false);
-		} else {
-			this.mobileSetup(true);
-		}
+      // add event to handle any code needed when there is a fullscreen change event
+      document.addEventListener('barbaFullscreenOnChange', this.fullScreenOnChangeEvent.bind(this), false);
+    } else {
+      this.mobileSetup(true);
+    }
 
-	},
+  },
 
-	mobileSetup: function (isInit) {
-		this.mainContentWidth = this.mainContentWrap.clientWidth;
+  mobileSetup: function (isInit) {
+    this.windowWidth = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowWidth;
+    this.mainContentWidth = this.mainContentWrap.clientWidth;
 
-		this.setBodyClasses('orientation-' + __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].browserOrientation);
-		var vhFixElements = [];
-		nakasentro.artworks_elements.forEach(function (artwork, index) {
-			var artworkElements = this.getArtworkElements(artwork, index);
-      var ref = this.getNewImageDimensions(artworkElements);
-			var newHeight = ref.newHeight;
-			var newWidth = ref.newWidth;
-			var imageRatioWidth = ref.imageRatioWidth;
-			var imageRatioHeight = ref.imageRatioHeight;
+    this.setBodyClasses('orientation-' + __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].browserOrientation);
+    var vhFixElements = [];
+    nakasentro.artworks_elements.forEach(function (artwork, index) {
+      var artworkElements = null;
+      if (isInit === true) {
+        artworkElements = this.getArtworkElements(artwork, index);
+      } else {
+        artworkElements = nakasentro.artworks[index];
+      }
+      var ref = this.getNewImageDimensions(artworkElements, isInit);
+      var newHeight = ref.newHeight;
+      var newWidth = ref.newWidth;
+      var imageRatioWidth = ref.imageRatioWidth;
+      var imageRatioHeight = ref.imageRatioHeight;
 
-			var styleBlockId = artworkElements.artworkUniqueId + '-artwork-centered-style';
-			if (isInit === false) {
-				this.resetImageValues(artworkElements);
-				__WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].removeCssFromPage([styleBlockId]);
-			}
-			__WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].setViewportDimensions();
-			var imageSizeChangeTechnique = this.setArtworkSizeChangeTechnique(artworkElements.artworkImage, artworkElements.artworkWrap);
+      var styleBlockId = artworkElements.artworkUniqueId + '-artwork-centered-style';
+      if (isInit === false) {
+        this.resetImageValues(artworkElements);
+        __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].removeCssFromPage([styleBlockId]);
+      }
+      __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].setViewportDimensions();
+      var imageSizeChangeTechnique = this.setArtworkSizeChangeTechnique(artworkElements.artworkImage, artworkElements.artworkWrap);
 
-			window.addEventListener('resize', this.mobileResize.bind(artworkElements));
-			// setup up vh-fix for full viewport height bugginess
-			artworkElements.artworkImage.classList.add('vh-fix');
+      window.addEventListener('resize', this.mobileResize.bind(this));
+      // setup up vh-fix for full viewport height bugginess
+      artworkElements.artworkImage.classList.add('vh-fix');
 
-			nakasentro.artworks.push({
-				artworksIndex: nakasentro.artworks.length,
-				element: artwork,
-				artworkImage: artworkElements.artworkImage,
-				imageSizeChangeTechnique: imageSizeChangeTechnique,
-				artworkWrap: artworkElements.artworkWrap,
-				artworkImageWrap: artworkElements.artworkImageWrap,
-				centerImageWrap: artworkElements.centerImageWrap,
-				artworkMetaWrap: artworkElements.artworkMetaWrap,
-				zoomyWrap: artworkElements.zoomyWrap,
-				imageSpacePlaceholder: artworkElements.imageSpacePlaceholder,
-				artworkUniqueId: artworkElements.artworkUniqueId,
-        imageRatioWidth: imageRatioWidth,
-        imageRatioHeight: imageRatioHeight,
-				imageCentered: false,
-				fullscreenImageCentered: false,
-				isInViewport: false,
-				imgSrc: artworkElements.imgSrc,
-			});
+      if (isInit === true) {
+        nakasentro.artworks.push({
+          artworksIndex: nakasentro.artworks.length,
+          element: artwork,
+          artworkImage: artworkElements.artworkImage,
+          imageSizeChangeTechnique: imageSizeChangeTechnique,
+          artworkWrap: artworkElements.artworkWrap,
+          artworkImageWrap: artworkElements.artworkImageWrap,
+          centerImageWrap: artworkElements.centerImageWrap,
+          artworkMetaWrap: artworkElements.artworkMetaWrap,
+          zoomyWrap: artworkElements.zoomyWrap,
+          imageSpacePlaceholder: artworkElements.imageSpacePlaceholder,
+          artworkUniqueId: artworkElements.artworkUniqueId,
+          imageRatioHolder: artworkElements.imageRatioHolder,
+          imageRatioWidth: imageRatioWidth,
+          imageRatioHeight: imageRatioHeight,
+          imageCentered: false,
+          fullscreenImageCentered: false,
+          isInViewport: false,
+          imgSrc: artworkElements.imgSrc,
+          originalDimensions: {
+            width: newWidth,
+            height: newHeight,
+            imageRatioWidth: imageRatioWidth,
+            imageRatioHeight: imageRatioHeight,
+          },
+        });
+      } else {
+        nakasentro.artworks[index].imageSizeChangeTechnique = imageSizeChangeTechnique;
+        nakasentro.artworks[index].imageCentered = false;
+        nakasentro.artworks[index].fullscreenImageCentered = false;
+        nakasentro.artworks[index].isInViewport = false;
+      }
 
-			var imageViewportWidthRatio = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowWidth / artworkElements.artworkImage.clientWidth;
-			var imageViewportHeightRatio = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowHeight / artworkElements.artworkImage.clientHeight;
 
-			if (artworkElements.artworkImage.clientHeight >= __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowHeight) {
-				artworkElements.imageRatioHolder.style.height = artworkElements.artworkImage.clientHeight + 'px';
-				artworkElements.imageRatioHolder.style.width = artworkElements.artworkImage.clientWidth + 'px';
-			} else {
-				var imageRatioHeight$1 = artworkElements.artworkImage.clientHeight / artworkElements.artworkImage.clientWidth;
-				artworkElements.imageRatioHolder.style.paddingBottom = 100 * imageRatioHeight$1 + '%';
-			}
+      // let imageViewportWidthRatio = utilities.windowWidth / artworkElements.artworkImage.clientWidth;
+      // let imageViewportHeightRatio = utilities.windowHeight / artworkElements.artworkImage.clientHeight;
 
-			this.addStylesToDocument(styleBlockId, artworkElements, imageViewportHeightRatio, imageViewportWidthRatio, newWidth, newHeight);
+      if (artworkElements.artworkImage.clientHeight >= __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowHeight) {
+        artworkElements.imageRatioHolder.style.height = artworkElements.artworkImage.clientHeight + 'px';
+        artworkElements.imageRatioHolder.style.width = artworkElements.artworkImage.clientWidth + 'px';
+      } else {
+        var imageRatioHeight$1 = artworkElements.artworkImage.clientHeight / artworkElements.artworkImage.clientWidth;
+        artworkElements.imageRatioHolder.style.paddingBottom = 100 * imageRatioHeight$1 + '%';
+      }
 
-			Object(__WEBPACK_IMPORTED_MODULE_3__thumbnail_nav__["addThumbnail"])(artworkElements.imgSrc, artworkElements.artworkImageWrap);
+      this.addMobileImageStylesToDocument(styleBlockId, artworkElements, newHeight, newWidth);
 
-			vhFixElements.push(artworkElements.artworkImage);
-		}, this);
-		Object(__WEBPACK_IMPORTED_MODULE_5__vh_fix__["a" /* initialize */])(vhFixElements, 100, 'landscape');
-	},
+      Object(__WEBPACK_IMPORTED_MODULE_3__thumbnail_nav__["addThumbnail"])(artworkElements.imgSrc, artworkElements.artworkImageWrap);
 
-	mobileResize: __WEBPACK_IMPORTED_MODULE_1_underscore___default.a.debounce(function () {
-		nakasentro.artworks = [];
-		nakasentro.mobileSetup(false);
-	}, 250),
+      vhFixElements.push(artworkElements.artworkImage);
+    }, this);
+    Object(__WEBPACK_IMPORTED_MODULE_5__vh_fix__["a" /* initialize */])(vhFixElements, 100, 'landscape');
+  },
 
-	fullScreenOnChangeEvent: function () {
-		window.setTimeout(function(){
-		// if in fullscreen we want to add remved events which handle scroll when centered and scroll events is not triggered due to fixed elements
-			/* eslint-disable */
-			if (Barba.FullScreen.isFullscreen === false) {
-				/* eslint-enable */
-				nakasentro.removeFullDimensionsCenteredImageScrollEvents.call(nakasentro, true);
-			}
+  mobileResize: __WEBPACK_IMPORTED_MODULE_1_underscore___default.a.debounce(function () {
+    // nakasentro.artworks = [];
+    if (this.windowWidth !== __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowWidth) {
+      this.windowWidth = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowWidth;
+      this.mobileSetup(false);
+    }
+  }, 250),
+
+  fullScreenOnChangeEvent: function () {
+    window.setTimeout(function () {
+      // if in fullscreen we want to add remved events which handle scroll when centered and scroll events is not triggered due to fixed elements
+      /* eslint-disable */
+      if (Barba.FullScreen.isFullscreen === false) {
+        /* eslint-enable */
+        nakasentro.removeFullDimensionsCenteredImageScrollEvents.call(nakasentro, true);
+      }
 
       nakasentro.windowResize();
-		}, 100);
-	},
-
-	removeFullDimensionsCenteredImageScrollEvents: function (removeAllWheel) {
-		removeAllWheel = typeof removeAllWheel === 'boolean'
-			? removeAllWheel
-			: false;
-		window.removeEventListener('keydown', this.keydownEvent);
-		if (removeAllWheel === false) {
-			// 'this' is the artwork
-			this.zoomyWrap.removeEventListener('wheel', this.wheelEvent);
-		} else {
-			// 'this' is nakasentro
-			this.artworks.forEach(function (artwork) {
-				artwork.zoomyWrap.removeEventListener('wheel', artwork.wheelEvent);
-			})
-		}
-	},
-
-	reset: function () {
-		// set values back to initial setup
-		this.fullscreen = document.querySelector('.fullscreen');
-		this.artworks_elements = document.querySelectorAll('.artwork_piece');
-		this.artworks = Array();
-		this.mainContentWidth = null;
-		this.mainContentWrap = document.querySelector('.content>.main');
-		this.imageCentered = false;
-		this.imageCenteredTrue = false;
-		this.imageCenteredElement = null;
-		this.scrollBeingThrottled = false;
-		document.body.classList.remove('orientation-portrait', 'orientation-landscape', 'centered-image');
-		document.querySelectorAll('.artwork_piece').forEach(function (artworkPiece) {
-			this.removeArtworkPieceCentered(artworkPiece);
-		}, this);
-	},
-
-	resetAllCenteredSettings: function () {
-		document.querySelectorAll('.artwork_piece').forEach(function (artworkPiece) {
-			this.removeArtworkPieceCentered(artworkPiece);
-		}, this);
-		this.removeBodyImageCenteredClasses();
-	},
-
-	removeArtworkPieceCentered: function (artworkPiece) {
-		artworkPiece.classList.remove('centered'/*, 'centered-image-transition-duration'*/);
-	},
-	removeBodyImageCenteredClasses: function () {
-		document.body.classList.remove('centered-image');
-		window.setTimeout(function () {
-			// here we delay removing a class to allow some css transitions to happen
-			nakasentro.imageCenteredElement.classList.remove('centered-image-transition-duration');
-		}, 400);
-	},
-
-	resetImageValues: function (artwork) {
-		artwork.artworkImage.setAttribute('style', '');
-		artwork.zoomyWrap.setAttribute('style', '');
-		artwork.imageRatioHolder.setAttribute('style', '');
-		artwork.centerImageWrap.setAttribute('style', '');
-	},
-
-	getArtworkElements: function (artwork, index) {
-		var artworkWrap = artwork;
-		artworkWrap.setAttribute('artworks-index', index);
-		var artworkUniqueId = artwork.getAttribute('id');
-		var artworkImageWrap = artwork.querySelector('.image-wrap');
-		var centerImageWrap = artworkImageWrap.querySelector('.center-image-wrap');
-		var artworkImage = artworkImageWrap.querySelector('.main-img');
-		var zoomyWrap = artworkImageWrap.querySelector('.zoomy-wrap');
-		var imageSpacePlaceholder = artworkImageWrap.querySelector('.image-space-placeholder');
-		var imageRatioHolder = artworkImageWrap.querySelector('.image-ratio-holder');
-		var mouseMapWrap = zoomyWrap.querySelector('.mouse-map-wrap');
-		var mouseMapImage = mouseMapWrap.querySelector('.mouse-map');
-		var artworkMetaWrap = artworkImageWrap.querySelector('.artwork-meta');
-		var imgSrc = artworkImage.getAttribute('src');
-		return {
-			artworkWrap: artworkWrap,
-			artworkUniqueId: artworkUniqueId,
-			artworkImageWrap: artworkImageWrap,
-			centerImageWrap: centerImageWrap,
-			artworkImage: artworkImage,
-			zoomyWrap: zoomyWrap,
-			imageSpacePlaceholder: imageSpacePlaceholder,
-			imageRatioHolder: imageRatioHolder,
-			mouseMapWrap: mouseMapWrap,
-			mouseMapImage: mouseMapImage,
-			artworkMetaWrap: artworkMetaWrap,
-			imgSrc: imgSrc,
-		};
-	},
-
-	setArtworkSizeChangeTechnique: function (artworkImage, artworkWrap) {
-		var imageSizeChangeTechnique = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].getImageSizeChangeTechnique(artworkImage);
-		artworkWrap.classList.remove('width', 'height');
-		artworkWrap.classList.add(imageSizeChangeTechnique);
-		return imageSizeChangeTechnique;
-	},
-
-	addStylesToDocument: function (styleBlockId, artworkElements, imageViewportHeightRatio, imageViewportWidthRatio, newWidth, newHeight) {
-		var styleBlock = document.getElementById(styleBlockId);
-		if (styleBlock !== null) {
-			styleBlock.remove();
-		}
+    }, 100);
+  },
+
+  removeFullDimensionsCenteredImageScrollEvents: function (removeAllWheel) {
+    removeAllWheel = typeof removeAllWheel === 'boolean'
+      ? removeAllWheel
+      : false;
+    window.removeEventListener('keydown', this.keydownEvent);
+    if (removeAllWheel === false) {
+      // 'this' is the artwork
+      this.zoomyWrap.removeEventListener('wheel', this.wheelEvent);
+    } else {
+      // 'this' is nakasentro
+      this.artworks.forEach(function (artwork) {
+        artwork.zoomyWrap.removeEventListener('wheel', artwork.wheelEvent);
+      })
+    }
+  },
+
+  reset: function () {
+    // set values back to initial setup
+    this.fullscreen = document.querySelector('.fullscreen');
+    this.artworks_elements = document.querySelectorAll('.artwork_piece');
+    this.mainContentWidth = null;
+    this.mainContentWrap = document.querySelector('.content>.main');
+    this.imageCentered = false;
+    this.imageCenteredTrue = false;
+    this.imageCenteredElement = null;
+    this.scrollBeingThrottled = false;
+    document.body.classList.remove('orientation-portrait', 'orientation-landscape', 'centered-image');
+    document.querySelectorAll('.artwork_piece').forEach(function (artworkPiece) {
+      this.removeArtworkPieceCentered(artworkPiece);
+      artworkPiece.classList.remove('width', 'height');
+    }, this);
+  },
+
+  resetAllCenteredSettings: function () {
+    document.querySelectorAll('.artwork_piece').forEach(function (artworkPiece) {
+      this.removeArtworkPieceCentered(artworkPiece);
+    }, this);
+    this.removeBodyImageCenteredClasses();
+  },
+
+  removeArtworkPieceCentered: function (artworkPiece) {
+    artworkPiece.classList.remove('centered'/*, 'centered-image-transition-duration'*/);
+  },
+  removeBodyImageCenteredClasses: function () {
+    document.body.classList.remove('centered-image');
+    window.setTimeout(function () {
+      // here we delay removing a class to allow some css transitions to happen
+      nakasentro.imageCenteredElement.classList.remove('centered-image-transition-duration');
+    }, 400);
+  },
+
+  resetImageValues: function (artwork) {
+    artwork.artworkImage.setAttribute('style', '');
+    artwork.zoomyWrap.setAttribute('style', '');
+    artwork.imageRatioHolder.setAttribute('style', '');
+    artwork.centerImageWrap.setAttribute('style', '');
+  },
+
+  resetAllImagesValues: function () {
+    nakasentro.artworks.forEach(function (artwork) {
+      console.log('resetting: ', artwork.artworkWrap);
+      var styleBlockId = artwork.artworkUniqueId + '-artwork-centered-style';
+      __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].removeCssFromPage([styleBlockId]);
+      artwork.artworkImage.setAttribute('style', '');
+      artwork.zoomyWrap.setAttribute('style', '');
+      artwork.imageRatioHolder.setAttribute('style', '');
+      artwork.centerImageWrap.setAttribute('style', '');
+    });
+  },
+
+  getArtworkElements: function (artwork, index) {
+    var artworkWrap = artwork;
+    artworkWrap.setAttribute('artworks-index', index);
+    var artworkUniqueId = artwork.getAttribute('id');
+    var artworkImageWrap = artwork.querySelector('.image-wrap');
+    var centerImageWrap = artworkImageWrap.querySelector('.center-image-wrap');
+    var artworkImage = artworkImageWrap.querySelector('.main-img');
+    var zoomyWrap = artworkImageWrap.querySelector('.zoomy-wrap');
+    var imageSpacePlaceholder = artworkImageWrap.querySelector('.image-space-placeholder');
+    var imageRatioHolder = artworkImageWrap.querySelector('.image-ratio-holder');
+    var mouseMapWrap = zoomyWrap.querySelector('.mouse-map-wrap');
+    var mouseMapImage = mouseMapWrap.querySelector('.mouse-map');
+    var artworkMetaWrap = artworkImageWrap.querySelector('.artwork-meta');
+    var imgSrc = artworkImage.getAttribute('src');
+    return {
+      artworkWrap: artworkWrap,
+      artworkUniqueId: artworkUniqueId,
+      artworkImageWrap: artworkImageWrap,
+      centerImageWrap: centerImageWrap,
+      artworkImage: artworkImage,
+      zoomyWrap: zoomyWrap,
+      imageSpacePlaceholder: imageSpacePlaceholder,
+      imageRatioHolder: imageRatioHolder,
+      mouseMapWrap: mouseMapWrap,
+      mouseMapImage: mouseMapImage,
+      artworkMetaWrap: artworkMetaWrap,
+      imgSrc: imgSrc,
+    };
+  },
 
-		// create styles for .main-img and .mouse-map width and height
+  setArtworkSizeChangeTechnique: function (artworkImage, artworkWrap) {
+    var imageSizeChangeTechnique = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].getImageSizeChangeTechnique(artworkImage);
+    artworkWrap.classList.remove('width', 'height');
+    artworkWrap.classList.add(imageSizeChangeTechnique);
+    return imageSizeChangeTechnique;
+  },
 
-		var artworkStyles = '#' + artworkElements.artworkUniqueId + ' .main-img, #' + artworkElements.artworkUniqueId + ' .mouse-map-wrap {width: ' + newWidth + 'px; height: ' + newHeight + 'px;}';
+  addDynamicImageStylesToDocument: function (styleBlockId, artworkElements, imageViewportHeightRatio, imageViewportWidthRatio, newWidth, newHeight) {
+    var styleBlock = document.getElementById(styleBlockId);
+    if (styleBlock !== null) {
+      styleBlock.remove();
+    }
 
+    // create styles for .main-img and .mouse-map width and height
+
+    var artworkStyles = '#' + artworkElements.artworkUniqueId + ' .main-img, #' + artworkElements.artworkUniqueId + ' .mouse-map-wrap {width: ' + newWidth + 'px; height: ' + newHeight + 'px;}';
 
-		var mouseMapWidth = newWidth - (nakasentro.mouse_map_less_percentage * newWidth);
-		var mouseMapHeight = newHeight - (nakasentro.mouse_map_less_percentage * newHeight);
 
-		artworkStyles += '#' + artworkElements.artworkUniqueId + ' .mouse-map {width: ' + mouseMapWidth + 'px; height: ' + mouseMapHeight + 'px;}';
+    var mouseMapWidth = newWidth - (nakasentro.mouse_map_less_percentage * newWidth);
+    var mouseMapHeight = newHeight - (nakasentro.mouse_map_less_percentage * newHeight);
 
-		// create styles for .main-img and .mouse-map scale amount when image dimension change is height
-		artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.height .main-img {transform: scale(' + imageViewportHeightRatio + ', ' + imageViewportHeightRatio + ')}';
+    artworkStyles += '#' + artworkElements.artworkUniqueId + ' .mouse-map {width: ' + mouseMapWidth + 'px; height: ' + mouseMapHeight + 'px;}';
 
-		// create styles for .main-img and .mouse-map scale amount when image dimension change is width
-		artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.width .main-img {transform: scale(' + imageViewportWidthRatio + ', ' + imageViewportWidthRatio + ')}';
+    // create styles for .main-img and .mouse-map scale amount when image dimension change is height
+    artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.height .main-img {transform: scale(' + imageViewportHeightRatio + ', ' + imageViewportHeightRatio + ')}';
 
-		// pixel amounts for mousemap elements when image has width setting type
-		var mouseMapZoomWidthPixelWidth = newWidth * imageViewportWidthRatio;
-		var mouseMapZoomWidthPixelHeight = newHeight * imageViewportWidthRatio;
+    // create styles for .main-img and .mouse-map scale amount when image dimension change is width
+    artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.width .main-img {transform: scale(' + imageViewportWidthRatio + ', ' + imageViewportWidthRatio + ')}';
 
-		// pizel amounts for mousemap elements when image has height setting type
-		var mouseMapZoomHeightPixelHeight = newHeight * imageViewportHeightRatio;
-		var mouseMapZoomHeightPixelWidth = newWidth * imageViewportHeightRatio;
+    // pixel amounts for mousemap elements when image has width setting type
+    var mouseMapZoomWidthPixelWidth = newWidth * imageViewportWidthRatio;
+    var mouseMapZoomWidthPixelHeight = newHeight * imageViewportWidthRatio;
 
+    // pizel amounts for mousemap elements when image has height setting type
+    var mouseMapZoomHeightPixelHeight = newHeight * imageViewportHeightRatio;
+    var mouseMapZoomHeightPixelWidth = newWidth * imageViewportHeightRatio;
 
-		// create zoom value style for when the image is scaled full width/height and therefor the original zoom value is scaled up also
-		artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.width .mouse-map-wrap { width: ' + mouseMapZoomWidthPixelWidth + 'px; height: ' + mouseMapZoomWidthPixelHeight + 'px;}';
 
-		artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.height .mouse-map-wrap { width: ' + mouseMapZoomHeightPixelWidth + 'px; height: ' + mouseMapZoomHeightPixelHeight + 'px;}';
+    // create zoom value style for when the image is scaled full width/height and therefor the original zoom value is scaled up also
+    artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.width .mouse-map-wrap { width: ' + mouseMapZoomWidthPixelWidth + 'px; height: ' + mouseMapZoomWidthPixelHeight + 'px;}';
+
+    artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.height .mouse-map-wrap { width: ' + mouseMapZoomHeightPixelWidth + 'px; height: ' + mouseMapZoomHeightPixelHeight + 'px;}';
+
+    artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.width .mouse-map { width: ' + (mouseMapZoomWidthPixelWidth - (nakasentro.mouse_map_less_percentage * mouseMapZoomWidthPixelWidth)) + 'px; height: ' + (mouseMapZoomWidthPixelHeight - (nakasentro.mouse_map_less_percentage * mouseMapZoomWidthPixelHeight)) + 'px;}';
 
-		artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.width .mouse-map { width: ' + (mouseMapZoomWidthPixelWidth - (nakasentro.mouse_map_less_percentage * mouseMapZoomWidthPixelWidth)) + 'px; height: ' + (mouseMapZoomWidthPixelHeight - (nakasentro.mouse_map_less_percentage * mouseMapZoomWidthPixelHeight)) + 'px;}';
+    artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.height .mouse-map { width: ' + (mouseMapZoomHeightPixelWidth - (nakasentro.mouse_map_less_percentage * mouseMapZoomHeightPixelWidth)) + 'px; height: ' + (mouseMapZoomHeightPixelHeight - (nakasentro.mouse_map_less_percentage * mouseMapZoomHeightPixelHeight)) + 'px;}';
+
+
+    // remove temporary max height for image after processing
+    artworkElements.artworkImage.style.maxHeight = 'none';
 
-		artworkStyles += '#' + artworkElements.artworkUniqueId + '.centered.height .mouse-map { width: ' + (mouseMapZoomHeightPixelWidth - (nakasentro.mouse_map_less_percentage * mouseMapZoomHeightPixelWidth)) + 'px; height: ' + (mouseMapZoomHeightPixelHeight - (nakasentro.mouse_map_less_percentage * mouseMapZoomHeightPixelHeight)) + 'px;}';
 
+    artworkElements.artworkImage.style.position = 'static';
+    artworkElements.centerImageWrap.style.height = 0;
 
-		// remove temporary max height for image after processing
-		artworkElements.artworkImage.style.maxHeight = 'none';
+    __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].addCssToPage(artworkStyles, styleBlockId);
+  },
 
+  addMobileImageStylesToDocument: function (styleBlockId, artworkElements, newHeight, newWidth) {
+    // const mouseMapWidth = artworkElements.artworkImage.clientWidth;
+    // const mouseMapHeight = artworkElements.artworkImage.clientHeight;
+    var artworkStyles = '#' + artworkElements.artworkUniqueId + ' .mouse-map-wrap, #' + artworkElements.artworkUniqueId + ' .dev-share-buttons, #' + artworkElements.artworkUniqueId + ' .zoomy-wrap {width: ' + newWidth + 'px; height: ' + newHeight + 'px;}';
+    __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].addCssToPage(artworkStyles, styleBlockId);
+  },
 
-		artworkElements.artworkImage.style.position = 'static';
-		artworkElements.centerImageWrap.style.height = 0;
+  cropImageDimensions: function (artworkElements, currentHeight, currentWidth, imageRatioWidth, imageRatioHeight) {
+    if (__WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowHeight < currentHeight) {
+      currentHeight = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowHeight;
+      currentWidth = currentHeight * imageRatioWidth;
+    }
 
-		__WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].addCssToPage(artworkStyles, styleBlockId);
-	},
+    if (__WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowWidth <= currentWidth) {
+      currentWidth = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowWidth;
+      currentHeight = currentWidth * imageRatioHeight;
+    }
+    return {newHeight: currentHeight, newWidth: currentWidth};
+  },
 
-	cropImageDimensions: function (artworkElements, newHeight, newWidth, imageRatioWidth, imageRatioHeight) {
-		if (__WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowHeight < artworkElements.artworkImage.clientHeight) {
-			newHeight = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowHeight;
-			newWidth = newHeight * imageRatioWidth;
-		}
+  getNewImageDimensions: function (artworkElements, isInit) {
+    // currenWidth and currentHeight won't necessarily reflect the actual final width height of the image as this is sometimes triggered before the image full resizes after viewport change. This possibility is handled in cropImageDimensions
+    var currentHeight = artworkElements.artworkImage.clientHeight;
+    var currentWidth = artworkElements.artworkImage.clientWidth;
+    var imageRatioWidth = null;
+    var imageRatioHeight = null;
 
-		if (__WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowWidth < artworkElements.artworkImage.clientWidth) {
-			newWidth = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowWidth;
-			newHeight = newWidth * imageRatioHeight;
-		}
-		return {newHeight: newHeight, newWidth: newWidth};
-	},
 
-	getNewImageDimensions: function (artworkElements) {
-		var originalHeight = artworkElements.artworkImage.clientHeight;
-		var originalWidth = artworkElements.artworkImage.clientWidth;
-		// debugger;
-		var imageRatioWidth = originalWidth / originalHeight;
-		var imageRatioHeight = originalHeight / originalWidth;
-		// temporarily set maxHeight for processing
-		artworkElements.artworkImage.style.maxHeight = '100vh';
-
-		var newDimensions = this.cropImageDimensions(artworkElements, originalHeight, originalWidth, imageRatioWidth, imageRatioHeight);
-		originalHeight = newDimensions.newHeight;
-		originalWidth = newDimensions.newWidth;
-		return {
-			newHeight: originalHeight,
-			newWidth: originalWidth,
-			imageRatioWidth: imageRatioWidth,
-			imageRatioHeight: imageRatioHeight,
-		};
-	},
-
-	setupValues: function (isInit) {
-		nakasentro.imagesProcessed = false;
-		isInit = typeof isInit === 'boolean'
-			? isInit
-			: false;
-		this.reset();
-
-		this.mainContentWidth = this.mainContentWrap.clientWidth;
-
-		this.setBodyClasses('orientation-' + __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].browserOrientation);
-
-		nakasentro.artworks_elements.forEach(function (artwork, index) {
-			// let zoomWrap = artwork.querySelector('.zoom-wrap');
-			var artworkElements = this.getArtworkElements(artwork, index);
-
-			var styleBlockId = artworkElements.artworkUniqueId + '-artwork-centered-style';
-
-			if (isInit === false) {
-				this.resetImageValues(artworkElements);
-				__WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].removeCssFromPage([styleBlockId]);
-			}
-
-			var ref = this.getNewImageDimensions(artworkElements);
-			var newHeight = ref.newHeight;
-			var newWidth = ref.newWidth;
-			var imageRatioWidth = ref.imageRatioWidth;
-			var imageRatioHeight = ref.imageRatioHeight;
-
-			artworkElements.artworkImage.style.minHeight = newHeight + 'px';
-
-			artworkElements.artworkImage.style.minWidth = newWidth + 'px';
-			var imageVhValue = newHeight / __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowHeight * 100;
-			var imageVwValue = newWidth / __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowWidth * 100;
-			if (imageVhValue === 0) {
-				// console.log('———————————image values are zero on init!!!!');
-			}
-
-			var imageVhValueToFull = 100 - imageVhValue;
-			// let imageSizeChangeTechnique = this.setArtworkSizeChangeTechnique(artworkElements.artworkImage, artworkWrap);
-			var imageSizeChangeTechnique = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].getImageSizeChangeTechnique(artworkElements.artworkImage);
-			artworkElements.artworkWrap.classList.remove('width', 'height');
-
-
-			artworkElements.artworkWrap.classList.add(imageSizeChangeTechnique);
-
-			if (newHeight >= __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowHeight) {
-				artworkElements.imageRatioHolder.style.height = newHeight + 'px';
-				artworkElements.imageRatioHolder.style.width = newWidth + 'px';
-			} else {
-				artworkElements.imageRatioHolder.style.paddingBottom = 100 * imageRatioHeight + '%';
-			}
-
-
-			var imageViewportWidthRatio = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowWidth / newWidth;
-			var imageViewportHeightRatio = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowHeight / newHeight;
-
-			artworkElements.mouseMapImage.setAttribute('scaleWidth', imageViewportWidthRatio);
-			artworkElements.mouseMapImage.setAttribute('scaleHeight', imageViewportHeightRatio);
-
-
-			var imageMaxHeight = null;
-			// get image max height
-			if (imageSizeChangeTechnique === 'width') {
-				// if imageSizeChangeTechnique is width we want to multiply the viewport width in px by the height/width ratio of the image
-				imageMaxHeight = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowHeight * (newHeight / newWidth);
-			} else {
-				// if imageSizeChangeTechnique is height we want to just use the viewport height amount.
-				imageMaxHeight = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowHeight;
-			}
-
-			var imageOffsetFromDocTop = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].getElementOffsetFromDoc(artworkElements.artworkImage).top;
-			var imageMaxHeightCenterPointFromDocTop = imageMaxHeight / 2 + imageOffsetFromDocTop;
-
-			nakasentro.artworks.push({
-				artworksIndex: nakasentro.artworks.length,
-				element: artwork,
-				artworkImage: artworkElements.artworkImage,
-				imageSizeChangeTechnique: imageSizeChangeTechnique,
-				imageOffsetFromDocTop: imageOffsetFromDocTop,
-				imageMaxHeight: imageMaxHeight,
-				imageMaxHeightCenterPointFromDocTop: imageMaxHeightCenterPointFromDocTop,
-				imageRatioHolder: artworkElements.imageRatioHolder,
-				artworkWrap: artworkElements.artworkWrap,
-				artworkImageWrap: artworkElements.artworkImageWrap,
-				centerImageWrap: artworkElements.centerImageWrap,
-				artworkMetaWrap: artworkElements.artworkMetaWrap,
-				zoomyWrap: artworkElements.zoomyWrap,
-				imageSpacePlaceholder: artworkElements.imageSpacePlaceholder,
-				artworkUniqueId: artworkElements.artworkUniqueId,
-				imageCentered: false,
-				isInViewport: false,
-				toCenterPixels: 0,
-				imgSrc: artworkElements.imgSrc,
-				// this allows us to track centered image when in fullscreen and we use the counted scroll events or keyboard events to trigger the image out of full width
-				fullscreenImageCentered: false,
-				// mouseMapImage: artworkElements.mouseMapImage,
-				originalDimensions: {
-					width: artworkElements.artworkImage.clientWidth,
-					height: newHeight,
-					imageRatioWidth: imageRatioWidth,
-					imageRatioHeight: imageRatioHeight,
-					imageVwValue: imageVwValue,
-					imageVhValue: imageVhValue,
-					imageVhValueToFull: imageVhValueToFull,
-					imageViewportWidthRatio: imageViewportWidthRatio,
-					imageViewportHeightRatio: imageViewportHeightRatio,
-				},
-				dynamicImageValues: {
-					toCenterPercentage: null,
-					imageVhValueToFull: imageVhValueToFull,
-					imageCurrentHeight: imageVhValue,
-					imageCurrentWidth: imageVwValue,
-				},
-			});
-
-			nakasentro.artworks[index].wheelEvent = nakasentro.fullscreenHandleZoomyDivScroll.bind(nakasentro.artworks[index]);
-			nakasentro.artworks[index].keydownEvent = nakasentro.handlePossibleScrollKeyEvent.bind(nakasentro.artworks[index]);
-
-			this.addStylesToDocument(styleBlockId, artworkElements, imageViewportHeightRatio, imageViewportWidthRatio, newWidth, newHeight);
-
-			// add to thumbnails
-			Object(__WEBPACK_IMPORTED_MODULE_3__thumbnail_nav__["addThumbnail"])(artworkElements.imgSrc, artworkElements.artworkImageWrap);
-		}, this);
-
-		// init button scroll to script
-		Object(__WEBPACK_IMPORTED_MODULE_2__center_scroll_to__["init"])();
-
-		nakasentro.imagesProcessed = true;
-
-		// document.body.classList.add('artworks-processed');
-		window.addEventListener('resize', this.windowResize);
-		window.addEventListener('resize', function () {
-			if (nakasentro.isResizing === false) {
-				document.body.classList.add('viewport-resizing');
-				nakasentro.isResizing = true;
-			}
-		});
-	},
-
-	windowResize: __WEBPACK_IMPORTED_MODULE_1_underscore___default.a.debounce(function () {
-		// let currentViewportDimensions = utilities.getViewportDimensions();
-		//Todo: utilites width and height are being updated before this runs
-		// if (utilities.windowHeight !== currentViewportDimensions.height || utilities.windowWidth !== currentViewportDimensions.width) {
-			nakasentro.artworks = Array();
-			// utilities.setViewportDimensions();
-			nakasentro.setupValues();
-		// }
-		document.body.classList.remove('viewport-resizing');
-		nakasentro.isResizing = false;
-	}, 250),
-
-
-	setBodyClasses: function (classes) {
-		document.querySelector('body').classList.add(classes);
-	},
-
-	getPixelsToCenter: function (distanceFromTopOfViewport) {
-		var viewport_center = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowHalfHeight;
-		return viewport_center - distanceFromTopOfViewport;
-	},
-
-	getPercentageToCenter: function (toCenterPixels) {
-		return (toCenterPixels / __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowHeight * 100) * 1.39;
-	},
-
-	getVhToCenter: function (toCenterPixels) {
-		return toCenterPixels / __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowHeight * 100;
-	},
-
-	getToCenterPixels: function (artwork) {
-		var rect = artwork.imageSpacePlaceholder.getBoundingClientRect();
-		var distanceFromTopOfViewport = rect.top + rect.height / 2;
-		var toCenterPixels = nakasentro.getPixelsToCenter(distanceFromTopOfViewport);
-		return toCenterPixels;
-	},
-
-	setArtworkToCenterPixels: function (artwork) {
-		var toCenterPixels = this.getToCenterPixels(artwork);
-		nakasentro.artworks[artwork.artworksIndex].toCenterPixels = toCenterPixels;
-		return toCenterPixels;
-	},
-
-	centerImage: function (artwork) {
-		/* eslint-disable */
-		if (Barba.FullScreen.isFullscreen === true) {
-			/* eslint-enable */
-			artwork.fullscreenImageCentered = true;
-		}
-
-		// console.log('adding keydown/wheel event listeners to ', artwork);
-		window.addEventListener('keydown', artwork.keydownEvent);
-		artwork.zoomyWrap.addEventListener('wheel', artwork.wheelEvent, {passive: true});
-
-		// console.log('body classlist adding centered-image');
-		document.body.classList.add('centered-image');
-
-		// overarching imageCentered toggle
-		// console.log('global image Centered set true');
-		this.imageCentered = true;
-		this.imageCenteredTrue = true;
-		nakasentro.imageCenteredElement = artwork.element;
-
-		// console.log('artwork imageCentered set true');
-		// speicific artwork iamgeCentered toggle
-		artwork.imageCentered = true;
-
-		// if (!artwork.artworkWrap.classList.contains('centered-image-transition-duration')) {
-		// 	console.log('adding centered centered-image-transition-duration classes to artwork');
-		// 	console.log('');
-		artwork.artworkWrap.classList.add('centered', 'centered-image-transition-duration');
-		// }
-	},
-
-	uncenterImage: function (artwork, fullDimensionEvent) {
-		if ( fullDimensionEvent === void 0 ) fullDimensionEvent = false;
+    // debugger;
+    if (isInit === true) {
+      imageRatioWidth = currentWidth / currentHeight;
+      imageRatioHeight = currentHeight / currentWidth;
+    } else {
+      imageRatioWidth = artworkElements.originalDimensions.imageRatioWidth;
+      imageRatioHeight = artworkElements.originalDimensions.imageRatioHeight;
+    }
+
+    // temporarily set maxHeight for processing
+    artworkElements.artworkImage.style.maxHeight = '100vh';
+    var newDimensions = this.cropImageDimensions(artworkElements, currentHeight, currentWidth, imageRatioWidth, imageRatioHeight);
+    currentHeight = newDimensions.newHeight;
+    currentWidth = newDimensions.newWidth;
+    return {
+      newHeight: currentHeight,
+      newWidth: currentWidth,
+      imageRatioWidth: imageRatioWidth,
+      imageRatioHeight: imageRatioHeight,
+    };
+  },
+
+  setupValues: function (isInit) {
+    nakasentro.imagesProcessed = false;
+    isInit = typeof isInit === 'boolean'
+      ? isInit
+      : false;
+    this.reset();
+
+    this.mainContentWidth = this.mainContentWrap.clientWidth;
+
+    this.setBodyClasses('orientation-' + __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].browserOrientation);
+
+    nakasentro.artworks_elements.forEach(function (artwork, index) {
+      // let zoomWrap = artwork.querySelector('.zoom-wrap');
+      var artworkElements = null;
+      if (isInit === true) {
+        artworkElements = this.getArtworkElements(artwork, index);
+      } else {
+        artworkElements = nakasentro.artworks[index];
+      }
+
+      var styleBlockId = artworkElements.artworkUniqueId + '-artwork-centered-style';
+
+      // if (isInit === false) {
+      //   this.resetImageValues(artworkElements);
+      //   utilities.removeCssFromPage([styleBlockId]);
+      // }
+
+      var ref = this.getNewImageDimensions(artworkElements, isInit);
+      var newHeight = ref.newHeight;
+      var newWidth = ref.newWidth;
+      var imageRatioWidth = ref.imageRatioWidth;
+      var imageRatioHeight = ref.imageRatioHeight;
+
+      artworkElements.artworkImage.style.minHeight = newHeight + 'px';
+
+      artworkElements.artworkImage.style.minWidth = newWidth + 'px';
+      // let imageSizeChangeTechnique = this.setArtworkSizeChangeTechnique(artworkElements.artworkImage, artworkWrap);
+      var imageSizeChangeTechnique = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].getImageSizeChangeTechnique(artworkElements.artworkImage);
+      artworkElements.artworkWrap.classList.remove('width', 'height');
+
+
+      artworkElements.artworkWrap.classList.add(imageSizeChangeTechnique);
+
+      if (newHeight >= __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowHeight) {
+        artworkElements.imageRatioHolder.style.height = newHeight + 'px';
+        artworkElements.imageRatioHolder.style.width = newWidth + 'px';
+      } else {
+        artworkElements.imageRatioHolder.style.paddingBottom = 100 * imageRatioHeight + '%';
+      }
+
+
+      var imageViewportWidthRatio = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowWidth / newWidth;
+      var imageViewportHeightRatio = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowHeight / newHeight;
+
+      artworkElements.mouseMapImage.setAttribute('scaleWidth', imageViewportWidthRatio);
+      artworkElements.mouseMapImage.setAttribute('scaleHeight', imageViewportHeightRatio);
+
+
+      var imageMaxHeight = null;
+      // get image max height
+      if (imageSizeChangeTechnique === 'width') {
+        // if imageSizeChangeTechnique is width we want to multiply the viewport width in px by the height/width ratio of the image
+        imageMaxHeight = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowHeight * (newHeight / newWidth);
+      } else {
+        // if imageSizeChangeTechnique is height we want to just use the viewport height amount.
+        imageMaxHeight = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowHeight;
+      }
+
+      var imageOffsetFromDocTop = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].getElementOffsetFromDoc(artworkElements.artworkImage).top;
+      var imageMaxHeightCenterPointFromDocTop = imageMaxHeight / 2 + imageOffsetFromDocTop;
+
+      if (isInit === true) {
+        nakasentro.artworks.push({
+          artworksIndex: nakasentro.artworks.length,
+          element: artwork,
+          artworkImage: artworkElements.artworkImage,
+          imageSizeChangeTechnique: imageSizeChangeTechnique,
+          imageOffsetFromDocTop: imageOffsetFromDocTop,
+          imageMaxHeight: imageMaxHeight,
+          imageMaxHeightCenterPointFromDocTop: imageMaxHeightCenterPointFromDocTop,
+          imageRatioHolder: artworkElements.imageRatioHolder,
+          artworkWrap: artworkElements.artworkWrap,
+          artworkImageWrap: artworkElements.artworkImageWrap,
+          centerImageWrap: artworkElements.centerImageWrap,
+          artworkMetaWrap: artworkElements.artworkMetaWrap,
+          mouseMapImage: artworkElements.mouseMapImage,
+          zoomyWrap: artworkElements.zoomyWrap,
+          imageSpacePlaceholder: artworkElements.imageSpacePlaceholder,
+          artworkUniqueId: artworkElements.artworkUniqueId,
+          imageCentered: false,
+          isInViewport: false,
+          toCenterPixels: 0,
+          imgSrc: artworkElements.imgSrc,
+          // this allows us to track centered image when in fullscreen and we use the counted scroll events or keyboard events to trigger the image out of full width
+          fullscreenImageCentered: false,
+          originalDimensions: {
+            width: artworkElements.artworkImage.clientWidth,
+            height: newHeight,
+            imageRatioWidth: imageRatioWidth,
+            imageRatioHeight: imageRatioHeight,
+            imageViewportWidthRatio: imageViewportWidthRatio,
+            imageViewportHeightRatio: imageViewportHeightRatio,
+          },
+          dynamicImageValues: {
+            toCenterPercentage: null,
+          },
+        });
+      } else {
+        nakasentro.artworks[index].imageSizeChangeTechnique = imageSizeChangeTechnique;
+        nakasentro.artworks[index].imageOffsetFromDocTop = imageOffsetFromDocTop;
+        nakasentro.artworks[index].imageMaxHeight = imageMaxHeight;
+        nakasentro.artworks[index].imageMaxHeightCenterPointFromDocTop = imageMaxHeightCenterPointFromDocTop;
+        nakasentro.artworks[index].imageCentered = false;
+        nakasentro.artworks[index].isInViewport = false;
+        nakasentro.artworks[index].toCenterPixels = 0;
+        // this allows us to track centered image when in fullscreen and we use the counted scroll events or keyboard events to trigger the image out of full width
+        nakasentro.artworks[index].fullscreenImageCentered = false;
+        nakasentro.artworks[index].originalDimensions.imageViewportWidthRatio = imageViewportWidthRatio;
+        nakasentro.artworks[index].originalDimensions.imageViewportHeightRatio = imageViewportHeightRatio;
+        nakasentro.artworks[index].dynamicImageValues = {
+          toCenterPercentage: null,
+        };
+      }
+
+
+      nakasentro.artworks[index].wheelEvent = nakasentro.fullscreenHandleZoomyDivScroll.bind(nakasentro.artworks[index]);
+      nakasentro.artworks[index].keydownEvent = nakasentro.handlePossibleScrollKeyEvent.bind(nakasentro.artworks[index]);
+
+      this.addDynamicImageStylesToDocument(styleBlockId, artworkElements, imageViewportHeightRatio, imageViewportWidthRatio, newWidth, newHeight);
+
+      // add to thumbnails
+      Object(__WEBPACK_IMPORTED_MODULE_3__thumbnail_nav__["addThumbnail"])(artworkElements.imgSrc, artworkElements.artworkImageWrap);
+    }, this);
+
+    // init button scroll to script
+    Object(__WEBPACK_IMPORTED_MODULE_2__center_scroll_to__["init"])();
+
+    nakasentro.imagesProcessed = true;
+
+    // document.body.classList.add('artworks-processed');
+    window.addEventListener('resize', this.windowResize);
+    window.addEventListener('resize', function () {
+      if (nakasentro.isResizing === false) {
+        nakasentro.resetAllImagesValues();
+        document.body.classList.add('viewport-resizing');
+        nakasentro.isResizing = true;
+      }
+    });
+  },
+
+  windowResize: __WEBPACK_IMPORTED_MODULE_1_underscore___default.a.debounce(function () {
+    // let currentViewportDimensions = utilities.getViewportDimensions();
+    //Todo: utilites width and height are being updated before this runs
+    // if (utilities.windowHeight !== currentViewportDimensions.height || utilities.windowWidth !== currentViewportDimensions.width) {
+    // utilities.setViewportDimensions();
+    // nakasentro.resetAllImagesValues();
+    nakasentro.setupValues();
+    // }
+    document.body.classList.remove('viewport-resizing');
+    nakasentro.isResizing = false;
+  }, 500),
+
+
+  setBodyClasses: function (classes) {
+    document.querySelector('body').classList.add(classes);
+  },
+
+  getPixelsToCenter: function (distanceFromTopOfViewport) {
+    var viewport_center = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowHalfHeight;
+    return viewport_center - distanceFromTopOfViewport;
+  },
+
+  getPercentageToCenter: function (toCenterPixels) {
+    return (toCenterPixels / __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowHeight * 100) * 1.39;
+  },
+
+  getVhToCenter: function (toCenterPixels) {
+    return toCenterPixels / __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].windowHeight * 100;
+  },
+
+  getToCenterPixels: function (artwork) {
+    var rect = artwork.imageSpacePlaceholder.getBoundingClientRect();
+    var distanceFromTopOfViewport = rect.top + rect.height / 2;
+    var toCenterPixels = nakasentro.getPixelsToCenter(distanceFromTopOfViewport);
+    return toCenterPixels;
+  },
+
+  setArtworkToCenterPixels: function (artwork) {
+    var toCenterPixels = this.getToCenterPixels(artwork);
+    nakasentro.artworks[artwork.artworksIndex].toCenterPixels = toCenterPixels;
+    return toCenterPixels;
+  },
+
+  centerImage: function (artwork) {
+    /* eslint-disable */
+    if (Barba.FullScreen.isFullscreen === true) {
+      /* eslint-enable */
+      artwork.fullscreenImageCentered = true;
+    }
+
+    // console.log('adding keydown/wheel event listeners to ', artwork);
+    window.addEventListener('keydown', artwork.keydownEvent);
+    artwork.zoomyWrap.addEventListener('wheel', artwork.wheelEvent, {passive: true});
+
+    // console.log('body classlist adding centered-image');
+    document.body.classList.add('centered-image');
+
+    // overarching imageCentered toggle
+    // console.log('global image Centered set true');
+    this.imageCentered = true;
+    this.imageCenteredTrue = true;
+    nakasentro.imageCenteredElement = artwork.element;
+
+    // console.log('artwork imageCentered set true');
+    // speicific artwork iamgeCentered toggle
+    artwork.imageCentered = true;
+
+    // if (!artwork.artworkWrap.classList.contains('centered-image-transition-duration')) {
+    // 	console.log('adding centered centered-image-transition-duration classes to artwork');
+    // 	console.log('');
+    artwork.artworkWrap.classList.add('centered', 'centered-image-transition-duration');
+    // }
+  },
+
+  uncenterImage: function (artwork, fullDimensionEvent) {
+    if ( fullDimensionEvent === void 0 ) fullDimensionEvent = false;
 
 // if in fullscreen we want to add remved events which handle scroll when centered and scroll events is not triggered due to fixed elements
 
-		nakasentro.removeFullDimensionsCenteredImageScrollEvents.call(artwork);
+    nakasentro.removeFullDimensionsCenteredImageScrollEvents.call(artwork);
 
-		// speicific artwork iamgeCentered toggle
-		// console.log('artwork imageCentered setting false');
-		// artwork.imageCentered = false;
-		// console.log('body classlist removing centered-image');
-		document.body.classList.remove('centered-image');
-		// console.log('artowrk classlist removing centered');
-		artwork.artworkWrap.classList.remove('centered');
-		// console.log('global imageCentered setting false');
+    // speicific artwork iamgeCentered toggle
+    // console.log('artwork imageCentered setting false');
+    // artwork.imageCentered = false;
+    // console.log('body classlist removing centered-image');
+    document.body.classList.remove('centered-image');
+    // console.log('artowrk classlist removing centered');
+    artwork.artworkWrap.classList.remove('centered');
+    // console.log('global imageCentered setting false');
 
-		// overarching imageCentered toggle
-		if (fullDimensionEvent === false) {
-			this.imageCenteredTrue = false;
-			this.imageCentered = false;
+    // overarching imageCentered toggle
+    if (fullDimensionEvent === false) {
+      this.imageCenteredTrue = false;
+      this.imageCentered = false;
 
-			if (nakasentro.imageCenteredTrue === false) {
-				artwork.imageCentered = false;
-			}
-		}
-		// console.log('global imageCenteredElement set null');
-		// console.log('');
+      if (nakasentro.imageCenteredTrue === false) {
+        artwork.imageCentered = false;
+      }
+    }
+    // console.log('global imageCenteredElement set null');
+    // console.log('');
 
-		this.imageCenteredElement = null;
-		this.possiblyRunDelayedTransition(artwork, fullDimensionEvent);
-	},
+    this.imageCenteredElement = null;
+    this.possiblyRunDelayedTransition(artwork, fullDimensionEvent);
+  },
 
-	possiblyRunDelayedTransition: function possiblyRunDelayedTransition(artwork, fullDimensionEvent) {
-		var this$1 = this;
+  possiblyRunDelayedTransition: function possiblyRunDelayedTransition(artwork, fullDimensionEvent) {
+    var this$1 = this;
 
-		if (this.delayedTransitionInProgress === false) {
-			this.delayedTransitionInProgress = true;
-			window.setTimeout(function () {
-				// last check
-				if (nakasentro.imageCenteredTrue === true && fullDimensionEvent === true || this$1.imageCentered === false) {
-					nakasentro.runDelayedTransition(artwork);
-				} else {
-					nakasentro.delayedTransitionInProgress = false;
-				}
-			}, 400);
-		}
-	},
+    if (this.delayedTransitionInProgress === false) {
+      this.delayedTransitionInProgress = true;
+      window.setTimeout(function () {
+        // last check
+        if (nakasentro.imageCenteredTrue === true && fullDimensionEvent === true || this$1.imageCentered === false) {
+          nakasentro.runDelayedTransition(artwork);
+        } else {
+          nakasentro.delayedTransitionInProgress = false;
+        }
+      }, 400);
+    }
+  },
 
-	runDelayedTransition: function runDelayedTransition(artwork) {
-		// here we delay removing a class to allow some css transiti
-		artwork.artworkWrap.classList.remove('centered-image-transition-duration');
-		this.delayedTransitionInProgress = false;
-	},
+  runDelayedTransition: function runDelayedTransition(artwork) {
+    // here we delay removing a class to allow some css transiti
+    artwork.artworkWrap.classList.remove('centered-image-transition-duration');
+    this.delayedTransitionInProgress = false;
+  },
 
-	possiblyCenterUncenterImage: function (artwork) {
-		var toCenterPixels = this.setArtworkToCenterPixels(artwork);
+  possiblyCenterUncenterImage: function (artwork) {
+    var toCenterPixels = this.setArtworkToCenterPixels(artwork);
 
-		var toCenterPixelsAbsolute = Math.abs(toCenterPixels);
+    var toCenterPixelsAbsolute = Math.abs(toCenterPixels);
 
-		var toCenterPercentage = nakasentro.getPercentageToCenter(toCenterPixelsAbsolute);
-		// console.log(toCenterPercentage);
-		artwork.artworkWrap.setAttribute('percent-to-center', toCenterPercentage);
+    var toCenterPercentage = nakasentro.getPercentageToCenter(toCenterPixelsAbsolute);
+    // console.log(toCenterPercentage);
+    artwork.artworkWrap.setAttribute('percent-to-center', toCenterPercentage);
 
-		// if we're close to the centerpoint of an image, we trigger a scroll to
-		if (toCenterPercentage < nakasentro.consideredCenteredPercentage) {
-			// image is centered
-			if (artwork.imageCentered === false && artwork.fullscreenImageCentered === false/* && this.recentlyAddedCenteredClasses === false*/) {
-				// if in fullscreen we want to add these events to handle scroll when centered and scroll events is not triggered due to fixed elements
-				/* eslint-disable */
-				share.closeShareModule(artwork.artworkWrap.querySelector('.dev-share-buttons'));
-				/* eslint-enable */
-				this.centerImage(artwork);
-			}
+    // if we're close to the centerpoint of an image, we trigger a scroll to
+    if (toCenterPercentage < nakasentro.consideredCenteredPercentage) {
+      // image is centered
+      if (artwork.imageCentered === false && artwork.fullscreenImageCentered === false/* && this.recentlyAddedCenteredClasses === false*/) {
+        // if in fullscreen we want to add these events to handle scroll when centered and scroll events is not triggered due to fixed elements
+        /* eslint-disable */
+        share.closeShareModule(artwork.artworkWrap.querySelector('.dev-share-buttons'));
+        /* eslint-enable */
+        this.centerImage(artwork);
+      }
 
-		} else if (artwork.fullscreenImageCentered === true) {
-			// set false variable tracking fullwidth centered image when in fullscreen.
-			artwork.fullscreenImageCentered = false;
-		} else if (artwork.imageCentered === true) {
-			if (toCenterPercentage > nakasentro.consideredCenteredPercentage) {
-				// image is not centered
-				this.uncenterImageBreakZoom.call(artwork);
-				this.uncenterImage(artwork);
-			}
-		}
-	},
+    } else if (artwork.fullscreenImageCentered === true) {
+      // set false variable tracking fullwidth centered image when in fullscreen.
+      artwork.fullscreenImageCentered = false;
+    } else if (artwork.imageCentered === true) {
+      if (toCenterPercentage > nakasentro.consideredCenteredPercentage) {
+        // image is not centered
+        this.uncenterImageBreakZoom.call(artwork);
+        this.uncenterImage(artwork);
+      }
+    }
+  },
 
-	possiblyRemoveZoom: function () {
-		if (this.artworkWrap.classList.contains('zoomed')) {
-			__WEBPACK_IMPORTED_MODULE_4__zoomy__["zoomy"].removeArtworkZoomByPictureIndex(this.artworkWrap.getAttribute('zoomy-pictures-index'));
-			return true;
-		} else {
-			return false;
-		}
-	},
+  possiblyRemoveZoom: function () {
+    if (this.artworkWrap.classList.contains('zoomed')) {
+      __WEBPACK_IMPORTED_MODULE_4__zoomy__["zoomy"].removeArtworkZoomByPictureIndex(this.artworkWrap.getAttribute('zoomy-pictures-index'));
+      return true;
+    } else {
+      return false;
+    }
+  },
 
-	removeImageCentered: function (element) {
-		nakasentro.removeBodyImageCenteredClasses.call(element.artworkWrap);
-		nakasentro.removeArtworkPieceCentered(element.artworkWrap);
-		nakasentro.removeFullDimensionsCenteredImageScrollEvents.call(element);
-	},
+  removeImageCentered: function (element) {
+    nakasentro.removeBodyImageCenteredClasses.call(element.artworkWrap);
+    nakasentro.removeArtworkPieceCentered(element.artworkWrap);
+    nakasentro.removeFullDimensionsCenteredImageScrollEvents.call(element);
+  },
 
-	processZoomRemoval: function () {
-		__WEBPACK_IMPORTED_MODULE_4__zoomy__["zoomy"].removeZoomedDelayClass(this.artworkWrap);
-		nakasentro.possiblyRemoveZoom.call(this);
-	},
+  processZoomRemoval: function () {
+    __WEBPACK_IMPORTED_MODULE_4__zoomy__["zoomy"].removeZoomedDelayClass(this.artworkWrap);
+    nakasentro.possiblyRemoveZoom.call(this);
+  },
 
-	handlePossibleScrollKeyEvent: function (e) {
-		nakasentro.processZoomRemoval.call(this);
-		nakasentro.uncenterImage.call(nakasentro, this, true);
-		if (e.code === 'ArrowRight' && e.code === 'ArrowLeft') {
-			e.preventDefault();
-		}
-	},
+  handlePossibleScrollKeyEvent: function (e) {
+    nakasentro.processZoomRemoval.call(this);
+    nakasentro.uncenterImage.call(nakasentro, this, true);
+    if (e.code === 'ArrowRight' && e.code === 'ArrowLeft') {
+      e.preventDefault();
+    }
+  },
 
-	uncenterImageBreakZoom: function () {
-		nakasentro.processZoomRemoval.call(this);
-		nakasentro.uncenterImage.call(nakasentro, this, true);
-		nakasentro.fixedImageScrollReleaseCount = 0;
-	},
+  uncenterImageBreakZoom: function () {
+    nakasentro.processZoomRemoval.call(this);
+    nakasentro.uncenterImage.call(nakasentro, this, true);
+    nakasentro.fixedImageScrollReleaseCount = 0;
+  },
 
-	fullscreenHandleZoomyDivScroll: function () {
-		if (nakasentro.fixedImageScrollReleaseCount >= 20) {
-			nakasentro.uncenterImageBreakZoom.call(this);
-		} else {
-			nakasentro.fixedImageScrollReleaseCount++;
-		}
-	},
+  fullscreenHandleZoomyDivScroll: function () {
+    if (nakasentro.fixedImageScrollReleaseCount >= 20) {
+      nakasentro.uncenterImageBreakZoom.call(this);
+    } else {
+      nakasentro.fixedImageScrollReleaseCount++;
+    }
+  },
 
-	setNewWidthValues: function (toCenterPercentage, artwork) {
-		var newWidthLength = this.getNewLength(toCenterPercentage, artwork.originalDimensions.imageVwValue);
-		this.artworks[artwork.artworksIndex].dynamicImageValues.toCenterPercentage = toCenterPercentage;
-		this.artworks[artwork.artworksIndex].dynamicImageValues.imageCurrentWidth = newWidthLength;
-		this.artworks[artwork.artworksIndex].dynamicImageValues.imageVhValueToFull = this.artworks[artwork.artworksIndex].dynamicImageValues.imageVhValueToFull - newWidthLength;
-		this.resizePortrait(artwork, newWidthLength);
-	},
-	setNewHeightValues: function (toCenterPercentage, artwork) {
-		var newLength = this.getNewLength(toCenterPercentage, artwork.originalDimensions.imageVhValue);
-		this.artworks[artwork.artworksIndex].dynamicImageValues.toCenterPercentage = toCenterPercentage;
+  getNewLength: function (toCenterPercentage, originalDimensionValue) {
+    // console.log(toCenterPercentage);
+    // @t is the current time (or position) of the tween. This can be seconds or frames, steps, seconds, ms, whatever – as long as the unit is the same as is used for the total time [3].
+    // @b is the beginning value of the property.
+    // @c is the change between the beginning and destination value of the property.
+    // @d is the total time of the tween.
+    // TODO: Figure out a better name for lengthValue
+    // let lengthValue = this.browserOrientation === 'portrait' ? artwork.originalDimensions.imageVwValue : artwork.originalDimensions.imageVhValue;
+    // lengthValue = lengthValue * .45;
 
-		this.artworks[artwork.artworksIndex].dynamicImageValues.imageCurrentHeight = newLength;
-		this.artworks[artwork.artworksIndex].dynamicImageValues.imageVhValueToFull = this.artworks[artwork.artworksIndex].dynamicImageValues.imageVhValueToFull - newLength;
-		this.resizeLandscape(artwork, newLength);
-	},
+    // let w = window,
+    //   doc = document,
+    //   e = doc.documentElement,
+    //   g = doc.getElementsByTagName('body')[0],
+    //   x = w.innerWidth || e.clientWidth || g.clientWidth,
+    //   y = w.innerHeight || e.clientHeight || g.clientHeight;
 
-	getNewLength: function (toCenterPercentage, originalDimensionValue) {
-		// console.log(toCenterPercentage);
-		// @t is the current time (or position) of the tween. This can be seconds or frames, steps, seconds, ms, whatever – as long as the unit is the same as is used for the total time [3].
-		// @b is the beginning value of the property.
-		// @c is the change between the beginning and destination value of the property.
-		// @d is the total time of the tween.
-		// TODO: Figure out a better name for lengthValue
-		// let lengthValue = this.browserOrientation === 'portrait' ? artwork.originalDimensions.imageVwValue : artwork.originalDimensions.imageVhValue;
-		// lengthValue = lengthValue * .45;
+    var toCenterPercentagePassed = 100 - toCenterPercentage;
 
-		// let w = window,
-		//   doc = document,
-		//   e = doc.documentElement,
-		//   g = doc.getElementsByTagName('body')[0],
-		//   x = w.innerWidth || e.clientWidth || g.clientWidth,
-		//   y = w.innerHeight || e.clientHeight || g.clientHeight;
+    var t = toCenterPercentagePassed;
+    var b = originalDimensionValue;
+    var c = 100 - originalDimensionValue;
+    var d = 100;
 
-		var toCenterPercentagePassed = 100 - toCenterPercentage;
+    var newLength = c * t / d + b;
 
-		var t = toCenterPercentagePassed;
-		var b = originalDimensionValue;
-		var c = 100 - originalDimensionValue;
-		var d = 100;
+    newLength = newLength < originalDimensionValue
+      ? originalDimensionValue
+      : newLength;
 
-		var newLength = c * t / d + b;
+    return newLength;
+  },
 
-		newLength = newLength < originalDimensionValue
-			? originalDimensionValue
-			: newLength;
-
-		return newLength;
-	},
-
-	resizePortrait: function (artwork, imageNewWidth) {
-		if (artwork.artworkImage.clientWidth >= artwork.originalDimensions.width) {
-			var width = imageNewWidth + 'vw';
-			var imageWidth = artwork.artworkImage.clientWidth;
-			var imageHeight = artwork.artworkImage.clientHeight + 'px';
-			artwork.artworkImage.style.width = width;
-			artwork.zoomyWrap.style.height = imageHeight;
-			artwork.zoomyWrap.style.width = width;
-			artwork.artworkMetaWrap.style.width = imageWidth + 'px';
-
-			//this helper div keeps the vertical space when the image is centered and the image itself is positioned 'fixed'
-			// artwork.imageSpacePlaceholder.style.height = imageNewWidth / artwork.originalDimensions.imageRatioWidth + 'vh';
-		}
-	},
-
-	resizeLandscape: function (artwork, imageNewHeight) {
-		if (artwork.artworkImage.clientHeight >= artwork.originalDimensions.height) {
-			var height = imageNewHeight + 'vh';
-			var imageWidth = artwork.artworkImage.clientWidth + 'px';
-			artwork.artworkImage.style.height = height;
-			artwork.zoomyWrap.style.height = height;
-			artwork.zoomyWrap.style.width = imageWidth;
-			artwork.artworkMetaWrap.style.width = imageWidth;
-
-			//this helper div keeps the vertical space when the image is centered and the image itself is positioned 'fixed'
-			// artwork.imageSpacePlaceholder.style.height = height;
-		}
-	},
-
-	checkArtworks: function () {
-		nakasentro.artworks.forEach(function (artwork) {
-			if (__WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].isElementVerticallyInViewport(artwork.artworkImage)) {
-				artwork.isInViewport = true;
-				nakasentro.possiblyCenterUncenterImage(artwork);
-			} else {
-				artwork.isInViewport = false;
-				this.setArtworkToCenterPixels(artwork);
-			}
-		}, this);
-	},
+  checkArtworks: function () {
+    nakasentro.artworks.forEach(function (artwork) {
+      if (__WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].isElementVerticallyInViewport(artwork.artworkImage)) {
+        artwork.isInViewport = true;
+        nakasentro.possiblyCenterUncenterImage(artwork);
+      } else {
+        artwork.isInViewport = false;
+        this.setArtworkToCenterPixels(artwork);
+      }
+    }, this);
+  },
 };
 
 

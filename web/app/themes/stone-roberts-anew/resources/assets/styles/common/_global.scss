@@ -110,7 +110,7 @@ body.front {
       margin-left: $image-margin-horizontal;
     }
 
-    @include breakpoint($xs) {
+    @include breakpoint($xs-sm-only) {
       width: 90%;
     }
   }

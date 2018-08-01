@@ -770,7 +770,7 @@ body.front .main .alignright {
   margin-left: 1.4em;
 }
 
-@media screen and (max-width: 414px) {
+@media screen and (min-width: 0px) and (max-width: 767px) {
   body.front .main {
     width: 90%;
   }
@@ -1545,6 +1545,12 @@ body:not(.template-projects) #thumbnail-trigger {
   left: 0;
 }
 
+@media screen and (min-width: 0px) and (max-width: 767px) {
+  .artwork_piece .artwork-title {
+    left: 5%;
+  }
+}
+
 .artwork_piece .image-wrap {
   display: inline-block;
   max-height: 100%;
@@ -1794,7 +1800,7 @@ body:not(.template-projects) #thumbnail-trigger {
   height: auto;
 }
 
-.artwork_piece .zoomy-wrap .mouse-map-wrap {
+.artwork_piece .mouse-map-wrap {
   -webkit-box-align: center;
       -ms-flex-align: center;
           align-items: center;
@@ -1823,12 +1829,12 @@ body:not(.template-projects) #thumbnail-trigger {
   width: 100%;
 }
 
-.artwork_piece .zoomy-wrap .mouse-map-wrap[zoom-enabled]:hover {
+.artwork_piece .mouse-map-wrap[zoom-enabled]:hover {
   cursor: -webkit-zoom-in;
   cursor: zoom-in;
 }
 
-.artwork_piece .zoomy-wrap .mouse-map-wrap .mouse-map {
+.artwork_piece .mouse-map {
   opacity: .4;
   height: 100%;
   width: 100%;
@@ -1983,6 +1989,26 @@ body.is-touch.zoomed {
 
 body.is-touch .artwork-title {
   left: 5%;
+}
+
+body.is-touch .image-ratio-holder {
+  display: none;
+}
+
+body.is-touch .mouse-map {
+  height: calc(100% - 40px);
+  width: calc(100% - 40px);
+}
+
+body.is-touch .zoomy-wrap {
+  left: 50%;
+  -webkit-transform: translateX(-50%);
+  -o-transform: translateX(-50%);
+     transform: translateX(-50%);
+}
+
+body.is-touch .dev-share-buttons__item--copy {
+  display: none !important;
 }
 
 body.viewport-resizing .artwork_piece {
