@@ -1,7 +1,7 @@
 import {utilities} from './utilities';
 import _ from 'underscore';
 import {init as centerScrollToInit} from './center-scroll-to';
-import {addThumbnail} from './thumbnail-nav';
+import {addThumbnail, initSetup} from './thumbnail-nav';
 import {zoomy} from './zoomy';
 import {initialize as vhFixInit} from './vh-fix';
 
@@ -142,7 +142,9 @@ export let nakasentro = {
 
       this.addMobileImageStylesToDocument(styleBlockId, artworkElements, newHeight, newWidth);
 
-      addThumbnail(artworkElements.imgSrc, artworkElements.artworkImageWrap);
+      if (initSetup === true) {
+        addThumbnail(artworkElements.imgSrc, artworkElements.artworkImageWrap);
+      }
 
       vhFixElements.push(artworkElements.artworkImage);
     }, this);
@@ -230,7 +232,6 @@ export let nakasentro = {
 
   resetAllImagesValues: function () {
     nakasentro.artworks.forEach(function (artwork) {
-      console.log('resetting: ', artwork.artworkWrap);
       let styleBlockId = artwork.artworkUniqueId + '-artwork-centered-style';
       utilities.removeCssFromPage([styleBlockId]);
       artwork.artworkImage.setAttribute('style', '');
@@ -505,7 +506,9 @@ export let nakasentro = {
       this.addDynamicImageStylesToDocument(styleBlockId, artworkElements, imageViewportHeightRatio, imageViewportWidthRatio, newWidth, newHeight);
 
       // add to thumbnails
-      addThumbnail(artworkElements.imgSrc, artworkElements.artworkImageWrap);
+      if (initSetup === true) {
+        addThumbnail(artworkElements.imgSrc, artworkElements.artworkImageWrap);
+      }
     }, this);
 
     // init button scroll to script

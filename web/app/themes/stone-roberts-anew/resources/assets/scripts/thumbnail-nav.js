@@ -91,4 +91,4 @@ function setInitFalse() {
 	initSetup = false;
 }
 
-export {init, addThumbnail, setInitFalse}
+export {init, addThumbnail, setInitFalse, initSetup}

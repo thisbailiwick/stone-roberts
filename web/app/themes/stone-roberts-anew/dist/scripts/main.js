@@ -579,7 +579,9 @@ var nakasentro = {
 
       this.addMobileImageStylesToDocument(styleBlockId, artworkElements, newHeight, newWidth);
 
-      Object(__WEBPACK_IMPORTED_MODULE_3__thumbnail_nav__["addThumbnail"])(artworkElements.imgSrc, artworkElements.artworkImageWrap);
+      if (__WEBPACK_IMPORTED_MODULE_3__thumbnail_nav__["initSetup"] === true) {
+        Object(__WEBPACK_IMPORTED_MODULE_3__thumbnail_nav__["addThumbnail"])(artworkElements.imgSrc, artworkElements.artworkImageWrap);
+      }
 
       vhFixElements.push(artworkElements.artworkImage);
     }, this);
@@ -667,7 +669,6 @@ var nakasentro = {
 
   resetAllImagesValues: function () {
     nakasentro.artworks.forEach(function (artwork) {
-      console.log('resetting: ', artwork.artworkWrap);
       var styleBlockId = artwork.artworkUniqueId + '-artwork-centered-style';
       __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].removeCssFromPage([styleBlockId]);
       artwork.artworkImage.setAttribute('style', '');
@@ -946,7 +947,9 @@ var nakasentro = {
       this.addDynamicImageStylesToDocument(styleBlockId, artworkElements, imageViewportHeightRatio, imageViewportWidthRatio, newWidth, newHeight);
 
       // add to thumbnails
-      Object(__WEBPACK_IMPORTED_MODULE_3__thumbnail_nav__["addThumbnail"])(artworkElements.imgSrc, artworkElements.artworkImageWrap);
+      if (__WEBPACK_IMPORTED_MODULE_3__thumbnail_nav__["initSetup"] === true) {
+        Object(__WEBPACK_IMPORTED_MODULE_3__thumbnail_nav__["addThumbnail"])(artworkElements.imgSrc, artworkElements.artworkImageWrap);
+      }
     }, this);
 
     // init button scroll to script
@@ -3553,6 +3556,7 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "init", function() { return init; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "addThumbnail", function() { return addThumbnail; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "setInitFalse", function() { return setInitFalse; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "initSetup", function() { return initSetup; });
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__center_scroll_to__ = __webpack_require__(7);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__ = __webpack_require__(1);
 /* harmony import */ var __WEBPACK_IMPORTED_MODULE_1_body_scroll_lock___default = __webpack_require__.n(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__);
@@ -3632,6 +3636,7 @@ function addThumbnail(imgSrc, associatedDomElement) {
 function setInitFalse() {
 	initSetup = false;
 }
+
 
 
 
@@ -9540,7 +9545,7 @@ Router.prototype.loadEvents = function loadEvents () {
 				// The Transition has just finished.
 
 				// init thumbnails
-				if (document.body.classList.contains('template-projects') || document.body.classList.contains('single-projects')) {
+				if (document.body.classList.contains('template-projects')) {
 					Object(__WEBPACK_IMPORTED_MODULE_6__thumbnail_nav__["setInitFalse"])();
 					Object(__WEBPACK_IMPORTED_MODULE_6__thumbnail_nav__["init"])(document.querySelector('.main'));
 				}

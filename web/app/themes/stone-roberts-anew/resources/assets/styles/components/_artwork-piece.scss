@@ -1,7 +1,6 @@
 .artwork_piece {
   $zoom-transition-duration: .5s;
-  display: flex;
-  justify-content: center; // max-height: 100vh !important;
+  display: block;
   max-width: 100vw !important;
   min-width: 100%;
   padding-top: 55px;
@@ -39,17 +38,28 @@
     .line {
       animation: loadingH 1.5s cubic-bezier(.17, .37, .43, .67) infinite;
     }
+
   }
 
   .artwork-title {
-    position: absolute;
-    top: 0;
-    left: 0;
+    margin: 1.5vw auto 1.5vw 3vw;
 
-    @include breakpoint($xs-sm-only) {
-      left: 5%;
+    //@include breakpoint($xs-sm-only){
+    //  margin-left: 0;
+    //  text-align: center;
+    //}
+
+    @media (min-width: 640px)  {
+      margin-left: 0;
     }
   }
+
+  //&.height{
+  //  .artwork-title{
+  //    margin-left: 0;
+  //    text-align: center;
+  //  }
+  //}
 
   .image-wrap {
     display: inline-block;
@@ -463,10 +473,6 @@ body {
       overflow: hidden;
     }
 
-    .artwork-title {
-      left: 5%;
-    }
-
     .image-ratio-holder {
       display: none;
     }
@@ -484,6 +490,10 @@ body {
 
     .dev-share-buttons__item--copy{
       display: none !important;
+    }
+
+    .artwork-title{
+      margin-left: 3vw;
     }
   }
   &.viewport-resizing {

@@ -1395,10 +1395,33 @@ body.home .custom-nav {
           justify-content: center;
 }
 
-#thumbnails-nav .thumbnail-wrap {
-  height: 21vw;
-  padding: 2vh;
-  width: auto;
+@media screen and (min-width: 768px) and (max-width: 100000px) {
+  #thumbnails-nav .thumbnails-wrap .thumbnail-wrap {
+    height: 21vw;
+    padding: 2vh;
+    width: auto;
+  }
+}
+
+@media screen and (min-width: 0px) and (max-width: 767px) {
+  #thumbnails-nav .thumbnails-wrap .thumbnail-wrap {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+        -ms-flex-direction: column;
+            flex-direction: column;
+    -webkit-box-pack: center;
+        -ms-flex-pack: center;
+            justify-content: center;
+  }
+
+  #thumbnails-nav .thumbnails-wrap .thumbnail-wrap img {
+    height: auto;
+    padding: 2vw;
+    width: 40vw;
+  }
 }
 
 #thumbnails-nav .thumbnail {
@@ -1455,12 +1478,7 @@ body:not(.template-projects) #thumbnail-trigger {
 }
 
 .artwork_piece {
-  display: -webkit-box;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-pack: center;
-      -ms-flex-pack: center;
-          justify-content: center;
+  display: block;
   max-width: 100vw !important;
   min-width: 100%;
   padding-top: 55px;
@@ -1540,14 +1558,12 @@ body:not(.template-projects) #thumbnail-trigger {
 }
 
 .artwork_piece .artwork-title {
-  position: absolute;
-  top: 0;
-  left: 0;
+  margin: 1.5vw auto 1.5vw 3vw;
 }
 
-@media screen and (min-width: 0px) and (max-width: 767px) {
+@media (min-width: 640px) {
   .artwork_piece .artwork-title {
-    left: 5%;
+    margin-left: 0;
   }
 }
 
@@ -1987,10 +2003,6 @@ body.is-touch.zoomed {
   overflow: hidden;
 }
 
-body.is-touch .artwork-title {
-  left: 5%;
-}
-
 body.is-touch .image-ratio-holder {
   display: none;
 }
@@ -2009,6 +2021,10 @@ body.is-touch .zoomy-wrap {
 
 body.is-touch .dev-share-buttons__item--copy {
   display: none !important;
+}
+
+body.is-touch .artwork-title {
+  margin-left: 3vw;
 }
 
 body.viewport-resizing .artwork_piece {

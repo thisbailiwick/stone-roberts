@@ -29,12 +29,26 @@
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-  }
 
-  .thumbnail-wrap {
-    height: 21vw;
-    padding: 2vh;
-    width: auto;
+    .thumbnail-wrap {
+      @include breakpoint($md-lg-only) {
+        height: 21vw;
+        padding: 2vh;
+        width: auto;
+      }
+
+      @include breakpoint($xs-sm-only) {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+
+        img {
+          height: auto;
+          padding: 2vw;
+          width: 40vw;
+        }
+      }
+    }
   }
 
   .thumbnail {

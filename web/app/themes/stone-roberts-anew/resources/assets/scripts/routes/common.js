@@ -65,7 +65,7 @@ export default {
 				// The Transition has just finished.
 
 				// init thumbnails
-				if (document.body.classList.contains('template-projects') || document.body.classList.contains('single-projects')) {
+				if (document.body.classList.contains('template-projects')) {
 					setThumbnailInitFalse();
 					thumbnailInit(document.querySelector('.main'));
 				}
