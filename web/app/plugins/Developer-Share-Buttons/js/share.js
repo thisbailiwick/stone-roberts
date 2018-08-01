@@ -60,13 +60,11 @@ share = {
 	},
 	checkClickEvent: function (e) {
 		var shareWrapCurrent = e.target;
-		console.log(e);
 		var shareIconAssociatedDevShare = shareWrapCurrent.parentNode.parentNode.parentNode.querySelector('.dev-share-buttons');
 		if (shareWrapCurrent.classList.contains('show') && shareWrapCurrent.classList.contains('dev-share-buttons') || (shareIconAssociatedDevShare !== null && shareIconAssociatedDevShare.classList.contains('show') && shareWrapCurrent.classList.contains('share'))) {
 
 		} else if (shareWrapCurrent.closest('.dev-share-buttons.show') === null) {
 			// this is also not the child of a dev share button which is open
-			console.log('closing share module');
 			share.closeShareModule(this);
 		}
 	}

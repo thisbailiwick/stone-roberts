@@ -1727,8 +1727,8 @@ body:not(.template-projects) #thumbnail-trigger {
   -webkit-box-align: center;
       -ms-flex-align: center;
           align-items: center;
-  -webkit-box-shadow: -2px 1px 5px 0px #525356;
-          box-shadow: -2px 1px 5px 0px #525356;
+  -webkit-box-shadow: -1px 0px 5px 0px #525356;
+          box-shadow: -1px 0px 5px 0px #525356;
   padding: 0;
   border: 10px solid #383838;
   -webkit-box-orient: vertical;
@@ -1751,14 +1751,33 @@ body:not(.template-projects) #thumbnail-trigger {
   z-index: 1;
 }
 
-.artwork_piece .image-wrap .piece-comparison .comparison-image-wrap .comparison-image {
-  border: 30px solid #fff;
+.artwork_piece .image-wrap .piece-comparison .comparison-image-wrap .matte {
+  background: #fff;
+  -webkit-box-shadow: inset -1px 0px 5px 0px #000;
+          box-shadow: inset -1px 0px 5px 0px #000;
+  position: relative;
+  padding: 30px;
+}
+
+.artwork_piece .image-wrap .piece-comparison .comparison-image-wrap .matte .comparison-image {
+  -webkit-box-sizing: content-box;
+          box-sizing: content-box;
   -ms-flex-negative: 1;
       flex-shrink: 1;
   height: auto;
   max-height: none;
   max-width: none;
   width: 100%;
+}
+
+.artwork_piece .image-wrap .piece-comparison .comparison-image-wrap .matte .image-box-shadow {
+  -webkit-box-shadow: inset -4px 0px 20px -6px #000;
+          box-shadow: inset -4px 0px 20px -6px #000;
+  position: absolute;
+  top: 50%;
+  -webkit-transform: translateY(-50%);
+       -o-transform: translateY(-50%);
+          transform: translateY(-50%);
 }
 
 .artwork_piece .image-wrap .piece-comparison .compared-to {
