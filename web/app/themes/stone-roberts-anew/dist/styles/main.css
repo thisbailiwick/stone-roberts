@@ -2070,6 +2070,10 @@ body.template-projects .page-header {
   display: none;
 }
 
+body.single-projects .artwork-title {
+  display: none;
+}
+
 .dev-share-buttons {
   -webkit-box-orient: horizontal;
   -webkit-box-direction: normal;
