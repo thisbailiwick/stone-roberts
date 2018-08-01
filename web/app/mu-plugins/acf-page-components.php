@@ -190,9 +190,13 @@ HTML;
 						<div class="piece-comparison-wrap" style="visibility: hidden;">
 							<i class="close"></i>
 							<div class="comparison-image-wrap">
-								<img class="comparison-image" src="{$image_url}" alt="{$image['alt']}" data-width="{$content['width']}" data-height="{$content['height']}" />
+								<div class="matte">
+									<img class="comparison-image" src="{$image_url}" alt="{$image['alt']}" data-width="{$content['width']}" data-height="{$content['height']}" />
+									<div class="image-box-shadow"></div>
+								</div>
 							</div>
-							<div style="background: url('{$compare_image_url}') no-repeat center/cover transparent" data-file-width="{$compare_image['width']}" data-file-height="{$compare_image['height']}" class="compared-to" /></div>
+							<!--<div style="background: url('{$compare_image_url}') no-repeat center/cover transparent" data-file-width="{$compare_image['width']}" data-file-height="{$compare_image['height']}" class="compared-to" /></div>-->
+							<img src="{$compare_image_url}" data-object-fit class="compared-to" />
 						</div>
 					</div>
 					<div class="artwork-meta">
