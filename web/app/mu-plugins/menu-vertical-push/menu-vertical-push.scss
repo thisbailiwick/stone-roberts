@@ -5,7 +5,7 @@
   transition-property: margin-top;
 
   &.open .nav-primary{
-    transform: translateY(0);
+    transform: translateX(0);
   }
 
   .nav-primary {
