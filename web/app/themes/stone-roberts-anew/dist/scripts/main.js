@@ -3958,103 +3958,126 @@ var stAudio = audio;
 "use strict";
 Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "moreInfo", function() { return moreInfo; });
+/* harmony import */ var __WEBPACK_IMPORTED_MODULE_0__utilities__ = __webpack_require__(0);
+
+
 var info = {
-	infoButtons: null,
-	init: function () {
-		this.infoButtons = document.querySelectorAll(".actions .info");
-		this.infoButtons.forEach(function (button) {
-			var imageWrap = button.closest(".image-wrap");
-			var pieceComparisonWrap = imageWrap.querySelector(".piece-comparison-wrap");
-			pieceComparisonWrap.style.width = '';
+  infoButtons: null,
+  init: function () {
+    this.infoButtons = document.querySelectorAll(".actions .info");
+    this.infoButtons.forEach(function (button) {
+      var imageWrap = button.closest(".image-wrap");
+      var pieceComparisonWrap = imageWrap.querySelector(".piece-comparison-wrap");
+      pieceComparisonWrap.style.width = '';
 
-			// piece image
-			var piece = pieceComparisonWrap.querySelector(".comparison-image");
-			var pieceWidthInches = button.getAttribute("data-width");
-			var pieceImageDimensions = this.getImageDimensions(piece, pieceWidthInches);
+      // piece image
+      var piece = pieceComparisonWrap.querySelector(".comparison-image");
+      var pieceWidthInches = button.getAttribute("data-width");
+      var pieceHeightInches = button.getAttribute('data-height');
+      var pieceImageDimensions = this.getImageDimensions(piece, pieceWidthInches, pieceHeightInches);
 
-			// forscale image
-			var forScale = pieceComparisonWrap.querySelector(".compared-to");
-			var forScaleScaleWidthInches = button.getAttribute("data-compare-width-inches");
-			var forScaleDimensions = this.getImageDimensions(forScale, forScaleScaleWidthInches, 'forscale');
+      // forscale image
+      var forScale = pieceComparisonWrap.querySelector(".compared-to");
+      var forScaleScaleWidthInches = button.getAttribute("data-compare-width-inches");
+      var forScaleScaleHeightInches = button.getAttribute("data-compare-height-inches");
+      var forScaleDimensions = this.getImageDimensions(forScale, forScaleScaleWidthInches, forScaleScaleHeightInches, 'forscale');
 
-			// image-box-shadow
+      // image-box-shadow
       var imageBoxShadow = pieceComparisonWrap.querySelector('.image-box-shadow');
 
-
-			// get the new dimensions
-			var dimensionValues = this.calculateNewDimensions(pieceImageDimensions, forScaleDimensions);
-
-			piece.style.width = dimensionValues.width + "px";
-			piece.style.height = dimensionValues.height + "px";
-			imageBoxShadow.style.width = dimensionValues.width + "px";
-			imageBoxShadow.style.height = dimensionValues.height + "px";
+      // matte div
+      var matte = pieceComparisonWrap.querySelector('.matte');
 
 
-			// add processed class, toggles visibility
-			pieceComparisonWrap.classList.add('piece-comparison-processed');
-		}, this);
+      // get the new dimensions
+      var dimensionValues = this.calculateNewDimensions(pieceImageDimensions, forScaleDimensions);
 
-	},
-	getImageDimensions: function (element, widthInches, type) {
-		if ( type === void 0 ) type = 'piece';
+      piece.style.width = dimensionValues.width + "px";
+      piece.style.height = dimensionValues.height + "px";
+      imageBoxShadow.style.width = dimensionValues.width + "px";
+      imageBoxShadow.style.height = dimensionValues.height + "px";
 
-		var fileNaturalWidth = 0;
-		var fileNaturalHeight = 0;
-		if (type === 'piece') {
-			fileNaturalWidth = element.naturalWidth;
-			fileNaturalHeight = element.naturalHeight;
-		} else {
-			// fileNaturalWidth = element.getAttribute('data-file-width');
-			// fileNaturalHeight = element.getAttribute('data-file-height');
+      window.setTimeout(function () {
+        matte.style.padding = '10%';
+      }, 10);
+
+
+      // add processed class, toggles visibility
+      pieceComparisonWrap.classList.add('piece-comparison-processed');
+    }, this);
+
+  },
+  getImageDimensions: function (element, widthInches, heightInches, type) {
+    if ( type === void 0 ) type = 'piece';
+
+    var fileNaturalWidth = 0;
+    var fileNaturalHeight = 0;
+    if (type === 'piece') {
+      fileNaturalWidth = element.naturalWidth;
+      fileNaturalHeight = element.naturalHeight;
+    } else {
+      // fileNaturalWidth = element.getAttribute('data-file-width');
+      // fileNaturalHeight = element.getAttribute('data-file-height');
       fileNaturalWidth = element.clientWidth;
       fileNaturalHeight = element.clientHeight;
-		}
-		var naturalFileRatio = fileNaturalWidth / fileNaturalHeight;
-		// var heightInches = button.getAttribute("data-height");
-		var heightInches = widthInches / naturalFileRatio;
-		var heightRatioInches = heightInches / widthInches;
-		var widthRatioInches = widthInches / heightInches;
-		return {
-			image: element,
-			fileNaturalWidth: fileNaturalWidth,
-			fileNaturalHeight: fileNaturalHeight,
-			heightInches: heightInches,
-			heightRatioInches: heightRatioInches,
-			widthInches: widthInches,
-			widthRatioInches: widthRatioInches,
-		};
-	},
-	getNewValue: function (value) {
-		return value * .997531;
-	},
-	getImageHeightPixels: function (imageWidthPixels, imageHeightRatio) {
-		return imageWidthPixels * imageHeightRatio;
-	},
-	getImageWidthPixels: function (imageHeightPixels, imageWidthRatio) {
-		return Math.floor(imageHeightPixels * imageWidthRatio);
-	},
-	calculateNewDimensions: function (pieceDimensions, forScaleDimensions) {
-		// get actual pixel width of what forscale image should be based on it's current height
-		var forScaleWidth = forScaleDimensions.image.clientHeight * (forScaleDimensions.fileNaturalWidth / forScaleDimensions.fileNaturalHeight);
-		var forScaleHeight = forScaleDimensions.image.clientWidth * (forScaleDimensions.fileNaturalHeight / forScaleDimensions.fileNaturalWidth);
+    }
+    // let naturalFileRatio = fileNaturalWidth / fileNaturalHeight;
+    // let heightInches = button.getAttribute("data-height");
+    // let heightInches = widthInches / naturalFileRatio;
+    var heightRatioInches = heightInches / widthInches;
+    var widthRatioInches = widthInches / heightInches;
 
-		var pieceHeight = 0;
-		var pieceWidth = 0;
-		// scale the piece to fit based on it's width/height height/width ratio to the for scale image.
-		// this is the ratio of piece width to forscale width
-		var pieceToScaleWidthRatio = pieceDimensions.widthInches / forScaleDimensions.widthInches;
-		var pieceToScaleHeightRatio = pieceDimensions.heightInches / forScaleDimensions.heightInches;
+    var fileWidthRatio = fileNaturalWidth / fileNaturalHeight;
+    var fileHeightRatio = fileNaturalHeight / fileNaturalWidth;
+    return {
+      image: element,
+      fileNaturalWidth: fileNaturalWidth,
+      fileNaturalHeight: fileNaturalHeight,
+      fileWidthRatio: fileWidthRatio,
+      fileHeightRatio: fileHeightRatio,
+      heightInches: heightInches,
+      heightRatioInches: heightRatioInches,
+      widthInches: widthInches,
+      widthRatioInches: widthRatioInches,
+    };
+  },
+  getNewValue: function (value) {
+    return value * .997531;
+  },
+  getImageHeightPixels: function (imageWidthPixels, imageHeightRatio) {
+    return imageWidthPixels * imageHeightRatio;
+  },
+  getImageWidthPixels: function (imageHeightPixels, imageWidthRatio) {
+    return Math.floor(imageHeightPixels * imageWidthRatio);
+  },
+  calculateNewDimensions: function (pieceDimensions, forScaleDimensions) {
+    // get actual pixel width of what forscale image should be based on it's current height
 
-		if (forScaleHeight < forScaleWidth) {
-			pieceHeight = pieceToScaleHeightRatio * forScaleDimensions.image.clientHeight;
-			pieceWidth = pieceToScaleWidthRatio * forScaleDimensions.image.clientWidth;
-		} else {
-			pieceHeight = pieceToScaleHeightRatio * forScaleDimensions.image.clientHeight;
-			pieceWidth = pieceToScaleWidthRatio * forScaleDimensions.image.clientWidth;
-		}
+    var pieceHeight = 0;
+    var pieceWidth = 0;
+    // scale the piece to fit based on it's width/height height/width ratio to the for scale image.
+    // this is the ratio of piece width to forscale width
+    console.log('forScaleDimensions.widthInches, forScaleDimensions.heightInches: ' + forScaleDimensions.widthInches, forScaleDimensions.heightInches);
+    console.log('pieceDimensions.widthInches, pieceDimensions.heightInches: ' + pieceDimensions.widthInches, pieceDimensions.heightInches);
+    var fullSizeDimension = __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].getImageSizeChangeTechnique(forScaleDimensions.image) === 'width'
+      ? 'height'
+      : 'width';
+    console.log(fullSizeDimension);
+    var pieceToScaleHeightRatio = pieceDimensions.heightInches / forScaleDimensions.heightInches;
+    var pieceToScaleWidthRatio = pieceDimensions.widthInches / forScaleDimensions.widthInches;
 
-		return {width: pieceWidth, height: pieceHeight};
-	},
+    // if the background image is showing it's full height
+    if (fullSizeDimension === 'height') {
+      pieceHeight = pieceToScaleHeightRatio * forScaleDimensions.image.clientHeight;
+      pieceWidth = pieceDimensions.fileWidthRatio * pieceHeight;
+    } else {
+      // the background image is showing it's full width
+      pieceWidth = pieceToScaleWidthRatio * forScaleDimensions.image.clientWidth;
+      pieceHeight = pieceDimensions.fileHeightRatio * pieceWidth;
+    }
+
+    return {width: pieceWidth, height: pieceHeight};
+  },
 };
 
 var moreInfo = info;

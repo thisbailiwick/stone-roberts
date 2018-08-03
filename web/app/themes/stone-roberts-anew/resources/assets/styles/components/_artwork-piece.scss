@@ -185,15 +185,11 @@
       }
 
       .comparison-image-wrap {
-        align-items: center;
         box-shadow: -1px 0px 5px 0px #525356;
-        padding: 0;
-        border: 10px solid #383838;
-        flex-direction: column;
+        background: #000;
         flex-grow: 0;
-        display: flex;
-        justify-content: flex-end;
         //margin-bottom: 29%;
+        padding: 0.6%;
         position: static;
         margin: 0 0 5%;
         max-height: 100%;
@@ -201,11 +197,19 @@
         z-index: 1;
 
         .matte {
-          $matte-padding: 30;
+          $matte-padding: 10;
+          $matte-padding-percent: $matte-padding + unquote('%');
+          align-items: center;
           background: #fff;
           box-shadow: inset -1px 0px 5px 0px #000;
+          box-sizing: content-box;
+          display: flex;
+          justify-content: flex-end;
+          flex-direction: column;
           position: relative;
-          padding: $matte-padding + px;
+
+          // adding padding here resulted in undesired spacing. Needed to add it after js had added and the
+          //padding: $matte-padding-percent;
 
           .comparison-image {
             box-sizing: content-box;
@@ -216,10 +220,11 @@
             width: 100%;
           }
 
-          .image-box-shadow{
+          .image-box-shadow {
             $double-matte: $matte-padding * 2;
-            $width-height: calc( 100% - #{$double-matte}px );
+            $width-height: calc(100% - #{$matte-padding-percent});
             box-shadow: inset -4px 0px 20px -6px #000;
+            //box-sizing: border-box;
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
