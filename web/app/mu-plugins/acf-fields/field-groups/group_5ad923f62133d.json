@@ -281,7 +281,7 @@
                                 "id": ""
                             },
                             "open": 0,
-                            "multi_expand": 0,
+                            "multi_expand": 1,
                             "endpoint": 0
                         },
                         {
@@ -340,7 +340,7 @@
                                 "id": ""
                             },
                             "open": 0,
-                            "multi_expand": 0,
+                            "multi_expand": 1,
                             "endpoint": 0
                         },
                         {
@@ -437,7 +437,7 @@
                                 "id": ""
                             },
                             "open": 0,
-                            "multi_expand": 0,
+                            "multi_expand": 1,
                             "endpoint": 0
                         },
                         {
@@ -527,5 +527,5 @@
     ],
     "active": 1,
     "description": "",
-    "modified": 1530309600
+    "modified": 1532989651
 }
