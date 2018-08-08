@@ -150,7 +150,7 @@
     .piece-comparison {
       $piece-comparison-padding: 3vh;
       background: #fff;
-      display: flex;
+      display: block;
       left: 0;
       margin: 0;
       opacity: 0;
@@ -164,10 +164,10 @@
       height: 100vh;
 
       .piece-comparison-wrap {
-        align-items: center;
-        display: flex;
+        //align-items: center;
+        display: block;
         height: 100%;
-        justify-content: center;
+        //justify-content: center;
         margin: 0 auto;
         overflow: hidden;
         padding: 0;
@@ -187,47 +187,57 @@
       .comparison-image-wrap {
         box-shadow: -1px 0px 5px 0px #525356;
         background: #000;
-        flex-grow: 0;
+        display: block;
         //margin-bottom: 29%;
         padding: 0.6%;
-        position: static;
-        margin: 0 0 5%;
+        //position: static;
         max-height: 100%;
-        top: 19%;
+        //top: 19%;
         z-index: 1;
+
+        position: absolute;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        left: 50%;
 
         .matte {
           $matte-padding: 10;
           $matte-padding-percent: $matte-padding + unquote('%');
-          align-items: center;
           background: #fff;
           box-shadow: inset -1px 0px 5px 0px #000;
-          box-sizing: content-box;
-          display: flex;
-          justify-content: flex-end;
-          flex-direction: column;
+          box-sizing: border-box;
+          height: 100%;
           position: relative;
 
           // adding padding here resulted in undesired spacing. Needed to add it after js had added and the
           //padding: $matte-padding-percent;
 
-          .comparison-image {
-            box-sizing: content-box;
-            flex-shrink: 1;
-            height: auto;
-            max-height: none;
-            max-width: none;
-            width: 100%;
-          }
+          .comparison-image-wrap-inner {
+            align-items: center;
+            display: flex;
+            height: 100%;
+            justify-content: flex-end;
+            flex-direction: column;
 
-          .image-box-shadow {
-            $double-matte: $matte-padding * 2;
-            $width-height: calc(100% - #{$matte-padding-percent});
-            box-shadow: inset -4px 0px 20px -6px #000;
-            //box-sizing: border-box;
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
+            .comparison-image {
+              box-sizing: border-box;
+              flex-shrink: 0;
+              height: 100%;
+              max-height: none;
+              max-width: none;
+              width: 100%;
+            }
+
+            .image-box-shadow {
+              $double-matte: $matte-padding * 2 + unquote('%');
+              box-shadow: inset -4px 0px 20px -6px #000;
+              height: calc( 100% - #{$double-matte} );
+              //box-sizing: border-box;
+              position: absolute;
+              top: 50%;
+              transform: translateY(-50%);
+              width: calc( 100% - #{$double-matte} );
+            }
           }
         }
       }

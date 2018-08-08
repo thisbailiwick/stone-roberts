@@ -191,8 +191,10 @@ HTML;
 							<i class="close"></i>
 							<div class="comparison-image-wrap">
 								<div class="matte">
-									<img class="comparison-image" src="{$image_url}" alt="{$image['alt']}" data-width="{$content['width']}" data-height="{$content['height']}" />
-									<div class="image-box-shadow"></div>
+									<div class="comparison-image-wrap-inner">
+									 <img class="comparison-image" src="{$image_url}" alt="{$image['alt']}" data-width="{$content['width']}" data-height="{$content['height']}" />
+									 <div class="image-box-shadow"></div>
+									</div>
 								</div>
 							</div>
 							<!--<div style="background: url('{$compare_image_url}') no-repeat center/cover transparent" data-file-width="{$compare_image['width']}" data-file-height="{$compare_image['height']}" class="compared-to" /></div>-->

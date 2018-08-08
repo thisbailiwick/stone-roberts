@@ -357,7 +357,6 @@ export let nakasentro = {
     let imageRatioHeight = null;
 
 
-    // debugger;
     if (isInit === true) {
       imageRatioWidth = currentWidth / currentHeight;
       imageRatioHeight = currentHeight / currentWidth;
