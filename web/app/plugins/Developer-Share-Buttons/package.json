@@ -7,7 +7,7 @@
   ],
   "dependencies": {
     "babel-plugin-syntax-dynamic-import": "^6.18.0",
-    "clipboard-copy-element": "^0.4.0",
+    "clipboard": "^2.0.1",
     "url-loader": "^1.0.1"
   },
   "devDependencies": {

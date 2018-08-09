@@ -138,12 +138,12 @@ let info = {
     let pieceWidth = 0;
     // scale the piece to fit based on it's width/height height/width ratio to the for scale image.
     // this is the ratio of piece width to forscale width
-    console.log('forScaleDimensions.widthInches, forScaleDimensions.heightInches: ' + forScaleDimensions.widthInches, forScaleDimensions.heightInches);
-    console.log('pieceDimensions.widthInches, pieceDimensions.heightInches: ' + pieceDimensions.widthInches, pieceDimensions.heightInches);
+    // console.log('forScaleDimensions.widthInches, forScaleDimensions.heightInches: ' + forScaleDimensions.widthInches, forScaleDimensions.heightInches);
+    // console.log('pieceDimensions.widthInches, pieceDimensions.heightInches: ' + pieceDimensions.widthInches, pieceDimensions.heightInches);
     const fullSizeDimension = utilities.getImageSizeChangeTechnique(forScaleDimensions.image) === 'width'
       ? 'height'
       : 'width';
-    console.log(fullSizeDimension);
+    // console.log(fullSizeDimension);
     let pieceToScaleHeightRatio = pieceDimensions.heightInches / forScaleDimensions.heightInches;
     let pieceToScaleWidthRatio = pieceDimensions.widthInches / forScaleDimensions.widthInches;
 

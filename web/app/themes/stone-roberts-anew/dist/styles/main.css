@@ -2037,10 +2037,6 @@ body.is-touch .zoomy-wrap {
      transform: translateX(-50%);
 }
 
-body.is-touch .dev-share-buttons__item--copy {
-  display: none !important;
-}
-
 body.is-touch .artwork-title {
   margin-left: 3vw;
 }

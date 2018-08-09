@@ -20,7 +20,7 @@
     ]
   },
   "publicPath": "/app/themes/stone-roberts-anew",
-  "devUrl": "http://stoneroberts.loc",
+  "devUrl": "http://stoneroberts.localhost",
   "proxyUrl": "http://localhost:3000",
   "cacheBusting": "[name]_[hash:8]",
   "watch": [

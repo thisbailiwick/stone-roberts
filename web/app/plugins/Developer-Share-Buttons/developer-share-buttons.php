@@ -454,12 +454,11 @@
 
 			$before_link = '';
 			if ($service['id'] === 'copy') {
-			 $share_text = '<span class="copy-content-element">' . $url . '</span><span class="icon fas fa-copy"';
-			 $service['title'] = '';
-			 $before_link = '<div class="link-input-wrap"><input value="' . $url . '"></div>';
-			} elseif (isset($options['share-text'])) {
-			 $share_text = trim($options['share-text']) . ' ';
+//				$share_text = '<span class="copy-content-element" data-clipboard-text="share-link-input-' . $service['id'] . '">' . $url . '</span><span class="icon fas fa-copy"';
+//				$service['title'] = '';
+			 $before_link = '<div class="link-input-wrap"><input id="share-link-input-' . $service['id'] . $post_id . '" value="' . $url . '"></div>';
 			}
+			$share_text = trim($options['share-text']) . ' ';
 
 
 			$share_text = apply_filters(static::$slug_ . '_share_text', $share_text);
@@ -481,11 +480,13 @@
 			 $icon = '<i class="fab fa-' . $service['id'] . '"></i>';
 			}
 //					echo '<h1>'.$icon.'</h1>';
-//			if ($service['id'] === 'copy') {
-//			 $html = sprintf($before_link . '<div class="%2$s__item %2$s__item--%3$s">%5$s<span class="hide_text %2$s__text %2$s__text--%3$s">%4$s</span>%6$s %7$s </div> ', $url, $css_class, $service['id'], $share_text . $service['title'], $before_text, $after_text, $icon);
-//			} else {
+
+
+			if ($service['id'] === 'copy') {
+			 $html = sprintf($before_link . '<span target="_blank" class="%2$s__item %2$s__item--%3$s icon" data-clipboard-target="#share-link-input-' . $service['id']  . $post_id .'"><span class="fas fa-copy"></span></span> ', $url, $css_class, $service['id'], $share_text . $service['title'], $before_text, $after_text, $icon);
+			} else {
 			 $html = sprintf($before_link . '<a target="_blank" href="%1$s" class="%2$s__item %2$s__item--%3$s">%5$s<span class="hide_text %2$s__text %2$s__text--%3$s">%4$s</span>%6$s %7$s </a> ', $url, $css_class, $service['id'], $share_text . $service['title'], $before_text, $after_text, $icon);
-//			}
+			}
 
 			return $html;
 		 }

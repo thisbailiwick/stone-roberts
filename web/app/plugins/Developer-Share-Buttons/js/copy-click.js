@@ -1,47 +1,35 @@
-import 'clipboard-copy-element';
+import ClipboardJS from 'clipboard';
 var copyClick = {
-  copyElements: document.querySelectorAll(".dev-share-buttons__item--copy .copy-content-element"),
+  copyElements: document.querySelectorAll(".dev-share-buttons__item--copy"),
 	init: function() {
+		var clipboard = new ClipboardJS('.dev-share-buttons__item--copy');
+
+		clipboard.on('success', function(e) {
+			console.log(e);
+			var original = e.trigger.innerHTML;
+			e.trigger.innerHTML = 'Copied!';
+
+			setTimeout(() => {
+				e.trigger.innerHTML = original;
+			}, 1200);
+
+			e.clearSelection();
+		});
+
+		clipboard.on('error', function(e) {
+			console.error('Action:', e.action);
+			console.error('Trigger:', e.trigger);
+		});
+
+		// TODO: WHY OH WHY DOES THE CLIPBOARD COPY NOT WORK WHEN THIS EVENT ISN'T ADDED?
 		this.copyElements.forEach(function(contentElement) {
 			contentElement.addEventListener(
 				"click",
-				this.copyElementText.bind(contentElement),
+				function(){},
 				true
 			);
 		}, this);
 	},
-	copyElementText: function(e) {
-		e.preventDefault();
-		var contentElement = this;
-
-		var selection = window.getSelection();
-		var range = document.createRange();
-		range.selectNodeContents(contentElement);
-		selection.removeAllRanges();
-		selection.addRange(range);
-
-		try {
-			document.execCommand("copy");
-			selection.removeAllRanges();
-
-			var original = contentElement.textContent;
-	    contentElement.querySelector('.copy-content-element').textContent = "Copied!";
-      contentElement.querySelector('.copy-content-element').classList.remove('hide_text');
-      contentElement.classList.add("success");
-
-			setTimeout(() => {
-        contentElement.querySelector('.copy-content-element').textContent = original;
-        contentElement.classList.remove("success");
-			}, 1200);
-		} catch (e) {
-			var errorMsg = document.querySelector(".error-msg");
-			errorMsg.classList.add("show");
-
-			setTimeout(() => {
-				errorMsg.classList.remove("show");
-			}, 1200);
-		}
-	}
 };
 
 copyClick.init();
