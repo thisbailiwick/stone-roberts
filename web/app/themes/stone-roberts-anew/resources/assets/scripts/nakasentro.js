@@ -703,8 +703,6 @@ export let nakasentro = {
   },
 
   handlePossibleScrollKeyEvent: function (e) {
-    nakasentro.processZoomRemoval.call(this);
-    nakasentro.uncenterImage.call(nakasentro, this, true);
     if (e.code === 'ArrowRight' && e.code === 'ArrowLeft') {
       e.preventDefault();
     }
