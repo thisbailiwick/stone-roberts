@@ -3131,184 +3131,202 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 
 
 var zoomy = {
-	pictures: Array(),
-	isTouchDevice: __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].isTouchDevice(),
-	mouseMapEventsAdded: false,
-	mouseMapLessPixelsHalf: __WEBPACK_IMPORTED_MODULE_3__nakasentro__["nakasentro"].mouse_map_less_percentage / 2,
-	init: function () {
-		this.reset();
-		document.querySelectorAll(".artwork_piece[zoom-enabled] .actions .zoom").forEach(function (value, index) {
-			var artworkPieceWrap = value.parentNode.parentNode.parentNode.parentNode;
-			var zoomyWrap = artworkPieceWrap.querySelector(".zoomy-wrap");
-			var mouseMapWrap = zoomyWrap.querySelector('.mouse-map-wrap');
-			var mouseMapImage = zoomyWrap.querySelector(".mouse-map");
-			var img = artworkPieceWrap.firstElementChild;
+  pictures: Array(),
+  isTouchDevice: __WEBPACK_IMPORTED_MODULE_0__utilities__["utilities"].isTouchDevice(),
+  mouseMapEventsAdded: false,
+  mouseMapLessPixelsHalf: __WEBPACK_IMPORTED_MODULE_3__nakasentro__["nakasentro"].mouse_map_less_percentage / 2,
+  currentZoomEventReference: null,
+  init: function () {
+    this.reset();
+    document.querySelectorAll(".artwork_piece[zoom-enabled] .actions .zoom").forEach(function (value, index) {
+      var artworkPieceWrap = value.parentNode.parentNode.parentNode.parentNode;
+      var zoomyWrap = artworkPieceWrap.querySelector(".zoomy-wrap");
+      var mouseMapWrap = zoomyWrap.querySelector('.mouse-map-wrap');
+      var mouseMapImage = zoomyWrap.querySelector(".mouse-map");
+      var img = artworkPieceWrap.firstElementChild;
 
-			// add zoomy pictures index value to artworkpiece wrap for reference in nakasentro
-			artworkPieceWrap.setAttribute('zoomy-pictures-index', index);
+      // add zoomy pictures index value to artworkpiece wrap for reference in nakasentro
+      artworkPieceWrap.setAttribute('zoomy-pictures-index', index);
 
-			this.pictures.push({
-				button: value,
-				index: index,
-				artworksIndex: artworkPieceWrap.getAttribute('artworks-index'),
-				zoomyWrap: zoomyWrap,
-				artworkPieceWrap: artworkPieceWrap,
-				image: img,
-				imageRotation: artworkPieceWrap.classList.contains('width')
-					? 'width'
-					: 'height',
-				mouseMapWrap: mouseMapWrap,
-				mouseMapImage: mouseMapImage,
-				mouseMapImageHeight: mouseMapImage.clientHeight,
-				mouseMapImageWidth: mouseMapImage.clientWidth,
-				mouseMoveHandler: null,
-				touchMoveHandler: null,
-				isZoomed: false,
-				scaleWidth: mouseMapImage.getAttribute('scaleWidth'),
-				scaleHeight: mouseMapImage.getAttribute('scaleHeight'),
-			});
+      this.pictures.push({
+        button: value,
+        index: index,
+        artworksIndex: artworkPieceWrap.getAttribute('artworks-index'),
+        zoomyWrap: zoomyWrap,
+        artworkPieceWrap: artworkPieceWrap,
+        image: img,
+        imageRotation: artworkPieceWrap.classList.contains('width')
+          ? 'width'
+          : 'height',
+        mouseMapWrap: mouseMapWrap,
+        mouseMapImage: mouseMapImage,
+        mouseMapImageHeight: mouseMapImage.clientHeight,
+        mouseMapImageWidth: mouseMapImage.clientWidth,
+        mouseMoveHandler: null,
+        touchMoveHandler: null,
+        isZoomed: false,
+        scaleWidth: mouseMapImage.getAttribute('scaleWidth'),
+        scaleHeight: mouseMapImage.getAttribute('scaleHeight'),
+      });
 
-			// here we bind the picture object to the move event handlers so that we can remove them later: https://kostasbariotis.com/removeeventlistener-and-this/
-			this.pictures[index].mouseMoveHandler = this.mapMouseToImage.bind(this.pictures[index]);
-			this.pictures[index].touchMoveHandler = this.mapMouseToImage.bind(this.pictures[index]);
+      // here we bind the picture object to the move event handlers so that we can remove them later: https://kostasbariotis.com/removeeventlistener-and-this/
+      this.pictures[index].mouseMoveHandler = this.mapMouseToImage.bind(this.pictures[index]);
+      this.pictures[index].touchMoveHandler = this.mapMouseToImage.bind(this.pictures[index]);
 
-			// set up the click event to toggle the magnifier for both button and image itself
-			value.addEventListener("click", this.toggleZoom.bind(this.pictures[index]));
-			mouseMapWrap.addEventListener("click", this.toggleZoom.bind(this.pictures[index]));
-			if (this.isTouchDevice) {
-				document.body.classList.add("is-touch");
-			}
-		}, zoomy);
-	},
+      // set up the click event to toggle the magnifier for both button and image itself
+      value.addEventListener('click', this.toggleZoom.bind(this.pictures[index]));
+      mouseMapWrap.addEventListener('click', this.toggleZoom.bind(this.pictures[index]));
 
-	reset: function () {
-		this.pictures = Array();
-	},
+      if (this.isTouchDevice) {
+        document.body.classList.add("is-touch");
+      }
+    }, zoomy);
+  },
 
-	possiblyImmediatelyRemoveZoom: function(){
-		/* eslint-disable */
-		if (Barba.FullScreen.isFullscreen === true) {
-			/* eslint-enable */
+  possiblyRemoveZoom: function (e) {
+    console.log(e);
+    if (e.target.classList.contains('mouse-map') === false) {
+      //clicked outside of mouse-map, zoom out
+      zoomy.toggleZoom.call(this, e);
+    }
+  },
 
-		}
-	},
+  reset: function () {
+    this.pictures = Array();
+  },
 
-	removeArtworkZoomByPictureIndex: function (index) {
-		zoomy.pictures[index].artworkPieceWrap.classList.toggle("zoomed");
-		zoomy.pictures[index].isZoomed = false;
-		// mobile devices get body locked/unlocked
-		if (zoomy.isTouchDevice) {
-			Object(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__["clearAllBodyScrollLocks"])(this.pictures[index].mouseMapImage);
-		}
+  possiblyImmediatelyRemoveZoom: function () {
+    /* eslint-disable */
+    if (Barba.FullScreen.isFullscreen === true) {
+      /* eslint-enable */
 
-		zoomy.removeMouseMoveEvents.call(zoomy.pictures[index]);
-	},
+    }
+  },
 
-	addMouseMoveEvents: function () {
-		zoomy.mouseMapEventsAdded = true;
-		document.body.addEventListener("mousemove", this.mouseMoveHandler, {passive: true});
-		document.body.addEventListener("touchmove", this.touchMoveHandler, {passive: true});
-	},
+  removeArtworkZoomByPictureIndex: function (index) {
+    zoomy.pictures[index].artworkPieceWrap.classList.toggle("zoomed");
+    zoomy.pictures[index].isZoomed = false;
+    // mobile devices get body locked/unlocked
+    if (zoomy.isTouchDevice) {
+      Object(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__["clearAllBodyScrollLocks"])(this.pictures[index].mouseMapImage);
+    }
 
-	removeMouseMoveEvents: function () {
-		zoomy.mouseMapEventsAdded = false;
-		document.body.removeEventListener("mousemove", this.mouseMoveHandler, false);
-		document.body.removeEventListener("touchmove", this.touchMoveHandler, false);
-	},
+    zoomy.removeMouseMoveEvents.call(zoomy.pictures[index]);
+  },
 
-	setTimeoutRemoveDelayClass: function (element) {
-		var this$1 = this;
+  addMouseMoveEvents: function () {
+    zoomy.mouseMapEventsAdded = true;
+    document.body.addEventListener("mousemove", this.mouseMoveHandler, {passive: true});
+    document.body.addEventListener("touchmove", this.touchMoveHandler, {passive: true});
+  },
 
-		// this delay needs to be associated with the $zoom-transition-duration variable found in _artwork-piece.scss
-		window.setTimeout(function () {
-			// todo make sure this is working
-			this$1.removeZoomedDelayClass(element.artworkPieceWrap);
-		}, 500);
-	},
+  removeMouseMoveEvents: function () {
+    zoomy.mouseMapEventsAdded = false;
+    document.body.removeEventListener("mousemove", this.mouseMoveHandler, false);
+    document.body.removeEventListener("touchmove", this.touchMoveHandler, false);
+  },
 
-	removeZoomedDelayClass: function (element) {
-		element.classList.remove('zoomed-delay');
-	},
+  setTimeoutRemoveDelayClass: function (element) {
+    var this$1 = this;
 
-	toggleZoom: function (e) {
+    // this delay needs to be associated with the $zoom-transition-duration variable found in _artwork-piece.scss
+    window.setTimeout(function () {
+      // todo make sure this is working
+      this$1.removeZoomedDelayClass(element.artworkPieceWrap);
+    }, 500);
+  },
 
-		//move zoom image to cursor/touch point
-		if (e.currentTarget.classList.contains('mouse-map') || e.currentTarget.classList.contains('mouse-map-wrap')) {
-			zoomy.mapMouseToImage.call(this, e);
-		}
+  removeZoomedDelayClass: function (element) {
+    element.classList.remove('zoomed-delay');
+  },
 
-		this.artworkPieceWrap.classList.toggle("zoomed");
-		// document.body.classList.toggle("zoomed");
+  toggleZoom: function (e) {
 
-		// toggle the picture aray element zoomed value
-		this.isZoomed = !this.isZoomed;
+    //move zoom image to cursor/touch point
+    if (e.currentTarget.classList.contains('mouse-map') || e.currentTarget.classList.contains('mouse-map-wrap')) {
+      zoomy.mapMouseToImage.call(this, e);
+    }
 
-		// mobile devices get body locked/unlocked
-		if (zoomy.isTouchDevice) {
-			if (this.isZoomed === true) {
-				Object(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__["disableBodyScroll"])(this.mouseMapImage);
-			} else {
-				Object(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__["clearAllBodyScrollLocks"])(this.mouseMapImage);
-			}
-		}
+    this.artworkPieceWrap.classList.toggle("zoomed");
+    // document.body.classList.toggle("zoomed");
 
-		// add or remove the delay class used for animation
-		if (this.isZoomed === false) {
-			zoomy.setTimeoutRemoveDelayClass(this);
-		} else {
-			this.artworkPieceWrap.classList.add('zoomed-delay');
-		}
+    // toggle the picture aray element zoomed value
+    this.isZoomed = !this.isZoomed;
 
-		// add or remove touch/mousemove events
-		if (this.isZoomed === true && zoomy.mouseMapEventsAdded === false) {
-			zoomy.addMouseMoveEvents.call(this);
-		} else if (zoomy.mouseMapEventsAdded) {
-			zoomy.removeMouseMoveEvents.call(this);
-		}
-	},
-	mapMouseToImage: function () {
-		var mouseMap = this.mouseMapImage;
-		var position = __WEBPACK_IMPORTED_MODULE_2__mousePosition__["mousePosition"].mousePositionElement(this.mouseMapImage);
+    // mobile devices get body locked/unlocked
+    if (zoomy.isTouchDevice) {
+      if (this.isZoomed === true) {
+        Object(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__["disableBodyScroll"])(this.mouseMapImage);
+      } else {
+        Object(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__["clearAllBodyScrollLocks"])(this.mouseMapImage);
+      }
+    }
 
-		// if (position.x > 0) {
-			var leftPercentage = 0;
-			var topPercentage = 0;
+    // add or remove the delay class used for animation
+    if (this.isZoomed === false) {
+      zoomy.setTimeoutRemoveDelayClass(this);
+    } else {
+      this.artworkPieceWrap.classList.add('zoomed-delay');
+    }
 
-			if (__WEBPACK_IMPORTED_MODULE_3__nakasentro__["nakasentro"].artworks[this.artworksIndex].imageCentered === true) {
-				// image centered
-				// adjust the percentage based on the scale amount (the transfoorm: scale() messes with the sizes somehow
-				if (this.imageRotation === 'width') {
-					leftPercentage = (position.x / mouseMap.clientWidth) * 100;
-					topPercentage = (position.y / (mouseMap.clientWidth * __WEBPACK_IMPORTED_MODULE_3__nakasentro__["nakasentro"].artworks[this.artworksIndex].originalDimensions.imageRatioHeight)) * 100;
-				} else {
-					topPercentage = (position.y / mouseMap.clientHeight) * 100;
-					leftPercentage = (position.x / (mouseMap.clientHeight * __WEBPACK_IMPORTED_MODULE_3__nakasentro__["nakasentro"].artworks[this.artworksIndex].originalDimensions.imageRatioWidth)) * 100;
-				}
-			} else {
-				// image not centered
-				leftPercentage = (position.x / mouseMap.clientWidth) * 100;
-				topPercentage = (position.y / mouseMap.clientHeight) * 100;
-			}
+    // add or remove touch/mousemove events
+    if (this.isZoomed === true && zoomy.mouseMapEventsAdded === false) {
+      zoomy.currentZoomObject = this;
+      zoomy.addMouseMoveEvents.call(this);
+      console.log('adding body click event');
+      zoomy.currentZoomEventReference = zoomy.possiblyRemoveZoom.bind(this);
+      document.body.addEventListener('click', zoomy.currentZoomEventReference);
+    } else if (zoomy.mouseMapEventsAdded) {
+      zoomy.removeMouseMoveEvents.call(this);
+      console.log('removing body click event');
+      console.log(zoomy.currentZoomObject === this);
+      document.body.removeEventListener('click', zoomy.currentZoomEventReference);
+      zoomy.currentZoomEventReference = null;
+    }
+  },
+  mapMouseToImage: function () {
+    var mouseMap = this.mouseMapImage;
+    var position = __WEBPACK_IMPORTED_MODULE_2__mousePosition__["mousePosition"].mousePositionElement(this.mouseMapImage);
 
-			// set max and min values
-			var minValue = -2;
-			var maxValue = 102;
-			topPercentage = topPercentage < minValue
-				? minValue
-				: topPercentage;
-			topPercentage = topPercentage > maxValue
-				? maxValue
-				: topPercentage;
-			leftPercentage = leftPercentage < minValue
-				? minValue
-				: leftPercentage;
-			leftPercentage = leftPercentage > maxValue
-				? maxValue
-				: leftPercentage;
+    // if (position.x > 0) {
+    var leftPercentage = 0;
+    var topPercentage = 0;
 
-			this.mouseMapWrap.style.backgroundPosition = leftPercentage + "% " + topPercentage + "%";
-		// }
-	},
+    if (__WEBPACK_IMPORTED_MODULE_3__nakasentro__["nakasentro"].artworks[this.artworksIndex].imageCentered === true) {
+      // image centered
+      // adjust the percentage based on the scale amount (the transfoorm: scale() messes with the sizes somehow
+      if (this.imageRotation === 'width') {
+        leftPercentage = (position.x / mouseMap.clientWidth) * 100;
+        topPercentage = (position.y / (mouseMap.clientWidth * __WEBPACK_IMPORTED_MODULE_3__nakasentro__["nakasentro"].artworks[this.artworksIndex].originalDimensions.imageRatioHeight)) * 100;
+      } else {
+        topPercentage = (position.y / mouseMap.clientHeight) * 100;
+        leftPercentage = (position.x / (mouseMap.clientHeight * __WEBPACK_IMPORTED_MODULE_3__nakasentro__["nakasentro"].artworks[this.artworksIndex].originalDimensions.imageRatioWidth)) * 100;
+      }
+    } else {
+      // image not centered
+      leftPercentage = (position.x / mouseMap.clientWidth) * 100;
+      topPercentage = (position.y / mouseMap.clientHeight) * 100;
+    }
+
+    // set max and min values
+    var minValue = -2;
+    var maxValue = 102;
+    topPercentage = topPercentage < minValue
+      ? minValue
+      : topPercentage;
+    topPercentage = topPercentage > maxValue
+      ? maxValue
+      : topPercentage;
+    leftPercentage = leftPercentage < minValue
+      ? minValue
+      : leftPercentage;
+    leftPercentage = leftPercentage > maxValue
+      ? maxValue
+      : leftPercentage;
+
+    this.mouseMapWrap.style.backgroundPosition = leftPercentage + "% " + topPercentage + "%";
+    // }
+  },
 };
 
 
