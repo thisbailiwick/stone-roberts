@@ -26,18 +26,12 @@ header.banner {
       position: static;
       top: 0;
       left: 0;
-      width: 399px;
+      width: 420px;
 
       @include breakpoint($xs-sm-only) {
         width: calc( 100% - 131px );
         margin: 84px 0 69px;
         padding: 0;
-      }
-
-      span{
-        display: block;
-        background: url($image-path + 'logo.png') no-repeat center/contain transparent;
-        height: 88px;
       }
     }
     .nav-primary {

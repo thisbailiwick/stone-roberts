@@ -2216,7 +2216,7 @@ header.banner .container .brand {
   position: static;
   top: 0;
   left: 0;
-  width: 399px;
+  width: 420px;
 }
 
 @media screen and (min-width: 0px) and (max-width: 767px) {
@@ -2225,12 +2225,6 @@ header.banner .container .brand {
     margin: 84px 0 69px;
     padding: 0;
   }
-}
-
-header.banner .container .brand span {
-  display: block;
-  background: url("/app/themes/stone-roberts-anew/dist/images/logo.png") no-repeat center/contain transparent;
-  height: 88px;
 }
 
 header.banner .container .nav-primary {

@@ -1,8 +1,8 @@
 <header class="banner">
 	<div class="container">
 		<div class="fullscreen-toggle"></div>
-		<a class="brand hide-text"
-				href="<?php echo e(home_url('/')); ?>"><span><?php echo e(get_bloginfo('name', 'display')); ?></span></a>
+		<a class="brand"
+				href="<?php echo e(home_url('/')); ?>"><img src="/app/themes/stone-roberts-anew/dist/images/logo.png" alt="Stone Roberts - Paintings and Drawings"></a>
 		<nav class="nav-primary">
 			
 				

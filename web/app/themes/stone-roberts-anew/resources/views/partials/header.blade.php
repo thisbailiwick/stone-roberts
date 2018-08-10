@@ -1,8 +1,8 @@
 <header class="banner">
 	<div class="container">
 		<div class="fullscreen-toggle"></div>
-		<a class="brand hide-text"
-				href="{{ home_url('/') }}"><span>{{ get_bloginfo('name', 'display') }}</span></a>
+		<a class="brand"
+				href="{{ home_url('/') }}"><img src="/app/themes/stone-roberts-anew/dist/images/logo.png" alt="Stone Roberts - Paintings and Drawings"></a>
 		<nav class="nav-primary">
 			{{--@if (has_nav_menu('primary_navigation'))--}}
 				{{--{!! wp_nav_menu(['theme_location' => 'primary_navigation', 'menu_class' => 'nav']) !!}--}}
