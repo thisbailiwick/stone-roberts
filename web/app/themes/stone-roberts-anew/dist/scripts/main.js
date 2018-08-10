@@ -4245,9 +4245,6 @@ if (__WEBPACK_IMPORTED_MODULE_0_js_cookie___default.a.get('splashseen') === unde
 		if (Barba.FullScreen.browserSupportsFullscreen) {
 			Barba.FullScreen.showModal();
 			/* eslint-enable */
-
-			document.addEventListener('barbaFullScreenPreferenceYes', barbaFullScreenPreferenceYes, false);
-			document.addEventListener('barbaFullScreenPreferenceNo', barbaFullScreenPreferenceNo, false);
 		} else {
 			document.body.classList.remove('show-splash', 'show-splash-transition');
 		}
@@ -4255,6 +4252,9 @@ if (__WEBPACK_IMPORTED_MODULE_0_js_cookie___default.a.get('splashseen') === unde
 		__WEBPACK_IMPORTED_MODULE_0_js_cookie___default.a.set('splashseen', 'true', {expires: 365});
 	});
 }
+document.addEventListener('barbaFullScreenPreferenceYes', barbaFullScreenPreferenceYes, false);
+document.addEventListener('barbaFullScreenPreferenceNo', barbaFullScreenPreferenceNo, false);
+
 
 /***/ }),
 /* 18 */
@@ -9563,6 +9563,7 @@ Router.prototype.loadEvents = function loadEvents () {
 			/* eslint-enable */
 			showFullscreenModal: true,
 			manualModal: true,
+      showModalOnNewSession: true,
 			manualFullScreenToggle: true,
 		});
 

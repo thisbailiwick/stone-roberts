@@ -146,6 +146,7 @@ export default {
 			/* eslint-enable */
 			showFullscreenModal: true,
 			manualModal: true,
+      showModalOnNewSession: true,
 			manualFullScreenToggle: true,
 		});
 

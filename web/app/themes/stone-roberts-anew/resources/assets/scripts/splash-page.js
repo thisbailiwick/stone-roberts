@@ -34,9 +34,6 @@ if (Cookies.get('splashseen') === undefined) {
 		if (Barba.FullScreen.browserSupportsFullscreen) {
 			Barba.FullScreen.showModal();
 			/* eslint-enable */
-
-			document.addEventListener('barbaFullScreenPreferenceYes', barbaFullScreenPreferenceYes, false);
-			document.addEventListener('barbaFullScreenPreferenceNo', barbaFullScreenPreferenceNo, false);
 		} else {
 			document.body.classList.remove('show-splash', 'show-splash-transition');
 		}
@@ -44,3 +41,5 @@ if (Cookies.get('splashseen') === undefined) {
 		Cookies.set('splashseen', 'true', {expires: 365});
 	});
 }
+document.addEventListener('barbaFullScreenPreferenceYes', barbaFullScreenPreferenceYes, false);
+document.addEventListener('barbaFullScreenPreferenceNo', barbaFullScreenPreferenceNo, false);
