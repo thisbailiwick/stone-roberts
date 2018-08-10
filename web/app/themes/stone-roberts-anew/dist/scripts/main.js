@@ -3275,13 +3275,17 @@ var zoomy = {
       zoomy.addMouseMoveEvents.call(this);
       console.log('adding body click event');
       zoomy.currentZoomEventReference = zoomy.possiblyRemoveZoom.bind(this);
-      document.body.addEventListener('click', zoomy.currentZoomEventReference);
+      window.setTimeout(function () {
+        document.body.addEventListener('click', zoomy.currentZoomEventReference);
+      }, 10);
     } else if (zoomy.mouseMapEventsAdded) {
       zoomy.removeMouseMoveEvents.call(this);
       console.log('removing body click event');
       console.log(zoomy.currentZoomObject === this);
-      document.body.removeEventListener('click', zoomy.currentZoomEventReference);
-      zoomy.currentZoomEventReference = null;
+      window.setTimeout(function () {
+        document.body.removeEventListener('click', zoomy.currentZoomEventReference);
+        zoomy.currentZoomEventReference = null;
+      }, 10);
     }
   },
   mapMouseToImage: function () {
