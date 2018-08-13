@@ -9,6 +9,7 @@ export let zoomy = {
   mouseMapEventsAdded: false,
   mouseMapLessPixelsHalf: nakasentro.mouse_map_less_percentage / 2,
   currentZoomEventReference: null,
+  currentZoomObject: null,
   init: function () {
     this.reset();
     document.querySelectorAll(".artwork_piece[zoom-enabled] .actions .zoom").forEach(function (value, index) {
@@ -35,6 +36,7 @@ export let zoomy = {
         mouseMapImage: mouseMapImage,
         mouseMapImageHeight: mouseMapImage.clientHeight,
         mouseMapImageWidth: mouseMapImage.clientWidth,
+        mouseMapEventsAdded: false,
         mouseMoveHandler: null,
         touchMoveHandler: null,
         isZoomed: false,
@@ -79,6 +81,8 @@ export let zoomy = {
   removeArtworkZoomByPictureIndex: function (index) {
     zoomy.pictures[index].artworkPieceWrap.classList.toggle("zoomed");
     zoomy.pictures[index].isZoomed = false;
+
+    zoomy.unsetCurrentZoomObject();
     // mobile devices get body locked/unlocked
     if (zoomy.isTouchDevice) {
       clearAllBodyScrollLocks(this.pictures[index].mouseMapImage);
@@ -89,12 +93,14 @@ export let zoomy = {
 
   addMouseMoveEvents: function () {
     zoomy.mouseMapEventsAdded = true;
+    this.mouseMapEventsAdded = true;
     document.body.addEventListener("mousemove", this.mouseMoveHandler, {passive: true});
     document.body.addEventListener("touchmove", this.touchMoveHandler, {passive: true});
   },
 
   removeMouseMoveEvents: function () {
     zoomy.mouseMapEventsAdded = false;
+    this.mouseMapEventsAdded = false;
     document.body.removeEventListener("mousemove", this.mouseMoveHandler, false);
     document.body.removeEventListener("touchmove", this.touchMoveHandler, false);
   },
@@ -120,7 +126,7 @@ export let zoomy = {
 
     this.artworkPieceWrap.classList.toggle("zoomed");
     // document.body.classList.toggle("zoomed");
-
+    console.log('this.isZoomed pre: ', this.isZoomed);
     // toggle the picture aray element zoomed value
     this.isZoomed = !this.isZoomed;
 
@@ -134,30 +140,57 @@ export let zoomy = {
     }
 
     // add or remove the delay class used for animation
+    console.log('this: ', this);
+    console.log('this.isZoomed post: ', this.isZoomed);
     if (this.isZoomed === false) {
+      // zooming out
       zoomy.setTimeoutRemoveDelayClass(this);
     } else {
+      // zooming in
       this.artworkPieceWrap.classList.add('zoomed-delay');
+      console.log('zoomy.currentZoomObject: ', zoomy.currentZoomObject);
+      if (zoomy.currentZoomObject !== null && zoomy.currentZoomObject.isZoomed === true) {
+        // there is another image which is already zoomed
+        // let's remove the zoom
+        zoomy.currentZoomObject.artworkPieceWrap.classList.toggle('zoomed');
+        zoomy.currentZoomObject.isZoomed = false;
+        zoomy.setTimeoutRemoveDelayClass(zoomy.currentZoomObject);
+      }
     }
 
     // add or remove touch/mousemove events
-    if (this.isZoomed === true && zoomy.mouseMapEventsAdded === false) {
-      zoomy.currentZoomObject = this;
+    if (this.isZoomed === true && this.mouseMapEventsAdded === false) {
+      // we're zooming in
+      if (zoomy.currentZoomObject !== null) {
+        zoomy.removeObjectZoom.call(zoomy.currentZoomObject);
+      }
+
       zoomy.addMouseMoveEvents.call(this);
-      console.log('adding body click event');
-      zoomy.currentZoomEventReference = zoomy.possiblyRemoveZoom.bind(this);
+      let currentObject = this;
+
       window.setTimeout(function () {
+        console.log('setting zoomy currentzoomobject');
+        zoomy.currentZoomEventReference = zoomy.possiblyRemoveZoom.bind(currentObject);
+        zoomy.currentZoomObject = currentObject;
         document.body.addEventListener('click', zoomy.currentZoomEventReference);
       }, 10);
-    } else if (zoomy.mouseMapEventsAdded) {
-      zoomy.removeMouseMoveEvents.call(this);
-      console.log('removing body click event');
-      console.log(zoomy.currentZoomObject === this);
-      window.setTimeout(function () {
-        document.body.removeEventListener('click', zoomy.currentZoomEventReference);
-        zoomy.currentZoomEventReference = null;
-      }, 10);
+
+    } else if (this.mouseMapEventsAdded === true) {
+      // we're zooming out
+      zoomy.removeObjectZoom.call(this);
     }
+  },
+  unsetCurrentZoomObject: function () {
+    document.body.removeEventListener('click', zoomy.currentZoomEventReference);
+    zoomy.currentZoomEventReference = null;
+    console.log('removing zoomy currentzoomobject');
+    zoomy.currentZoomObject = null;
+  },
+  removeObjectZoom: function () {
+    zoomy.removeMouseMoveEvents.call(this);
+    window.setTimeout(function () {
+      zoomy.unsetCurrentZoomObject();
+    }, 10);
   },
   mapMouseToImage: function () {
     var mouseMap = this.mouseMapImage;
