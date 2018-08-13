@@ -126,7 +126,6 @@ export let zoomy = {
 
     this.artworkPieceWrap.classList.toggle("zoomed");
     // document.body.classList.toggle("zoomed");
-    console.log('this.isZoomed pre: ', this.isZoomed);
     // toggle the picture aray element zoomed value
     this.isZoomed = !this.isZoomed;
 
@@ -140,15 +139,12 @@ export let zoomy = {
     }
 
     // add or remove the delay class used for animation
-    console.log('this: ', this);
-    console.log('this.isZoomed post: ', this.isZoomed);
     if (this.isZoomed === false) {
       // zooming out
       zoomy.setTimeoutRemoveDelayClass(this);
     } else {
       // zooming in
       this.artworkPieceWrap.classList.add('zoomed-delay');
-      console.log('zoomy.currentZoomObject: ', zoomy.currentZoomObject);
       if (zoomy.currentZoomObject !== null && zoomy.currentZoomObject.isZoomed === true) {
         // there is another image which is already zoomed
         // let's remove the zoom
@@ -169,10 +165,10 @@ export let zoomy = {
       let currentObject = this;
 
       window.setTimeout(function () {
-        console.log('setting zoomy currentzoomobject');
+        console.log('setting zoomy currentzoomobject', currentObject);
         zoomy.currentZoomEventReference = zoomy.possiblyRemoveZoom.bind(currentObject);
         zoomy.currentZoomObject = currentObject;
-        document.body.addEventListener('click', zoomy.currentZoomEventReference);
+        nakasentro.fullscreen.addEventListener('click', zoomy.currentZoomEventReference);
       }, 10);
 
     } else if (this.mouseMapEventsAdded === true) {
@@ -181,9 +177,9 @@ export let zoomy = {
     }
   },
   unsetCurrentZoomObject: function () {
-    document.body.removeEventListener('click', zoomy.currentZoomEventReference);
+    console.log('removing zoomy currentzoomobject', zoomy.currentZoomObject);
+    nakasentro.fullscreen.removeEventListener('click', zoomy.currentZoomEventReference);
     zoomy.currentZoomEventReference = null;
-    console.log('removing zoomy currentzoomobject');
     zoomy.currentZoomObject = null;
   },
   removeObjectZoom: function () {

@@ -60,9 +60,8 @@ body.front {
   }
 
   .fullscreen {
-    //background: transparent;
     background-color: $background;
-    //transition-duration: .75s;
+    //cursor: pointer;
 
     .fullscreen-wrapper {
       @include breakpoint($xs) {
