@@ -3677,7 +3677,7 @@ function init(parentElement) {
         fullscreenWrapper.classList.toggle('showing-thumbnails');
       });
 
-      document.addEventListener('menuVerticalPushOpening', function(){
+      document.addEventListener('menuVerticalPushOpening', function () {
         thumbnailsNav.classList.add('hide');
         Object(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__["clearAllBodyScrollLocks"])(thumbnailsNav);
       });
@@ -3715,10 +3715,7 @@ function addThumbnail(imgSrc, associatedDomElement) {
 
     thumbnailCount++;
     thumbnails.push(associatedDomElement);
-  } else {
-    console.log('found, not added');
   }
-
 }
 
 function setInitFalse() {

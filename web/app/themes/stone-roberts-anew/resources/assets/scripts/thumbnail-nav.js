@@ -56,7 +56,7 @@ function init(parentElement) {
         fullscreenWrapper.classList.toggle('showing-thumbnails');
       });
 
-      document.addEventListener('menuVerticalPushOpening', function(){
+      document.addEventListener('menuVerticalPushOpening', function () {
         thumbnailsNav.classList.add('hide');
         clearAllBodyScrollLocks(thumbnailsNav);
       });
@@ -96,10 +96,7 @@ function addThumbnail(imgSrc, associatedDomElement) {
 
     thumbnailCount++;
     thumbnails.push(associatedDomElement);
-  } else {
-    console.log('found, not added');
   }
-
 }
 
 function setInitFalse() {
