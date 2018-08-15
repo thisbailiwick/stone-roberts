@@ -4,7 +4,7 @@ import {zoomy} from '../zoomy';
 import {nakasentro} from '../nakasentro';
 import {artworkInfo} from '../artwork-info';
 import * as initMenuVerticalPush from '../../../../../../mu-plugins/menu-vertical-push/menu-vertical-push';
-import {init as thumbnailInit, setInitFalse as setThumbnailInitFalse} from '../thumbnail-nav';
+import {init as thumbnailInit, resetThumbnailCount, setInitFalse as setThumbnailInitFalse} from '../thumbnail-nav';
 import reframe from "reframe.js";
 import {processYouTubeIframes/*, youTubeIframeAPIReady*/} from '../youtube';
 
@@ -66,7 +66,8 @@ export default {
 
 				// init thumbnails
 				if (document.body.classList.contains('template-projects')) {
-					setThumbnailInitFalse();
+          setThumbnailInitFalse();
+          resetThumbnailCount();
 					thumbnailInit(document.querySelector('.main'));
 				}
 
@@ -146,8 +147,8 @@ export default {
 			/* eslint-enable */
 			showFullscreenModal: true,
 			manualModal: true,
-      showModalOnNewSession: true,
 			manualFullScreenToggle: true,
+      showingSplash: true,
 		});
 
 	},

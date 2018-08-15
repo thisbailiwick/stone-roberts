@@ -1,4 +1,4 @@
-@import url(https://cloud.typography.com/7063492/6582372/css/fonts.css);/*********************
+/*********************
 BREAKPOINTS
 *********************/
 
@@ -1472,6 +1472,10 @@ body:not(.template-projects) #thumbnail-trigger {
   display: none;
 }
 
+body.main-menu-open #thumbnail-trigger {
+  display: none;
+}
+
 .is-touch #thumbnail-trigger {
   top: 10px;
   right: 10px;
@@ -1977,23 +1981,6 @@ body.centered-image .banner .brand.centered h3 {
   opacity: 0;
 }
 
-body.centered-image #thumbnail-trigger,
-body.centered-image .hamburger,
-body.centered-image .center-scroll-arrows,
-body.centered-image .fullscreen-toggle {
-  opacity: .1;
-  -webkit-transition-duration: .25s;
-       -o-transition-duration: .25s;
-          transition-duration: .25s;
-}
-
-body.centered-image #thumbnail-trigger:hover,
-body.centered-image .hamburger:hover,
-body.centered-image .center-scroll-arrows:hover,
-body.centered-image .fullscreen-toggle:hover {
-  opacity: 1;
-}
-
 body.is-touch .artwork_piece .main-img {
   max-width: 100vw;
   max-height: none !important;
@@ -2047,6 +2034,10 @@ body.viewport-resizing .artwork_piece {
 
 body.orientation-landscape.zoomed .artwork-meta {
   z-index: 0;
+}
+
+body.artwork-compare-show .image-space-placeholder {
+  opacity: 0;
 }
 
 @media screen and (max-width: 630px) {

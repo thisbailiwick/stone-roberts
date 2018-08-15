@@ -21,8 +21,10 @@ export let artworkInfo = {
 	toggleInfo: function () {
 		let infoData = this;
 		if (artworkInfo.showing) {
+      document.body.classList.remove('artwork-compare-show');
 			clearAllBodyScrollLocks();
 		} else {
+      document.body.classList.add('artwork-compare-show');
 			disableBodyScroll();
 		}
 		infoData.artworkWrap.classList.toggle("show-info");

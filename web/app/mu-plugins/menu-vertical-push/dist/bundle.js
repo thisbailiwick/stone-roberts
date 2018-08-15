@@ -115,8 +115,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "init", function() { return init; });
 /* harmony import */ var hamburgers__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! hamburgers */ "./node_modules/hamburgers/index.js");
 /* harmony import */ var hamburgers__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(hamburgers__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var body_scroll_lock__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! body-scroll-lock */ "./node_modules/body-scroll-lock/lib/bodyScrollLock.js");
-/* harmony import */ var body_scroll_lock__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(body_scroll_lock__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var custom_event__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! custom-event */ "./node_modules/custom-event/index.js");
+/* harmony import */ var custom_event__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(custom_event__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var body_scroll_lock__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! body-scroll-lock */ "./node_modules/body-scroll-lock/lib/bodyScrollLock.js");
+/* harmony import */ var body_scroll_lock__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(body_scroll_lock__WEBPACK_IMPORTED_MODULE_2__);
+
 
 
 
@@ -148,9 +151,9 @@ function init() {
 	hamburger.addEventListener('click', function () {
 		toggleMenu();
 		if (!this.classList.contains('is-active')) {
-			Object(body_scroll_lock__WEBPACK_IMPORTED_MODULE_1__["disableBodyScroll"])(navPrimary);
+			Object(body_scroll_lock__WEBPACK_IMPORTED_MODULE_2__["disableBodyScroll"])(navPrimary);
 		} else {
-			Object(body_scroll_lock__WEBPACK_IMPORTED_MODULE_1__["clearAllBodyScrollLocks"])(navPrimary);
+			Object(body_scroll_lock__WEBPACK_IMPORTED_MODULE_2__["clearAllBodyScrollLocks"])(navPrimary);
 		}
 		this.classList.toggle('is-active');
 	}, false);
@@ -160,7 +163,7 @@ function init() {
 
 const menuLinkClick = () => {
 	toggleMenu();
-	Object(body_scroll_lock__WEBPACK_IMPORTED_MODULE_1__["clearAllBodyScrollLocks"])(navPrimary);
+	Object(body_scroll_lock__WEBPACK_IMPORTED_MODULE_2__["clearAllBodyScrollLocks"])(navPrimary);
 	hamburger.classList.remove('is-active');
 };
 
@@ -180,9 +183,22 @@ const getHamburgerHtml = () => {
 
 const toggleMenu = () => {
 	outerHeight(menuWrap);
+	document.body.classList.toggle('main-menu-open');
 	if (menuWrap.classList.contains('open')) {
+		document.dispatchEvent(
+			new CustomEvent('menuVerticalPushClosing', {
+				bubbles: false,
+				cancelable: false
+			})
+		);
 		menuWrap.classList.remove('open');
 	} else {
+		document.dispatchEvent(
+			new CustomEvent('menuVerticalPushOpening', {
+				bubbles: false,
+				cancelable: false
+			})
+		);
 		menuWrap.classList.add('open');
 	}
 };
@@ -366,6 +382,66 @@ var enableBodyScroll = exports.enableBodyScroll = function enableBodyScroll(targ
     firstTargetElement = null;
   }
 };
+
+/***/ }),
+
+/***/ "./node_modules/custom-event/index.js":
+/*!********************************************!*\
+  !*** ./node_modules/custom-event/index.js ***!
+  \********************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+/* WEBPACK VAR INJECTION */(function(global) {
+var NativeCustomEvent = global.CustomEvent;
+
+function useNative () {
+  try {
+    var p = new NativeCustomEvent('cat', { detail: { foo: 'bar' } });
+    return  'cat' === p.type && 'bar' === p.detail.foo;
+  } catch (e) {
+  }
+  return false;
+}
+
+/**
+ * Cross-browser `CustomEvent` constructor.
+ *
+ * https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent.CustomEvent
+ *
+ * @public
+ */
+
+module.exports = useNative() ? NativeCustomEvent :
+
+// IE >= 9
+'undefined' !== typeof document && 'function' === typeof document.createEvent ? function CustomEvent (type, params) {
+  var e = document.createEvent('CustomEvent');
+  if (params) {
+    e.initCustomEvent(type, params.bubbles, params.cancelable, params.detail);
+  } else {
+    e.initCustomEvent(type, false, false, void 0);
+  }
+  return e;
+} :
+
+// IE <= 8
+function CustomEvent (type, params) {
+  var e = document.createEventObject();
+  e.type = type;
+  if (params) {
+    e.bubbles = Boolean(params.bubbles);
+    e.cancelable = Boolean(params.cancelable);
+    e.detail = params.detail;
+  } else {
+    e.bubbles = false;
+    e.cancelable = false;
+    e.detail = void 0;
+  }
+  return e;
+}
+
+/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../webpack/buildin/global.js */ "./node_modules/webpack/buildin/global.js")))
 
 /***/ }),
 
@@ -815,6 +891,37 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 process.umask = function() { return 0; };
+
+
+/***/ }),
+
+/***/ "./node_modules/webpack/buildin/global.js":
+/*!***********************************!*\
+  !*** (webpack)/buildin/global.js ***!
+  \***********************************/
+/*! no static exports found */
+/***/ (function(module, exports) {
+
+var g;
+
+// This works in non-strict mode
+g = (function() {
+	return this;
+})();
+
+try {
+	// This works if eval is allowed (see CSP)
+	g = g || Function("return this")() || (1, eval)("this");
+} catch (e) {
+	// This works if the window reference is available
+	if (typeof window === "object") g = window;
+}
+
+// g can still be undefined, but nothing to do about it...
+// We return undefined, instead of nothing here, so it's
+// easier to handle this case. if(!global) { ...}
+
+module.exports = g;
 
 
 /***/ })

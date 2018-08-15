@@ -100,6 +100,10 @@ body:not(.template-projects) #thumbnail-trigger {
   display: none;
 }
 
+body.main-menu-open #thumbnail-trigger{
+  display: none;
+}
+
 // right now touch does not have any artwork piece button go to capability, so we realign the thumbnail nav
 .is-touch {
   #thumbnail-trigger {

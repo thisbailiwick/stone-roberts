@@ -129,7 +129,7 @@ export let nakasentro = {
       }
 
 
-      // let imageViewportWidthRatio = utilities.windowWidth / artworkElements.artworkImage.clientWidth;
+      // let imageViewbarbaFullScreenPreferenceYesportWidthRatio = utilities.windowWidth / artworkElements.artworkImage.clientWidth;
       // let imageViewportHeightRatio = utilities.windowHeight / artworkElements.artworkImage.clientHeight;
 
       if (artworkElements.artworkImage.clientHeight >= utilities.windowHeight) {

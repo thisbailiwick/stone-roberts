@@ -704,7 +704,7 @@
   transition-duration: .25s;
   transition-property: margin-top; }
   .menu-vertical-push.open .nav-primary {
-    transform: translateY(0); }
+    transform: translateX(0); }
   .menu-vertical-push .nav-primary {
     visibility: hidden; }
     .menu-vertical-push .nav-primary .nav {

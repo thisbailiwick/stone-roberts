@@ -1,4 +1,5 @@
 import 'hamburgers';
+import 'custom-event';
 import {disableBodyScroll, clearAllBodyScrollLocks} from 'body-scroll-lock';
 
 const menuWrap = document.querySelector('header.banner');
@@ -61,9 +62,22 @@ const getHamburgerHtml = () => {
 
 const toggleMenu = () => {
 	outerHeight(menuWrap);
+	document.body.classList.toggle('main-menu-open');
 	if (menuWrap.classList.contains('open')) {
+		document.dispatchEvent(
+			new CustomEvent('menuVerticalPushClosing', {
+				bubbles: false,
+				cancelable: false
+			})
+		);
 		menuWrap.classList.remove('open');
 	} else {
+		document.dispatchEvent(
+			new CustomEvent('menuVerticalPushOpening', {
+				bubbles: false,
+				cancelable: false
+			})
+		);
 		menuWrap.classList.add('open');
 	}
 };

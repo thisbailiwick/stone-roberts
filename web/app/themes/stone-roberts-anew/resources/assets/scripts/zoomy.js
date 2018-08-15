@@ -59,7 +59,6 @@ export let zoomy = {
   },
 
   possiblyRemoveZoom: function (e) {
-    console.log(e);
     if (e.target.classList.contains('mouse-map') === false) {
       //clicked outside of mouse-map, zoom out
       zoomy.toggleZoom.call(this, e);
@@ -165,7 +164,6 @@ export let zoomy = {
       let currentObject = this;
 
       window.setTimeout(function () {
-        console.log('setting zoomy currentzoomobject', currentObject);
         zoomy.currentZoomEventReference = zoomy.possiblyRemoveZoom.bind(currentObject);
         zoomy.currentZoomObject = currentObject;
         nakasentro.fullscreen.addEventListener('click', zoomy.currentZoomEventReference);
@@ -177,7 +175,6 @@ export let zoomy = {
     }
   },
   unsetCurrentZoomObject: function () {
-    console.log('removing zoomy currentzoomobject', zoomy.currentZoomObject);
     nakasentro.fullscreen.removeEventListener('click', zoomy.currentZoomEventReference);
     zoomy.currentZoomEventReference = null;
     zoomy.currentZoomObject = null;
@@ -188,9 +185,9 @@ export let zoomy = {
       zoomy.unsetCurrentZoomObject();
     }, 10);
   },
-  mapMouseToImage: function () {
+  mapMouseToImage: function (e) {
     var mouseMap = this.mouseMapImage;
-    var position = mousePosition.mousePositionElement(this.mouseMapImage);
+    var position = mousePosition.mousePositionElement(this.mouseMapImage, e);
 
     // if (position.x > 0) {
     var leftPercentage = 0;

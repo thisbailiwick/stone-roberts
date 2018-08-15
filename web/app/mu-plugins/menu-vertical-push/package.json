@@ -12,6 +12,7 @@
   "dependencies": {
     "@fortawesome/fontawesome": "^1.1.8",
     "body-scroll-lock": "^2.4.6",
+    "custom-event": "^1.0.1",
     "hamburgers": "^0.9.3"
   },
   "devDependencies": {
