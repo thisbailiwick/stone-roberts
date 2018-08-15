@@ -58,6 +58,7 @@ function init(parentElement) {
 
       document.addEventListener('menuVerticalPushOpening', function(){
         thumbnailsNav.classList.add('hide');
+        clearAllBodyScrollLocks(thumbnailsNav);
       });
     }
 

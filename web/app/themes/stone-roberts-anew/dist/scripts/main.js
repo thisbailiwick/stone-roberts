@@ -3679,6 +3679,7 @@ function init(parentElement) {
 
       document.addEventListener('menuVerticalPushOpening', function(){
         thumbnailsNav.classList.add('hide');
+        Object(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__["clearAllBodyScrollLocks"])(thumbnailsNav);
       });
     }
 
