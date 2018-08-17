@@ -231,12 +231,12 @@
             .image-box-shadow {
               $double-matte: $matte-padding * 2 + unquote('%');
               box-shadow: inset -4px 0px 20px -6px #000;
-              height: calc( 100% - #{$double-matte} );
+              height: calc(100% - #{$double-matte});
               //box-sizing: border-box;
               position: absolute;
               top: 50%;
               transform: translateY(-50%);
-              width: calc( 100% - #{$double-matte} );
+              width: calc(100% - #{$double-matte});
             }
           }
         }
@@ -540,8 +540,14 @@ body {
     }
   }
 
-  &.artwork-compare-show .image-space-placeholder{
-    opacity: 0;
+  &.artwork-compare-show {
+    #thumbnail-trigger{
+      display: none;
+    }
+
+    .image-space-placeholder {
+      opacity: 0;
+    }
   }
 
   @media screen and (max-width: $main-content-max-width + 30px) {

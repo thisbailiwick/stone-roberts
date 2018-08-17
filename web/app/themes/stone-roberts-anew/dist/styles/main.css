@@ -1774,13 +1774,13 @@ body.main-menu-open #thumbnail-trigger {
 .artwork_piece .image-wrap .piece-comparison .comparison-image-wrap .matte .comparison-image-wrap-inner .image-box-shadow {
   -webkit-box-shadow: inset -4px 0px 20px -6px #000;
           box-shadow: inset -4px 0px 20px -6px #000;
-  height: calc( 100% - 20%);
+  height: calc(100% - 20%);
   position: absolute;
   top: 50%;
   -webkit-transform: translateY(-50%);
        -o-transform: translateY(-50%);
           transform: translateY(-50%);
-  width: calc( 100% - 20%);
+  width: calc(100% - 20%);
 }
 
 .artwork_piece .image-wrap .piece-comparison .compared-to {
@@ -2034,6 +2034,10 @@ body.viewport-resizing .artwork_piece {
 
 body.orientation-landscape.zoomed .artwork-meta {
   z-index: 0;
+}
+
+body.artwork-compare-show #thumbnail-trigger {
+  display: none;
 }
 
 body.artwork-compare-show .image-space-placeholder {

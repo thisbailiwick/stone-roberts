@@ -55,9 +55,14 @@ let info = {
 
       this.addImageDimensions.call(this.artworkPieces[index]);
 
+
+      matte.style.paddingLeft = '10%';
+      matte.style.paddingRight = '10%';
       window.setTimeout(function () {
-        matte.style.padding = '10%';
-      }, 10);
+        let matteVerticalPadding = matte.clientHeight * .1;
+        matte.style.paddingTop = matteVerticalPadding + 'px';
+        matte.style.paddingBottom = matteVerticalPadding + 'px';
+      }, 200);
 
       window.addEventListener('resize', this.windowResize.bind(this.artworkPieces[index]));
     }, this);
@@ -69,7 +74,7 @@ let info = {
     // this.imageBoxShadow.style.width = this.dimensionValues.width + "px";
     // this.imageBoxShadow.style.height = this.dimensionValues.height + "px";
 
-    this.comparisonImageWrap.style.width  = this.dimensionValues.width + "px";
+    this.comparisonImageWrap.style.width = this.dimensionValues.width + "px";
     this.comparisonImageWrap.style.height = this.dimensionValues.height + "px";
     // add processed class, toggles visibility
     this.pieceComparisonWrap.classList.add('piece-comparison-processed');
