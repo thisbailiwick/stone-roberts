@@ -2848,7 +2848,7 @@ var nakasentro = {
   },
 
   handlePossibleScrollKeyEvent: function (e) {
-    if (e.code === 'ArrowRight' && e.code === 'ArrowLeft') {
+    if (e.code === 'ArrowRight' || e.code === 'ArrowLeft' || e.code === 'ArrowUp' || e.code === 'ArrowDown') {
       e.preventDefault();
     }
   },
@@ -3433,10 +3433,10 @@ function init() {
 
 		// add keydown events
 		document.addEventListener('keyup', function (e) {
-			if (e.code === 'ArrowLeft') {
+			if (e.code === 'ArrowLeft' || e.code === 'ArrowUp') {
 				e.preventDefault();
 				goPrevious();
-			} else if (e.code === 'ArrowRight') {
+			} else if (e.code === 'ArrowRight'|| e.code === 'ArrowDown') {
 				e.preventDefault();
 				goNext();
 			}

@@ -703,7 +703,7 @@ export let nakasentro = {
   },
 
   handlePossibleScrollKeyEvent: function (e) {
-    if (e.code === 'ArrowRight' && e.code === 'ArrowLeft') {
+    if (e.code === 'ArrowRight' || e.code === 'ArrowLeft' || e.code === 'ArrowUp' || e.code === 'ArrowDown') {
       e.preventDefault();
     }
   },

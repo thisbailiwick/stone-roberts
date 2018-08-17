@@ -35,10 +35,10 @@ function init() {
 
 		// add keydown events
 		document.addEventListener('keyup', (e) => {
-			if (e.code === 'ArrowLeft') {
+			if (e.code === 'ArrowLeft' || e.code === 'ArrowUp') {
 				e.preventDefault();
 				goPrevious();
-			} else if (e.code === 'ArrowRight') {
+			} else if (e.code === 'ArrowRight'|| e.code === 'ArrowDown') {
 				e.preventDefault();
 				goNext();
 			}
