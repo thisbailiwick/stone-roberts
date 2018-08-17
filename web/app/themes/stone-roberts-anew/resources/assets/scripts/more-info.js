@@ -64,9 +64,13 @@ let info = {
         // matte.style.paddingBottom = matteVerticalPadding + 'px';
 
         // set black frame width/height
-        comparisonImageWrap.style.padding = (piece.clientWidth * .06) + 'px';
+        let comparisonImageWrapPadding = (piece.clientWidth * .06);
+        comparisonImageWrap.style.padding = comparisonImageWrapPadding + 'px';
+
         window.setTimeout(function () {
           // set white matte width/height
+          matte.style.width = comparisonImageWrap.clientWidth - (comparisonImageWrapPadding * 2) + 'px';
+          matte.style.height = comparisonImageWrap.clientHeight - (comparisonImageWrapPadding * 2) + 'px';
           matte.style.padding = '15%';
           imageBoxShadow.style.height = piece.clientHeight + 'px';
         }, 200);
