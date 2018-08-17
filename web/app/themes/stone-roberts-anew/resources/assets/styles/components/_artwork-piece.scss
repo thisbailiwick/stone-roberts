@@ -189,7 +189,7 @@
         background: #000;
         display: block;
         //margin-bottom: 29%;
-        padding: 0.6%;
+        //padding: 0.6%;
         //position: static;
         max-height: 100%;
         //top: 19%;
@@ -201,7 +201,8 @@
         left: 50%;
 
         .matte {
-          $matte-padding: 10;
+          // this needs to be kept in sync with the 'matte.style.padding = '15%';' set in more-info.js
+          $matte-padding: 15;
           $matte-padding-percent: $matte-padding + unquote('%');
           background: #fff;
           box-shadow: inset -1px 0px 5px 0px #000;
@@ -231,7 +232,7 @@
             .image-box-shadow {
               $double-matte: $matte-padding * 2 + unquote('%');
               box-shadow: inset -4px 0px 20px -6px #000;
-              height: calc(100% - #{$double-matte});
+              //height: calc(100% - 27%);
               //box-sizing: border-box;
               position: absolute;
               top: 50%;

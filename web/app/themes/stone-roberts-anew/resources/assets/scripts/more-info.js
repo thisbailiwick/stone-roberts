@@ -56,12 +56,20 @@ let info = {
       this.addImageDimensions.call(this.artworkPieces[index]);
 
 
-      matte.style.paddingLeft = '10%';
-      matte.style.paddingRight = '10%';
+      // matte.style.paddingLeft = '10%';
+      // matte.style.paddingRight = '10%';
       window.setTimeout(function () {
-        let matteVerticalPadding = matte.clientHeight * .1;
-        matte.style.paddingTop = matteVerticalPadding + 'px';
-        matte.style.paddingBottom = matteVerticalPadding + 'px';
+        // let matteVerticalPadding = matte.clientHeight * .1;
+        // matte.style.paddingTop = matteVerticalPadding + 'px';
+        // matte.style.paddingBottom = matteVerticalPadding + 'px';
+
+        // set black frame width/height
+        comparisonImageWrap.style.padding = (piece.clientWidth * .06) + 'px';
+        window.setTimeout(function () {
+          // set white matte width/height
+          matte.style.padding = '15%';
+          imageBoxShadow.style.height = piece.clientHeight + 'px';
+        }, 200);
       }, 200);
 
       window.addEventListener('resize', this.windowResize.bind(this.artworkPieces[index]));
@@ -162,7 +170,8 @@ let info = {
       pieceHeight = pieceDimensions.fileHeightRatio * pieceWidth;
     }
 
-    pieceHeight = pieceHeight * 1.0563;
+    // pieceHeight = pieceHeight * 1.0563;
+    // pieceHeight = pieceHeight * 1.0563;
 
     return {width: pieceWidth, height: pieceHeight};
   },
