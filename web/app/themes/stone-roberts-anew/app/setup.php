@@ -153,7 +153,7 @@ HTML;
 
 });
 
-add_filter('body_class',function(){
+add_filter('body_class',function($classes){
      global $is_lynx, $is_gecko, $is_IE, $is_opera, $is_NS4, $is_safari, $is_chrome, $is_iphone;
      if($is_lynx) $classes[] = 'lynx';
      elseif($is_gecko) $classes[] = 'gecko';
