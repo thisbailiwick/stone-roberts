@@ -144,11 +144,10 @@ body.front {
   }
 
   &.windows {
-    overflow: hidden;
-    
+    overflow-x: hidden;
+
     .fullscreen {
-      overflow-y: hidden;
-      overflow-x: hidden;
+      overflow: hidden;
       
       &:fullscreen {
         overflow-y: scroll;
