@@ -146,13 +146,19 @@ body.front {
   &.windows {
     overflow-x: hidden;
 
+
     .fullscreen {
       overflow: hidden;
-      
+
       &:fullscreen {
         overflow-y: scroll;
       }
     }
 
+    &.centered-image{
+      .fullscreen{
+        overflow-y: hidden;
+      }
+    }
   }
 }

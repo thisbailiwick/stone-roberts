@@ -843,6 +843,10 @@ body.front.windows .fullscreen:fullscreen {
   overflow-y: scroll;
 }
 
+body.front.windows.centered-image .fullscreen {
+  overflow-y: hidden;
+}
+
 /** Search form */
 
 /**
