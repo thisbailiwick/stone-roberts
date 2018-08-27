@@ -819,6 +819,10 @@ body.front.centered-image #back-to-top {
   opacity: 0;
 }
 
+body.front.windows {
+  overflow: hidden;
+}
+
 body.front.windows .fullscreen {
   overflow-y: hidden;
   overflow-x: hidden;

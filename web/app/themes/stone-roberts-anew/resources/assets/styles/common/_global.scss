@@ -144,6 +144,8 @@ body.front {
   }
 
   &.windows {
+    overflow: hidden;
+    
     .fullscreen {
       overflow-y: hidden;
       overflow-x: hidden;
