@@ -59,13 +59,13 @@
 
     }
   }
-  
+
   &.playing{
     .play-button, .video-play-screenshot{
       display: none;
     }
   }
-  
+
   &[video-host="vimeo"] .play-button{
     display: none;
   }

@@ -819,6 +819,27 @@ body.front.centered-image #back-to-top {
   opacity: 0;
 }
 
+body.front.windows .fullscreen {
+  overflow-y: hidden;
+  overflow-x: hidden;
+}
+
+body.front.windows .fullscreen:-webkit-full-screen {
+  overflow-y: scroll;
+}
+
+body.front.windows .fullscreen:-moz-full-screen {
+  overflow-y: scroll;
+}
+
+body.front.windows .fullscreen:-ms-fullscreen {
+  overflow-y: scroll;
+}
+
+body.front.windows .fullscreen:fullscreen {
+  overflow-y: scroll;
+}
+
 /** Search form */
 
 /**

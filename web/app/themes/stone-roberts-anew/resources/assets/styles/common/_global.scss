@@ -11,6 +11,7 @@
 :root {
   --vh-offset: 0px;
 }
+
 .cf:before,
 .cf:after {
   content: " "; /* 1 */
@@ -93,18 +94,16 @@ body.front {
     z-index: -300
   }
 
-  .main{
+  .main {
     margin: 0 auto;
     max-width: $main-content-max-width;
 
-
-
-    .alignleft{
+    .alignleft {
       margin-bottom: $image-margin-vertical;
       margin-right: $image-margin-horizontal;
     }
 
-    .alignright{
+    .alignright {
       margin-bottom: $image-margin-vertical;
       margin-left: $image-margin-horizontal;
     }
@@ -142,5 +141,17 @@ body.front {
     #back-to-top {
       opacity: 0;
     }
+  }
+
+  &.windows {
+    .fullscreen {
+      overflow-y: hidden;
+      overflow-x: hidden;
+      
+      &:fullscreen {
+        overflow-y: scroll;
+      }
+    }
+
   }
 }
