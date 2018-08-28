@@ -827,6 +827,13 @@ body.front.windows .fullscreen {
   overflow: hidden;
 }
 
+body.front.windows .fullscreen #thumbnail-trigger,
+body.front.windows .fullscreen .center-scroll-arrows {
+  -webkit-transition-property: top, right;
+  -o-transition-property: top, right;
+  transition-property: top, right;
+}
+
 body.front.windows .fullscreen:-webkit-full-screen {
   overflow-y: scroll;
 }
@@ -843,29 +850,71 @@ body.front.windows .fullscreen:fullscreen {
   overflow-y: scroll;
 }
 
-body.front.windows .fullscreen #thumbnail-trigger {
+body.front.windows .fullscreen:-webkit-full-screen #thumbnail-trigger {
   right: 41px;
-  -webkit-transition-property: top, right;
-  -o-transition-property: top, right;
-  transition-property: top, right;
 }
 
-body.front.windows .fullscreen .center-scroll-arrows {
+body.front.windows .fullscreen:-moz-full-screen #thumbnail-trigger {
+  right: 41px;
+}
+
+body.front.windows .fullscreen:-ms-fullscreen #thumbnail-trigger {
+  right: 41px;
+}
+
+body.front.windows .fullscreen:fullscreen #thumbnail-trigger {
+  right: 41px;
+}
+
+body.front.windows .fullscreen:-webkit-full-screen .center-scroll-arrows {
   right: 42px;
-  -webkit-transition-property: top, right;
-  -o-transition-property: top, right;
-  transition-property: top, right;
+}
+
+body.front.windows .fullscreen:-moz-full-screen .center-scroll-arrows {
+  right: 42px;
+}
+
+body.front.windows .fullscreen:-ms-fullscreen .center-scroll-arrows {
+  right: 42px;
+}
+
+body.front.windows .fullscreen:fullscreen .center-scroll-arrows {
+  right: 42px;
 }
 
 body.front.windows.centered-image .fullscreen {
   overflow-y: hidden;
 }
 
-body.front.windows.centered-image .fullscreen #thumbnail-trigger {
+body.front.windows.centered-image .fullscreen:-webkit-full-screen #thumbnail-trigger {
   right: 21px;
 }
 
-body.front.windows.centered-image .fullscreen .center-scroll-arrows {
+body.front.windows.centered-image .fullscreen:-moz-full-screen #thumbnail-trigger {
+  right: 21px;
+}
+
+body.front.windows.centered-image .fullscreen:-ms-fullscreen #thumbnail-trigger {
+  right: 21px;
+}
+
+body.front.windows.centered-image .fullscreen:fullscreen #thumbnail-trigger {
+  right: 21px;
+}
+
+body.front.windows.centered-image .fullscreen:-webkit-full-screen .center-scroll-arrows {
+  right: 22px;
+}
+
+body.front.windows.centered-image .fullscreen:-moz-full-screen .center-scroll-arrows {
+  right: 22px;
+}
+
+body.front.windows.centered-image .fullscreen:-ms-fullscreen .center-scroll-arrows {
+  right: 22px;
+}
+
+body.front.windows.centered-image .fullscreen:fullscreen .center-scroll-arrows {
   right: 22px;
 }
 

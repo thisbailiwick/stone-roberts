@@ -150,32 +150,35 @@ body.front {
     .fullscreen {
       overflow: hidden;
 
+      #thumbnail-trigger, .center-scroll-arrows{
+        transition-property: top, right;
+      }
+
       &:fullscreen {
         overflow-y: scroll;
-      }
 
-      #thumbnail-trigger{
-        right: 41px;
-        transition-property: top, right;
-      }
+        #thumbnail-trigger{
+          right: 41px;
+        }
 
-      .center-scroll-arrows{
-        right: 42px;
-        transition-property: top, right;
+        .center-scroll-arrows{
+          right: 42px;
+        }
       }
-
     }
 
     &.centered-image{
       .fullscreen{
         overflow-y: hidden;
 
-        #thumbnail-trigger{
-          right: 21px;
-        }
+        &:fullscreen {
+          #thumbnail-trigger {
+            right: 21px;
+          }
 
-        .center-scroll-arrows{
-          right: 22px;
+          .center-scroll-arrows {
+            right: 22px;
+          }
         }
       }
     }
