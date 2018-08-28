@@ -153,11 +153,30 @@ body.front {
       &:fullscreen {
         overflow-y: scroll;
       }
+
+      #thumbnail-trigger{
+        right: 41px;
+        transition-property: top, right;
+      }
+
+      .center-scroll-arrows{
+        right: 42px;
+        transition-property: top, right;
+      }
+
     }
 
     &.centered-image{
       .fullscreen{
         overflow-y: hidden;
+
+        #thumbnail-trigger{
+          right: 21px;
+        }
+
+        .center-scroll-arrows{
+          right: 22px;
+        }
       }
     }
   }
