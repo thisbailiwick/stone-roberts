@@ -1,7 +1,10 @@
 import Cookies from 'js-cookie';
 import {disableBodyScroll, clearAllBodyScrollLocks} from 'body-scroll-lock';
+import _ from 'underscore';
 
 const modal = document.getElementById('splash-modal');
+const splashPageUrls = ['/'];
+const splashSeen = Cookies.get('splashseen');
 
 function barbaFullScreenPreferenceYes() {
 	/* eslint-disable */
@@ -26,12 +29,13 @@ function barbaFullScreenPreferenceNo() {
 	document.body.classList.remove('show-splash', 'show-splash-transition');
 }
 
-if (Cookies.get('splashseen') === undefined) {
+console.log('window.location.pathname: ', window.location.pathname);
+if ( splashSeen === undefined || _.contains(splashPageUrls, window.location.pathname)) {
 	disableBodyScroll(modal);
 	document.body.classList.add('show-splash', 'show-splash-transition');
 	modal.addEventListener('click', function () {
 		/* eslint-disable */
-		if (Barba.FullScreen.browserSupportsFullscreen) {
+		if (Barba.FullScreen.browserSupportsFullscreen && Cookies.get('fullscreen-permanent') !== 'false') {
 			Barba.FullScreen.showModal();
 			/* eslint-enable */
 		} else {

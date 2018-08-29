@@ -142,6 +142,8 @@ export default {
 		});
 		CommonView.init();
 
+    //splashPageUrls needs to be what window.location.pathname returns
+    const splashPageUrls = ['/'];
 		/* eslint-disable */
 		Barba.Pjax.start({
 			/* eslint-enable */
@@ -149,6 +151,7 @@ export default {
 			manualModal: true,
 			manualFullScreenToggle: true,
       showingSplash: true,
+      splashPages: splashPageUrls,
 		});
 
 	},

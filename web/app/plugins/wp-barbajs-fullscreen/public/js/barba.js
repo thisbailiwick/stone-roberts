@@ -1322,6 +1322,7 @@ return /******/ (function(modules) { // webpackBootstrap
 	        this.manualModal = options.manualModal;
 	        this.manualFullScreenToggle = options.manualFullScreenToggle;
 	        this.showingSplash = options.showingSplash;
+	        this.splashPages = options.splashPages;
 	      }
 	      this.initFullscreenModal();
 	
@@ -2736,6 +2737,7 @@ return /******/ (function(modules) { // webpackBootstrap
 			  manualModal: typeof options.manualModal !== 'undefined' ? options.manualModal : false,
 			  manualFullScreenToggle: typeof options.manualFullScreenToggle !== 'undefined' ? options.manualFullScreenToggle : false,
 	      showingSplash: typeof options.showingSplash !== 'undefined' ? options.showingSplash : false,
+	      splashPages: typeof options.splashPages !== 'undefined' ? options.splashPages : false,
 	    };
 	
 	    this.init(options);
