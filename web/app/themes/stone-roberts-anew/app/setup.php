@@ -11,8 +11,8 @@
 	* Theme assets
 	*/
  add_action('wp_enqueue_scripts', function () {
-	wp_enqueue_style('sage/main.css', asset_path('styles/main.css'), false, '2.2');
-	wp_enqueue_script('sage/main.js', asset_path('scripts/main.js'), ['jquery'], '2.5', true);
+	wp_enqueue_style('sage/main.css', asset_path('styles/main.css'), false, '2.3');
+	wp_enqueue_script('sage/main.js', asset_path('scripts/main.js'), ['jquery'], '2.6', true);
  }, 100);
 
  /**

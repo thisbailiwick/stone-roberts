@@ -219,7 +219,9 @@ export let nakasentro = {
     document.body.classList.remove('centered-image');
     window.setTimeout(function () {
       // here we delay removing a class to allow some css transitions to happen
-      nakasentro.imageCenteredElement.classList.remove('centered-image-transition-duration');
+      if (nakasentro.imageCenteredElement !== null) {
+        nakasentro.imageCenteredElement.classList.remove('centered-image-transition-duration');
+      }
     }, 400);
   },
 
