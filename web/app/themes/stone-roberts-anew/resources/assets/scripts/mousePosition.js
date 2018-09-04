@@ -4,13 +4,12 @@ export let mousePosition = {
 	mousePositionDocument: function (e) {
 		var posx = 0;
 		var posy = 0;
-		console.log(e);
 		if (!e) {
 			/* eslint-disable */
 			var e = window.event;
 			/* eslint-enable */
 		}
-		console.log(e.pageX);
+
 		if (e.pageX || e.pageY) {
 			posx = e.pageX;
 			posy = e.pageY;
@@ -32,7 +31,6 @@ export let mousePosition = {
 
 	// Mouse position relative to the element
 	mousePositionElement: function (target, e) {
-    console.log('mousePositionElement', e);
 		var mousePosDoc = this.mousePositionDocument.call(this, e);
 		var targetPos = this.findPos(target);
 		var posx = mousePosDoc.x - targetPos.left;

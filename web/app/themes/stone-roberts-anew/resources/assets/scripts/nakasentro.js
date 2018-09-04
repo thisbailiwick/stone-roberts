@@ -717,6 +717,7 @@ export let nakasentro = {
   },
 
   fullscreenHandleZoomyDivScroll: function () {
+    console.log('scroll event', nakasentro.fixedImageScrollReleaseCount);
     if (nakasentro.fixedImageScrollReleaseCount >= 20) {
       nakasentro.uncenterImageBreakZoom.call(this);
     } else {
@@ -725,21 +726,6 @@ export let nakasentro = {
   },
 
   getNewLength: function (toCenterPercentage, originalDimensionValue) {
-    // console.log(toCenterPercentage);
-    // @t is the current time (or position) of the tween. This can be seconds or frames, steps, seconds, ms, whatever – as long as the unit is the same as is used for the total time [3].
-    // @b is the beginning value of the property.
-    // @c is the change between the beginning and destination value of the property.
-    // @d is the total time of the tween.
-    // TODO: Figure out a better name for lengthValue
-    // let lengthValue = this.browserOrientation === 'portrait' ? artwork.originalDimensions.imageVwValue : artwork.originalDimensions.imageVhValue;
-    // lengthValue = lengthValue * .45;
-
-    // let w = window,
-    //   doc = document,
-    //   e = doc.documentElement,
-    //   g = doc.getElementsByTagName('body')[0],
-    //   x = w.innerWidth || e.clientWidth || g.clientWidth,
-    //   y = w.innerHeight || e.clientHeight || g.clientHeight;
 
     let toCenterPercentagePassed = 100 - toCenterPercentage;
 
