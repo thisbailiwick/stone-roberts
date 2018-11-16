@@ -1,0 +1,25 @@
+.display_none {
+    display: none !important;
+}
+
+.main_loader {
+    width: 100%;
+    position: fixed;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 99;
+    height: 100%;
+    left: 0px;
+    padding-top: 17%;
+}
+
+.main_loader img {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto;
+    display: block;
+}
+
+.main-section {
+    width: 100%;
+    min-width: 1017px;
+}
