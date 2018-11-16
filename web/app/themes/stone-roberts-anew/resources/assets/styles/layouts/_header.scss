@@ -29,7 +29,7 @@ header.banner {
 
       @include breakpoint($xs-sm-only) {
         width: calc( 100% - 131px );
-        margin: 84px 0 69px;
+        margin: 84px auto 69px;
         padding: 0;
       }
     }
