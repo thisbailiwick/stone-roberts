@@ -34,6 +34,7 @@ if ( splashSeen === undefined || _.contains(splashPageUrls, window.location.path
 	disableBodyScroll(modal);
 	document.body.classList.add('show-splash', 'show-splash-transition');
 	modal.addEventListener('click', function () {
+    clearAllBodyScrollLocks();
 		/* eslint-disable */
 		if (Barba.FullScreen.browserSupportsFullscreen && Cookies.get('fullscreen-permanent') !== 'false') {
 			Barba.FullScreen.showModal();
