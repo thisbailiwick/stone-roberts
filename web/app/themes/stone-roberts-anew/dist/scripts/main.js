@@ -9644,7 +9644,7 @@ Router.prototype.loadEvents = function loadEvents () {
 		/* eslint-disable */
 		Barba.Pjax.start({
 			/* eslint-enable */
-			showFullscreenModal: false,
+			showFullscreenModal: true,
 			manualModal: true,
 			manualFullScreenToggle: true,
       showingSplash: true,
