@@ -37,7 +37,7 @@ if ( splashSeen === undefined || _.contains(splashPageUrls, window.location.path
     clearAllBodyScrollLocks();
 		/* eslint-disable */
 		if (Barba.FullScreen.browserSupportsFullscreen && Cookies.get('fullscreen-permanent') !== 'false') {
-			Barba.FullScreen.showModal();
+			// Barba.FullScreen.showModal();
 			/* eslint-enable */
 		} else {
 			document.body.classList.remove('show-splash', 'show-splash-transition');

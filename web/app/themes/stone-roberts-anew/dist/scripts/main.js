@@ -4323,7 +4323,7 @@ if ( splashSeen === undefined || __WEBPACK_IMPORTED_MODULE_2_underscore___defaul
     Object(__WEBPACK_IMPORTED_MODULE_1_body_scroll_lock__["clearAllBodyScrollLocks"])();
 		/* eslint-disable */
 		if (Barba.FullScreen.browserSupportsFullscreen && __WEBPACK_IMPORTED_MODULE_0_js_cookie___default.a.get('fullscreen-permanent') !== 'false') {
-			Barba.FullScreen.showModal();
+			// Barba.FullScreen.showModal();
 			/* eslint-enable */
 		} else {
 			document.body.classList.remove('show-splash', 'show-splash-transition');
