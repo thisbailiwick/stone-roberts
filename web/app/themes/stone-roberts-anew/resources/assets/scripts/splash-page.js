@@ -36,12 +36,12 @@ if ( splashSeen === undefined || _.contains(splashPageUrls, window.location.path
 	modal.addEventListener('click', function () {
     clearAllBodyScrollLocks();
 		/* eslint-disable */
-		if (Barba.FullScreen.browserSupportsFullscreen && Cookies.get('fullscreen-permanent') !== 'false') {
-			// Barba.FullScreen.showModal();
-			/* eslint-enable */
-		} else {
+		// if (Barba.FullScreen.browserSupportsFullscreen && Cookies.get('fullscreen-permanent') !== 'false') {
+		// 	// Barba.FullScreen.showModal();
+		// 	/* eslint-enable */
+		// } else {
 			document.body.classList.remove('show-splash', 'show-splash-transition');
-		}
+		// }
 
 		Cookies.set('splashseen', 'true', {expires: 365});
 	});
